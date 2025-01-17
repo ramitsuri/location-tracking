@@ -1,28 +1,35 @@
 [versions]
 agp = "8.5.2"
 android-compileSdk = "34"
-android-minSdk = "24"
+android-minSdk = "29"
 android-targetSdk = "34"
 androidx-activityCompose = "1.9.3"
 androidx-lifecycle = "2.8.4"
 datastore = "1.1.1"
 compose-multiplatform = "1.7.0"
 coroutines = "1.9.0"
+kermit = "2.0.4"
 kotlin = "2.1.0"
 kotlin-datetime = "0.6.1"
+kotlinxSerializationJson = "1.8.0"
 ksp = "2.1.0-1.0.29"
 ktlint = "12.1.0"
 ktor = "3.0.3"
+lifecycleService = "2.8.7"
+play-services-location = "21.3.0"
 room = "2.7.0-alpha12"
 sqliteBundled = "2.5.0-alpha12"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+androidx-lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.ref = "lifecycleService" }
 androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqliteBundled" }
 datastore = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
 
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-content-negotation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
@@ -31,6 +38,7 @@ ktor-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-jso
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlin-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlin-datetime" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }

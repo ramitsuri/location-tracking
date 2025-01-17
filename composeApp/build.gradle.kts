@@ -24,6 +24,8 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.lifecycle.service)
+            implementation(libs.play.services.location)
 
             implementation(libs.ktor.client.okhttp)
             implementation(libs.ktor.content.negotation)
@@ -46,8 +48,11 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.kermit)
             implementation(libs.ktor.client.core)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlin.datetime)
+            implementation(libs.kotlinx.serialization.json)
         }
 
         jvmTest.dependencies {
