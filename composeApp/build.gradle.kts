@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.ktlint)
     alias(libs.plugins.room)
 }
 
@@ -18,7 +19,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(compose.preview)
@@ -76,10 +77,10 @@ android {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             // Enable if testing
-            //signingConfig signingConfigs.debug
+            // signingConfig signingConfigs.debug
         }
         debug {
             isMinifyEnabled = false
@@ -94,12 +95,23 @@ android {
 }
 
 dependencies {
-    add("kspAndroid", libs.room.compiler)
-    /*add("kspJvm", libs.room.compiler)
+    /*add("kspAndroid", libs.room.compiler)
+    add("kspJvm", libs.room.compiler)
     add("kspJvmTest", libs.room.compiler)*/
     debugImplementation(compose.uiTooling)
 }
 
 room {
     schemaDirectory("$projectDir/schemas")
+}
+
+ktlint {
+    verbose.set(true)
+    outputToConsole.set(true)
+    filter {
+        exclude("**/generated/**")
+        exclude("**/build/**")
+        exclude { element -> element.file.toString().contains("generated/") }
+        exclude { element -> element.file.toString().contains("build/") }
+    }
 }
