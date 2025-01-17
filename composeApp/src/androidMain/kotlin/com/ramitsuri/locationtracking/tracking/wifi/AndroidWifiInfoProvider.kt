@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.wifi
+package com.ramitsuri.locationtracking.tracking.wifi
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -7,7 +7,6 @@ import android.net.NetworkCapabilities
 import android.net.wifi.WifiInfo as AndroidWifiInfo
 import android.os.Build
 import com.ramitsuri.locationtracking.model.WifiInfo
-import com.ramitsuri.locationtracking.network.WifiInfoProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

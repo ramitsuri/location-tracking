@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.location
+package com.ramitsuri.locationtracking.tracking.location
 
 import android.content.Context
 import android.location.Location as AndroidLocation

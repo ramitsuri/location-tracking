@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.location
+package com.ramitsuri.locationtracking.tracking.location
 
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import kotlin.time.Duration

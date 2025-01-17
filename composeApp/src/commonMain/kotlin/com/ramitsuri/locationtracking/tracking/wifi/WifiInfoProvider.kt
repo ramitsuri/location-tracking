@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.network
+package com.ramitsuri.locationtracking.tracking.wifi
 
 import com.ramitsuri.locationtracking.model.WifiInfo
 import kotlinx.coroutines.flow.StateFlow

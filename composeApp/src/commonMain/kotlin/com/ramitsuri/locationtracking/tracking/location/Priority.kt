@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.location
+package com.ramitsuri.locationtracking.tracking.location
 
 enum class Priority(val key: Int) {
     HighAccuracy(3),
