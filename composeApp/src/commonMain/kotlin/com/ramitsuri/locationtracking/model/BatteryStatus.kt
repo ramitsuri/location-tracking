@@ -1,19 +1,20 @@
 package com.ramitsuri.locationtracking.model
 
+import com.ramitsuri.locationtracking.data.DbEnum
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class BatteryStatus {
+enum class BatteryStatus(override val value: String) : DbEnum {
     @SerialName("0")
-    UNKNOWN,
+    UNKNOWN("unknown"),
 
     @SerialName("1")
-    UNPLUGGED,
+    UNPLUGGED("unplugged"),
 
     @SerialName("2")
-    CHARGING,
+    CHARGING("charging"),
 
     @SerialName("3")
-    FULL,
+    FULL("full"),
 }

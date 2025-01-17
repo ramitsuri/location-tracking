@@ -34,10 +34,6 @@ kotlin {
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.kotlin.datetime)
             implementation(libs.datastore)
-
-            implementation(libs.room.ktx)
-            implementation(libs.room.runtime)
-            implementation(libs.androidx.sqlite.bundled)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -53,6 +49,9 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlin.datetime)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.room.ktx)
+            implementation(libs.room.runtime)
+            implementation(libs.androidx.sqlite.bundled)
         }
 
         jvmTest.dependencies {
@@ -100,8 +99,8 @@ android {
 }
 
 dependencies {
-    /*add("kspAndroid", libs.room.compiler)
-    add("kspJvm", libs.room.compiler)
+    add("kspAndroid", libs.room.compiler)
+    /*add("kspJvm", libs.room.compiler)
     add("kspJvmTest", libs.room.compiler)*/
     debugImplementation(compose.uiTooling)
 }

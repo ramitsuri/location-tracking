@@ -1,19 +1,20 @@
 package com.ramitsuri.locationtracking.model
 
+import com.ramitsuri.locationtracking.data.DbEnum
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class MonitoringMode {
+enum class MonitoringMode(override val value: String):DbEnum {
     @SerialName("0")
-    Quiet,
+    Quiet("quiet"),
 
     @SerialName("1")
-    Manual,
+    Manual("manual"),
 
     @SerialName("2")
-    Significant,
+    Significant("significant"),
 
     @SerialName("3")
-    Move,
+    Move("move"),
 }
