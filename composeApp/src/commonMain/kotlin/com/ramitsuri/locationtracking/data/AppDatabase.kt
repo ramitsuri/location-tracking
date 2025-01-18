@@ -21,16 +21,16 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
         @Volatile
-        private var INSTANCE: AppDatabase? = null
+        private var instance: AppDatabase? = null
 
         fun getInstance(dbBuilderProvider: () -> Builder<AppDatabase>): AppDatabase {
-            if (INSTANCE == null) {
-                INSTANCE = dbBuilderProvider()
+            if (instance == null) {
+                instance = dbBuilderProvider()
                     .setDriver(BundledSQLiteDriver())
                     .setQueryCoroutineContext(Dispatchers.IO)
                     .build()
             }
-            return INSTANCE as AppDatabase
+            return instance as AppDatabase
         }
     }
 }

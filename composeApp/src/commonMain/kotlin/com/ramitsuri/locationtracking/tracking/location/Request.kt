@@ -17,7 +17,7 @@ data class Request(
 fun Request.Companion.forMonitoringMode(monitoringMode: MonitoringMode) = when (monitoringMode) {
     MonitoringMode.Quiet,
     MonitoringMode.Manual,
-        -> {
+    -> {
         Request(
             interval = 1.minutes,
             priority = Priority.LowPower,

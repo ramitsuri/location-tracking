@@ -26,7 +26,8 @@ enum class MonitoringMode(override val value: String) : DbEnum {
     fun getNextMode(): MonitoringMode {
         return when (this) {
             Quiet,
-            Manual -> Significant
+            Manual,
+            -> Significant
 
             Significant -> Move
 
@@ -41,20 +42,18 @@ object MonitoringModeSerializer : KSerializer<MonitoringMode> {
         PrimitiveKind.INT,
     )
 
-    override fun serialize(encoder: Encoder, value: MonitoringMode) =
-        when (value) {
-            MonitoringMode.Quiet -> encoder.encodeInt(0)
-            MonitoringMode.Manual -> encoder.encodeInt(1)
-            MonitoringMode.Significant -> encoder.encodeInt(2)
-            MonitoringMode.Move -> encoder.encodeInt(3)
-        }
+    override fun serialize(encoder: Encoder, value: MonitoringMode) = when (value) {
+        MonitoringMode.Quiet -> encoder.encodeInt(0)
+        MonitoringMode.Manual -> encoder.encodeInt(1)
+        MonitoringMode.Significant -> encoder.encodeInt(2)
+        MonitoringMode.Move -> encoder.encodeInt(3)
+    }
 
-    override fun deserialize(decoder: Decoder): MonitoringMode =
-        when (decoder.decodeInt()) {
-            0 -> MonitoringMode.Quiet
-            1 -> MonitoringMode.Manual
-            2 -> MonitoringMode.Significant
-            3 -> MonitoringMode.Move
-            else -> MonitoringMode.default()
-        }
+    override fun deserialize(decoder: Decoder): MonitoringMode = when (decoder.decodeInt()) {
+        0 -> MonitoringMode.Quiet
+        1 -> MonitoringMode.Manual
+        2 -> MonitoringMode.Significant
+        3 -> MonitoringMode.Move
+        else -> MonitoringMode.default()
+    }
 }

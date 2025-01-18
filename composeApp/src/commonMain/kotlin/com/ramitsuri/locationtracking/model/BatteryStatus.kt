@@ -22,20 +22,18 @@ object BatteryStatusSerializer : KSerializer<BatteryStatus> {
         PrimitiveKind.INT,
     )
 
-    override fun serialize(encoder: Encoder, value: BatteryStatus) =
-        when (value) {
-            BatteryStatus.UNKNOWN -> encoder.encodeInt(0)
-            BatteryStatus.UNPLUGGED -> encoder.encodeInt(1)
-            BatteryStatus.CHARGING -> encoder.encodeInt(2)
-            BatteryStatus.FULL -> encoder.encodeInt(3)
-        }
+    override fun serialize(encoder: Encoder, value: BatteryStatus) = when (value) {
+        BatteryStatus.UNKNOWN -> encoder.encodeInt(0)
+        BatteryStatus.UNPLUGGED -> encoder.encodeInt(1)
+        BatteryStatus.CHARGING -> encoder.encodeInt(2)
+        BatteryStatus.FULL -> encoder.encodeInt(3)
+    }
 
-    override fun deserialize(decoder: Decoder): BatteryStatus =
-        when (decoder.decodeInt()) {
-            0 -> BatteryStatus.UNKNOWN
-            1 -> BatteryStatus.UNPLUGGED
-            2 -> BatteryStatus.CHARGING
-            3 -> BatteryStatus.FULL
-            else -> BatteryStatus.UNKNOWN
-        }
+    override fun deserialize(decoder: Decoder): BatteryStatus = when (decoder.decodeInt()) {
+        0 -> BatteryStatus.UNKNOWN
+        1 -> BatteryStatus.UNPLUGGED
+        2 -> BatteryStatus.CHARGING
+        3 -> BatteryStatus.FULL
+        else -> BatteryStatus.UNKNOWN
+    }
 }
