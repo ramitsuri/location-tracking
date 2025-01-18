@@ -2,13 +2,16 @@ package com.ramitsuri.locationtracking.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
+import com.ramitsuri.locationtracking.network.InstantSerializer
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Required
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 @Serializable
@@ -19,8 +22,9 @@ data class Location(
     @ColumnInfo(name = "id")
     val messageId: String = Uuid.random().toString(),
 
-    @SerialName("createdAt")
-    @ColumnInfo(name = "created_at")
+    @SerialName("created_at")
+    @Serializable(with = InstantSerializer::class)
+    @ColumnInfo(name = "createdAt")
     val createdAt: Instant = Clock.System.now(),
 
     @SerialName("lat")
@@ -48,6 +52,7 @@ data class Location(
     val bearing: Int,
 
     @SerialName("tst")
+    @Serializable(with = InstantSerializer::class)
     @ColumnInfo(name = "locationTimestamp")
     val locationTimestamp: Instant,
 
@@ -86,4 +91,14 @@ data class Location(
     @SerialName("tid")
     @ColumnInfo(name = "trackerId")
     val trackerId: String? = null,
-)
+) {
+    @SerialName("_http")
+    @Required
+    @Ignore
+    val http: Boolean = true
+
+    @SerialName("_type")
+    @Required
+    @Ignore
+    val type: String = "location"
+}

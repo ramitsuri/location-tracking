@@ -30,6 +30,7 @@ datastore = { module = "androidx.datastore:datastore-preferences-core", version.
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
 
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
+ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-content-negotation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
