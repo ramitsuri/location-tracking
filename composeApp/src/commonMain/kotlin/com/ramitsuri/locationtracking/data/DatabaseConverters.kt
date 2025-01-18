@@ -28,7 +28,7 @@ class DatabaseConverters {
 
     @TypeConverter
     fun toMonitoringMode(string: String): MonitoringMode {
-        return toEnum(string, MonitoringMode.Quiet)
+        return toEnum(string, MonitoringMode.default())
     }
 
     @TypeConverter

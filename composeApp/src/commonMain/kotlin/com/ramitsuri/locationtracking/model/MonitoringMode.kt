@@ -10,10 +10,29 @@ import kotlinx.serialization.encoding.Encoder
 
 @Serializable(with = MonitoringModeSerializer::class)
 enum class MonitoringMode(override val value: String) : DbEnum {
+    // Currently not being used
     Quiet("quiet"),
     Manual("manual"),
     Significant("significant"),
     Move("move"),
+    ;
+
+    companion object {
+        fun default(): MonitoringMode {
+            return Manual
+        }
+    }
+
+    fun getNextMode(): MonitoringMode {
+        return when (this) {
+            Quiet,
+            Manual -> Significant
+
+            Significant -> Move
+
+            Move -> Manual
+        }
+    }
 }
 
 object MonitoringModeSerializer : KSerializer<MonitoringMode> {
@@ -36,6 +55,6 @@ object MonitoringModeSerializer : KSerializer<MonitoringMode> {
             1 -> MonitoringMode.Manual
             2 -> MonitoringMode.Significant
             3 -> MonitoringMode.Move
-            else -> MonitoringMode.Quiet
+            else -> MonitoringMode.default()
         }
 }
