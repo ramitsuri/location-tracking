@@ -31,7 +31,6 @@ kotlin {
             implementation(libs.ktor.client.android)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.kotlin.datetime)
-            implementation(libs.datastore)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -42,6 +41,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.datastore)
             implementation(libs.kermit)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.content.negotation)

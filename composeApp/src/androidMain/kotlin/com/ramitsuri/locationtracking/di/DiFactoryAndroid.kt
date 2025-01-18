@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.ramitsuri.locationtracking.data.AppDatabase
+import okio.Path
+import okio.Path.Companion.toPath
 
 class DiFactoryAndroid(private val application: Application) : DiFactory {
 
@@ -15,5 +17,10 @@ class DiFactoryAndroid(private val application: Application) : DiFactory {
                 AppDatabase::class.java,
                 dbFile.absolutePath,
             )
+    }
+
+    override fun getDataStorePath(): Path {
+        val dataStoreFileName = "location_tracking.preferences_pb"
+        return application.filesDir.resolve(dataStoreFileName).absolutePath.toPath()
     }
 }
