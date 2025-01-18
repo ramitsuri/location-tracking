@@ -14,6 +14,6 @@ fun logW(tag: String, message: () -> String) {
     Logger.w(tag, message = message)
 }
 
-fun logE(tag: String, message: () -> String) {
-    Logger.e(tag, message = message)
+fun logE(tag: String, throwable: Throwable? = null, message: () -> String) {
+    Logger.e(tag, throwable = throwable, message = message)
 }
