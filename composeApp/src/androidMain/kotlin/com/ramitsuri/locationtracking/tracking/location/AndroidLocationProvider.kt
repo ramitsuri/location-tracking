@@ -2,7 +2,8 @@ package com.ramitsuri.locationtracking.tracking.location
 
 import android.content.Context
 import android.location.Location as AndroidLocation
-import android.os.Looper
+import android.os.Handler
+import android.os.HandlerThread
 import androidx.annotation.RequiresPermission
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.Granularity.GRANULARITY_PERMISSION_LEVEL
@@ -26,6 +27,13 @@ import kotlinx.datetime.Instant
 class AndroidLocationProvider(context: Context) : LocationProvider {
     private val fusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
+    private val handler = HandlerThread("backgroundHandlerThread")
+        .also {
+            it.start()
+        }
+        .let {
+            Handler(it.looper)
+        }
 
     @RequiresPermission(
         anyOf = [
@@ -48,7 +56,7 @@ class AndroidLocationProvider(context: Context) : LocationProvider {
         fusedLocationProviderClient.requestLocationUpdates(
             request.asGmsRequest(),
             callback,
-            Looper.getMainLooper(),
+            handler.looper,
         ).addOnFailureListener { e ->
             close(e)
         }
