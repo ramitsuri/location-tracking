@@ -1,8 +1,24 @@
 <resources>
     <string name="app_name">Location Tracking</string>
+    <string name="background_location_restriction_title">"Background Location Permission"</string>
+    <string name="background_location_restriction_text">"This version of Android restricts receiving locations when started in the background until the app is opened. Click this notification to open the app and start tracking location."</string>
+    <string name="notification_publish">"Report Location"</string>
+    <string name="notification_change_monitoring">"Mode"</string>
+
+    <string name="monitoring_mode_quiet">"Off"</string>
+    <string name="monitoring_mode_manual">"Slow"</string>
+    <string name="monitoring_mode_significant_changes">"Significant Changes"</string>
+    <string name="monitoring_mode_move">"Move"</string>
 
     <string name="notification_channel_ongoing">"Ongoing"</string>
     <string name="notification_channel_ongoing_description">"Required to receive location updates in the background"</string>
     <string name="notification_channel_errors">"Errors"</string>
 
+    <string name="kill_app">"Kill App"</string>
+    <string name="stop_service">Stop Service</string>
+    <string name="current_mode">Current mode: %1$s</string>
+    <string name="locations">Locations: %1$s</string>
+    <string name="change_mode">Change Mode</string>
+    <string name="single_location">Single Location</string>
+    <string name="not_granted_permissions">Not granted permissions</string>
 </resources>

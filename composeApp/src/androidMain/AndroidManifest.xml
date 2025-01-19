@@ -35,7 +35,9 @@
 
     <!-- API v34 requires this for foreground services -->
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".MainApp"
@@ -56,6 +58,32 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".services.BackgroundService"
+            android:enabled="true"
+            android:exported="true"
+            android:foregroundServiceType="location"
+            tools:ignore="ExportedService">
+
+            <intent-filter>
+                <action android:name="com.ramitsuri.locationtracking.SEND_LOCATION_USER" /> <!-- INTENT_ACTION_SEND_LOCATION_PING -->
+                <action android:name="com.ramitsuri.locationtracking.CHANGE_MONITORING" /> <!-- INTENT_ACTION_CHANGE_MONITORING -->
+                <action android:name="com.ramitsuri.locationtracking.EXIT" /> <!-- INTENT_ACTION_CHANGE_MONITORING -->
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name=".services.StartBackgroundServiceReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

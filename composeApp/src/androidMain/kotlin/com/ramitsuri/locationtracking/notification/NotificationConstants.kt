@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking
+package com.ramitsuri.locationtracking.notification
 
 object NotificationConstants {
     const val CHANNEL_ERROR_ID = "error"

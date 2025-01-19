@@ -10,10 +10,13 @@ import androidx.room.RoomDatabase
 import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.di.KoinQualifier
 import com.ramitsuri.locationtracking.di.initKoin
+import com.ramitsuri.locationtracking.notification.NotificationConstants
 import com.ramitsuri.locationtracking.permissions.AndroidPermissionChecker
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
 import com.ramitsuri.locationtracking.tracking.location.AndroidLocationProvider
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
+import com.ramitsuri.locationtracking.tracking.wifi.AndroidWifiInfoProvider
+import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.android.Android
 import okio.Path
@@ -39,6 +42,10 @@ class MainApp : Application(), KoinComponent {
             module {
                 single<LocationProvider> {
                     AndroidLocationProvider(this@MainApp)
+                }
+
+                single<WifiInfoProvider> {
+                    AndroidWifiInfoProvider(this@MainApp)
                 }
 
                 factory<PermissionChecker> {
