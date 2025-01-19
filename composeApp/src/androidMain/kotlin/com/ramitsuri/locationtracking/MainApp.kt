@@ -5,8 +5,9 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import androidx.core.app.NotificationManagerCompat
-import com.ramitsuri.locationtracking.di.DiFactory
-import com.ramitsuri.locationtracking.di.DiFactoryAndroid
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.di.KoinQualifier
 import com.ramitsuri.locationtracking.di.initKoin
 import com.ramitsuri.locationtracking.permissions.AndroidPermissionChecker
@@ -15,6 +16,8 @@ import com.ramitsuri.locationtracking.tracking.location.AndroidLocationProvider
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.android.Android
+import okio.Path
+import okio.Path.Companion.toPath
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.component.KoinComponent
 import org.koin.dsl.module
@@ -34,10 +37,6 @@ class MainApp : Application(), KoinComponent {
         initKoin {
             androidContext(this@MainApp)
             module {
-                single<DiFactory> {
-                    DiFactoryAndroid(this@MainApp)
-                }
-
                 single<LocationProvider> {
                     AndroidLocationProvider(this@MainApp)
                 }
@@ -52,6 +51,22 @@ class MainApp : Application(), KoinComponent {
 
                 factory<Boolean>(qualifier = KoinQualifier.IS_DEBUG) {
                     BuildConfig.DEBUG
+                }
+
+                factory<RoomDatabase.Builder<AppDatabase>> {
+                    val dbName = get<String>(qualifier = KoinQualifier.DATABASE_NAME)
+                    val dbFile = this@MainApp.getDatabasePath(dbName)
+                    Room
+                        .databaseBuilder(
+                            this@MainApp,
+                            AppDatabase::class.java,
+                            dbFile.absolutePath,
+                        )
+                }
+
+                factory<Path> {
+                    val fileName = get<String>(qualifier = KoinQualifier.DATASTORE_FILE_NAME)
+                    this@MainApp.filesDir.resolve(fileName).absolutePath.toPath()
                 }
             }
         }
