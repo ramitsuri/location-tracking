@@ -23,4 +23,20 @@ class Settings internal constructor(private val keyValueStore: KeyValueStore) {
         val monitoringMode = getMonitoringMode().first().getNextMode()
         keyValueStore.putString(Key.MONITORING_MODE, monitoringMode.value)
     }
+
+    suspend fun getBaseUrl(): String {
+        return keyValueStore.getString(Key.BASE_URL, "") ?: ""
+    }
+
+    suspend fun setBaseUrl(baseUrl: String) {
+        keyValueStore.putString(Key.BASE_URL, baseUrl)
+    }
+
+    suspend fun getDeviceName(): String {
+        return keyValueStore.getString(Key.DEVICE_NAME, "") ?: ""
+    }
+
+    suspend fun setDeviceName(deviceName: String) {
+        keyValueStore.putString(Key.DEVICE_NAME, deviceName)
+    }
 }

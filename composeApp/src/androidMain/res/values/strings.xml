@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Location Tracking</string>
+
+    <string name="notification_channel_ongoing">"Ongoing"</string>
+    <string name="notification_channel_ongoing_description">"Required to receive location updates in the background"</string>
+    <string name="notification_channel_errors">"Errors"</string>
+
 </resources>

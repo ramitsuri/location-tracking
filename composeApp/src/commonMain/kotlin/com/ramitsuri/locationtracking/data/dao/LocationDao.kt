@@ -26,4 +26,7 @@ interface LocationDao {
 
     @Query("SELECT * FROM location")
     fun getAllFlow(): Flow<List<Location>>
+
+    @Query("SELECT * FROM location LIMIT :limit")
+    suspend fun get(limit: Int): List<Location>
 }

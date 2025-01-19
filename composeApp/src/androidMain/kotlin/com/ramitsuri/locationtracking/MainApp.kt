@@ -7,11 +7,14 @@ import android.app.NotificationManager
 import androidx.core.app.NotificationManagerCompat
 import com.ramitsuri.locationtracking.di.DiFactory
 import com.ramitsuri.locationtracking.di.DiFactoryAndroid
+import com.ramitsuri.locationtracking.di.KoinQualifier
 import com.ramitsuri.locationtracking.di.initKoin
 import com.ramitsuri.locationtracking.permissions.AndroidPermissionChecker
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
 import com.ramitsuri.locationtracking.tracking.location.AndroidLocationProvider
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.android.Android
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.component.KoinComponent
 import org.koin.dsl.module
@@ -41,6 +44,14 @@ class MainApp : Application(), KoinComponent {
 
                 factory<PermissionChecker> {
                     AndroidPermissionChecker(this@MainApp)
+                }
+
+                factory<HttpClientEngine> {
+                    Android.create()
+                }
+
+                factory<Boolean>(qualifier = KoinQualifier.IS_DEBUG) {
+                    BuildConfig.DEBUG
                 }
             }
         }
