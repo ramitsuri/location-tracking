@@ -36,12 +36,12 @@ class AndroidLocationProvider(context: Context) : LocationProvider {
     override fun requestUpdates(request: Request): Flow<Location> = callbackFlow {
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
-                for (androidLocation in result.locations) {
-                    try {
-                        trySend(androidLocation.asLocation())
-                    } catch (_: Throwable) {
+                result
+                    .locations
+                    .distinctBy { it.latitude to it.longitude }
+                    .forEach { androidLocation ->
+                        runCatching { trySend(androidLocation.asLocation()) }
                     }
-                }
             }
         }
 
