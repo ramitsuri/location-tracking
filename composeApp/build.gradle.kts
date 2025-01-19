@@ -26,7 +26,7 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.lifecycle.service)
             implementation(libs.play.services.location)
-
+            implementation(libs.koin.android)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.ktor.client.android)
             implementation(libs.kotlinx.coroutines.android)
@@ -43,6 +43,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.datastore)
             implementation(libs.kermit)
+            implementation(libs.koin.core)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.content.negotation)
             implementation(libs.ktor.logging)
