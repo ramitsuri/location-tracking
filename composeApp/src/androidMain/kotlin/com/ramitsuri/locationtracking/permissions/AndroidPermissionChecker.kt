@@ -19,7 +19,7 @@ class AndroidPermissionChecker(
         }
     }
 
-    private fun hasPermission(permission: Permission): Boolean {
+    override fun hasPermission(permission: Permission): Boolean {
         return permission
             .asAndroidPermission()
             ?.let {
@@ -39,6 +39,7 @@ class AndroidPermissionChecker(
             } else {
                 null
             }
+            Permission.ACCESS_BACKGROUND_LOCATION -> Manifest.permission.ACCESS_BACKGROUND_LOCATION
         }
     }
 }
