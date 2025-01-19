@@ -41,9 +41,10 @@ class LocationRepository(
                             baseUrl = baseUrl,
                         )
                         .onSuccess { uploaded.add(location) }
-                        .onFailure {
-                            logW(TAG) { "failed to upload: $it" }
-                            return Result.failure(it)
+                        .onFailure { exception ->
+                            logW(TAG) { "failed to upload: $exception" }
+                            uploaded.let { locationDao.delete(it) }
+                            return Result.failure(exception)
                         }
                 }
             locationDao.delete(uploaded)

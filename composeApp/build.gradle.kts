@@ -27,6 +27,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.service)
             implementation(libs.play.services.location)
             implementation(libs.koin.android)
+            implementation(libs.koin.workmanager)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.ktor.client.android)
             implementation(libs.kotlinx.coroutines.android)
@@ -54,6 +55,7 @@ kotlin {
             implementation(libs.room.ktx)
             implementation(libs.room.runtime)
             implementation(libs.androidx.sqlite.bundled)
+            implementation(libs.androidx.work.runtime.ktx)
         }
 
         jvmTest.dependencies {

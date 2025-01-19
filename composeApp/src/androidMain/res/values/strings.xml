@@ -4,6 +4,7 @@
     <string name="background_location_restriction_text">"This version of Android restricts receiving locations when started in the background until the app is opened. Click this notification to open the app and start tracking location."</string>
     <string name="notification_publish">"Report Location"</string>
     <string name="notification_change_monitoring">"Mode"</string>
+    <string name="notification_uploading_locations">"Uploading locations"</string>
 
     <string name="monitoring_mode_quiet">"Off"</string>
     <string name="monitoring_mode_manual">"Slow"</string>

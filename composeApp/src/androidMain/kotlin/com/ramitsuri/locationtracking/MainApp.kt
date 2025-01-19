@@ -13,15 +13,19 @@ import com.ramitsuri.locationtracking.di.initKoin
 import com.ramitsuri.locationtracking.notification.NotificationConstants
 import com.ramitsuri.locationtracking.permissions.AndroidPermissionChecker
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
+import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.tracking.location.AndroidLocationProvider
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.AndroidWifiInfoProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
+import com.ramitsuri.locationtracking.upload.UploadWorker
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.android.Android
 import okio.Path
 import okio.Path.Companion.toPath
 import org.koin.android.ext.koin.androidContext
+import org.koin.androidx.workmanager.dsl.worker
+import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.component.KoinComponent
 import org.koin.dsl.module
 
@@ -34,12 +38,21 @@ class MainApp : Application(), KoinComponent {
         super.onCreate()
         initDependencyInjection()
         createNotificationChannels()
+        UploadWorker.enqueuePeriodic(this)
     }
 
     private fun initDependencyInjection() {
         initKoin {
             androidContext(this@MainApp)
             module {
+                workManagerFactory()
+                worker<UploadWorker> {
+                    UploadWorker(
+                        repository = get<LocationRepository>(),
+                        context = androidContext(),
+                        workerParams = get(),
+                    )
+                }
                 single<LocationProvider> {
                     AndroidLocationProvider(this@MainApp)
                 }
