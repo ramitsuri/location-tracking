@@ -67,11 +67,6 @@ class BackgroundService : LifecycleService(), KoinComponent {
         logD(TAG) { "onStartCommand intent=$intent" }
         super.onStartCommand(intent, flags, startId)
         handleIntent(intent)
-        lifecycleScope.launch {
-            settings.getMonitoringMode().collect { mode ->
-                notifyOngoing(mode)
-            }
-        }
         return START_STICKY
     }
 
@@ -159,6 +154,11 @@ class BackgroundService : LifecycleService(), KoinComponent {
         logD(TAG) { "setupAndStartService" }
         startForegroundService()
         tracker.startTracking()
+        lifecycleScope.launch {
+            settings.getMonitoringMode().collect { mode ->
+                notifyOngoing(mode)
+            }
+        }
     }
 
     private fun exit() {
