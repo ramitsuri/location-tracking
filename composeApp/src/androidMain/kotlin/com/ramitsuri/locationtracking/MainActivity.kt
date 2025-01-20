@@ -19,11 +19,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,6 +63,7 @@ import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.services.BackgroundService
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.ui.AppTheme
+import com.ramitsuri.locationtracking.upload.UploadWorker
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
@@ -191,6 +194,34 @@ class MainActivity : ComponentActivity() {
                     },
                 ) {
                     Text(stringResource(R.string.single_location))
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                var loading by remember { mutableStateOf(false) }
+                Button(
+                    onClick = {
+                        if (!loading) {
+                            lifecycleScope.launch {
+                                UploadWorker.enqueueImmediate(this@MainActivity).collect {
+                                    loading = it
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    if (loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    } else {
+                        Text(stringResource(R.string.upload_locations))
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(32.dp))

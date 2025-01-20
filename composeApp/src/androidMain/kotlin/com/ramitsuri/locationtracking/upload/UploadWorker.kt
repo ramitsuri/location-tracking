@@ -7,7 +7,9 @@ import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
 import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.ramitsuri.locationtracking.R
@@ -15,6 +17,8 @@ import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.notification.NotificationConstants
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class UploadWorker(
     private val repository: LocationRepository,
@@ -70,6 +74,24 @@ class UploadWorker(
                             ExistingPeriodicWorkPolicy.UPDATE,
                             request,
                         )
+                }
+        }
+
+        fun enqueueImmediate(context: Context): Flow<Boolean> {
+            return OneTimeWorkRequest
+                .Builder(UploadWorker::class)
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build(),
+                )
+                .build()
+                .let { request ->
+                    WorkManager.getInstance(context)
+                        .enqueue(request)
+                    WorkManager.getInstance(context).getWorkInfoByIdFlow(request.id).map {
+                        it?.state == WorkInfo.State.RUNNING
+                    }
                 }
         }
     }
