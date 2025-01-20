@@ -34,6 +34,7 @@ import org.koin.core.component.get
 class BackgroundService : LifecycleService(), KoinComponent {
     private val permissionChecker: PermissionChecker by inject()
     private val settings: Settings by inject()
+    private val notificationManager: NotificationManager by inject()
     private val tracker by lazy {
         Tracker(
             permissionChecker = permissionChecker,
@@ -44,9 +45,6 @@ class BackgroundService : LifecycleService(), KoinComponent {
             settings = settings,
             scope = lifecycleScope,
         )
-    }
-    private val notificationManager by lazy {
-        NotificationManager(context = applicationContext, permissionChecker = permissionChecker)
     }
     private val activityManager by lazy {
         getSystemService(ACTIVITY_SERVICE) as ActivityManager

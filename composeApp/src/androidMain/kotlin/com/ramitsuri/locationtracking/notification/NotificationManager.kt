@@ -2,6 +2,8 @@ package com.ramitsuri.locationtracking.notification
 
 import android.annotation.SuppressLint
 import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -21,6 +23,36 @@ class NotificationManager(
 ) {
     private val appContext = context.applicationContext
     private val notificationManager = NotificationManagerCompat.from(context)
+
+    fun createChannels() {
+        // Importance min will show normal priority notification for foreground service. See
+        // https://developer.android.com/reference/android/app/NotificationManager#IMPORTANCE_MIN
+        // User has to actively configure this in the notification channel settings.
+        NotificationChannel(
+            NotificationConstants.CHANNEL_ONGOING_ID,
+            appContext.getString(R.string.notification_channel_ongoing),
+            NotificationManager.IMPORTANCE_LOW,
+        ).apply {
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            description = appContext.getString(R.string.notification_channel_ongoing_description)
+            enableLights(false)
+            enableVibration(false)
+            setShowBadge(false)
+            setSound(null, null)
+        }.run {
+            notificationManager.createNotificationChannel(this)
+        }
+
+        NotificationChannel(
+            NotificationConstants.CHANNEL_ERROR_ID,
+            appContext.getString(R.string.notification_channel_errors),
+            NotificationManager.IMPORTANCE_LOW,
+        ).apply {
+            lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        }.run {
+            notificationManager.createNotificationChannel(this)
+        }
+    }
 
     fun cancelBackgroundRestrictionNotification() {
         notificationManager.cancel(
