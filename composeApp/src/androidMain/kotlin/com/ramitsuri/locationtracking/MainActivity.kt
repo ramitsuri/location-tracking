@@ -127,6 +127,7 @@ class MainActivity : ComponentActivity() {
 
         val url by settings.getBaseUrlFlow().collectAsStateWithLifecycle("")
         val deviceName by settings.getDeviceNameFlow().collectAsStateWithLifecycle("")
+        val isWorkRunning by UploadWorker.isRunning(this).collectAsStateWithLifecycle(false)
 
         Column(
             modifier = Modifier
@@ -138,6 +139,7 @@ class MainActivity : ComponentActivity() {
             TextField(
                 text = url,
                 label = stringResource(R.string.url_hint),
+                enabled = !isWorkRunning,
                 onTextSet = {
                     lifecycleScope.launch {
                         settings.setBaseUrl(it)
@@ -148,6 +150,7 @@ class MainActivity : ComponentActivity() {
             TextField(
                 text = deviceName,
                 label = stringResource(R.string.device_name_hint),
+                enabled = !isWorkRunning,
                 onTextSet = {
                     lifecycleScope.launch {
                         settings.setDeviceName(it)
@@ -201,20 +204,15 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
             ) {
-                var loading by remember { mutableStateOf(false) }
                 Button(
                     onClick = {
-                        if (!loading) {
-                            lifecycleScope.launch {
-                                UploadWorker.enqueueImmediate(this@MainActivity).collect {
-                                    loading = it
-                                }
-                            }
+                        if (!isWorkRunning) {
+                            UploadWorker.enqueueImmediate(this@MainActivity)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    if (loading) {
+                    if (isWorkRunning) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
                             color = MaterialTheme.colorScheme.onPrimary,
@@ -265,11 +263,16 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun TextField(text: String, label: String, onTextSet: (String) -> Unit) {
+    private fun TextField(
+        text: String,
+        label: String,
+        enabled: Boolean,
+        onTextSet: (String) -> Unit,
+    ) {
         var showDialog by remember { mutableStateOf(false) }
         Row(
             modifier = Modifier
-                .clickable(onClick = { showDialog = true })
+                .clickable(enabled = enabled, onClick = { showDialog = true })
                 .fillMaxWidth()
                 .padding(16.dp),
         ) {
@@ -279,7 +282,14 @@ class MainActivity : ComponentActivity() {
                 }
                 append(text)
             }
-            Text(text = annotatedText)
+            Text(
+                text = annotatedText,
+                color = if (enabled) {
+                    MaterialTheme.colorScheme.onBackground
+                } else {
+                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                },
+            )
         }
 
         if (showDialog) {

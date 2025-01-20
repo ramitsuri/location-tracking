@@ -53,11 +53,13 @@ class UploadWorker(
     companion object {
         private const val TAG = "UploadWorker"
         private const val WORK_NAME_PERIODIC = "UploadWorker"
+        private const val WORK_TAG = "TAG-UploadWorker"
         private const val REPEAT_HOURS: Long = 8
 
         fun enqueuePeriodic(context: Context) {
             PeriodicWorkRequest
                 .Builder(UploadWorker::class.java, REPEAT_HOURS, TimeUnit.HOURS)
+                .addTag(WORK_TAG)
                 .addTag(WORK_NAME_PERIODIC)
                 .setConstraints(
                     Constraints.Builder()
@@ -77,9 +79,10 @@ class UploadWorker(
                 }
         }
 
-        fun enqueueImmediate(context: Context): Flow<Boolean> {
+        fun enqueueImmediate(context: Context) {
             return OneTimeWorkRequest
                 .Builder(UploadWorker::class)
+                .addTag(WORK_TAG)
                 .setConstraints(
                     Constraints.Builder()
                         .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -87,10 +90,18 @@ class UploadWorker(
                 )
                 .build()
                 .let { request ->
-                    WorkManager.getInstance(context)
+                    WorkManager
+                        .getInstance(context)
                         .enqueue(request)
-                    WorkManager.getInstance(context).getWorkInfoByIdFlow(request.id).map {
-                        it?.state == WorkInfo.State.RUNNING
+                }
+        }
+
+        fun isRunning(context: Context): Flow<Boolean> {
+            return WorkManager.getInstance(context)
+                .getWorkInfosByTagFlow(WORK_TAG)
+                .map {
+                    it.any { workInfo ->
+                        workInfo.state == WorkInfo.State.RUNNING
                     }
                 }
         }
