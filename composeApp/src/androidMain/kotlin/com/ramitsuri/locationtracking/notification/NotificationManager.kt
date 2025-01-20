@@ -39,7 +39,7 @@ class NotificationManager(
                 .setContentTitle(title)
                 .setContentText(text)
                 .setAutoCancel(true)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(text))
                 .setContentIntent(
                     PendingIntent.getActivity(
@@ -110,7 +110,7 @@ class NotificationManager(
                     UPDATE_CURRENT_INTENT_FLAGS,
                 ),
             )
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setSound(null, AudioManager.STREAM_NOTIFICATION)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

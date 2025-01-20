@@ -37,7 +37,7 @@ class UploadWorker(
                 applicationContext,
                 NotificationConstants.CHANNEL_WORK_ID,
             ).apply {
-                setSmallIcon(R.drawable.ic_launcher_foreground)
+                setSmallIcon(R.drawable.ic_notification)
                 setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 setContentTitle(
                     applicationContext.getString(R.string.notification_uploading_locations),
