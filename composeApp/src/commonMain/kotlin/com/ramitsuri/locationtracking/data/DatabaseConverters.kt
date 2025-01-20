@@ -3,6 +3,7 @@ package com.ramitsuri.locationtracking.data
 import androidx.room.TypeConverter
 import com.ramitsuri.locationtracking.model.BatteryStatus
 import com.ramitsuri.locationtracking.model.MonitoringMode
+import java.math.BigDecimal
 import kotlinx.datetime.Instant
 
 class DatabaseConverters {
@@ -44,5 +45,15 @@ class DatabaseConverters {
     @TypeConverter
     fun fromListOfString(list: List<String>): String {
         return list.joinToString(";;;")
+    }
+
+    @TypeConverter
+    fun toBigDecimal(string: String): BigDecimal {
+        return BigDecimal(string)
+    }
+
+    @TypeConverter
+    fun fromBigDecimal(bigDecimal: BigDecimal): String {
+        return bigDecimal.toString()
     }
 }

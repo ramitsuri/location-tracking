@@ -10,6 +10,8 @@ import androidx.room.RoomDatabase
 import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.di.KoinQualifier
 import com.ramitsuri.locationtracking.di.initKoin
+import com.ramitsuri.locationtracking.network.AndroidGeocoderApi
+import com.ramitsuri.locationtracking.network.GeocoderApi
 import com.ramitsuri.locationtracking.notification.NotificationConstants
 import com.ramitsuri.locationtracking.permissions.AndroidPermissionChecker
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
@@ -21,6 +23,7 @@ import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import com.ramitsuri.locationtracking.upload.UploadWorker
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.android.Android
+import kotlinx.coroutines.CoroutineDispatcher
 import okio.Path
 import okio.Path.Companion.toPath
 import org.koin.android.ext.koin.androidContext
@@ -59,6 +62,14 @@ class MainApp : Application(), KoinComponent {
 
                 single<WifiInfoProvider> {
                     AndroidWifiInfoProvider(this@MainApp)
+                }
+
+                single<GeocoderApi> {
+                    val io = get<CoroutineDispatcher>(qualifier = KoinQualifier.IO_DISPATCHER)
+                    AndroidGeocoderApi(
+                        context = this@MainApp,
+                        ioDispatcher = io,
+                    )
                 }
 
                 factory<PermissionChecker> {

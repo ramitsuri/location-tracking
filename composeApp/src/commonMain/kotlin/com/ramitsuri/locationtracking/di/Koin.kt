@@ -3,9 +3,12 @@ package com.ramitsuri.locationtracking.di
 import androidx.room.RoomDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.ramitsuri.locationtracking.data.AppDatabase
+import com.ramitsuri.locationtracking.data.dao.GeocodeCacheDao
 import com.ramitsuri.locationtracking.data.dao.LocationDao
+import com.ramitsuri.locationtracking.network.GeocoderApi
 import com.ramitsuri.locationtracking.network.LocationApi
 import com.ramitsuri.locationtracking.network.impl.LocationApiImpl
+import com.ramitsuri.locationtracking.repository.GeocoderRepository
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.DataStoreKeyValueStore
 import com.ramitsuri.locationtracking.settings.Settings
@@ -64,6 +67,13 @@ private val coreModule = module {
         )
     }
 
+    single<GeocoderRepository> {
+        GeocoderRepository(
+            geocoderApi = get<GeocoderApi>(),
+            geocodeCacheDao = get<GeocodeCacheDao>(),
+        )
+    }
+
     single<LocationApi> {
         LocationApiImpl(
             httpClient = get<HttpClient>(),
@@ -81,6 +91,10 @@ private val coreModule = module {
 
     factory<LocationDao> {
         get<AppDatabase>().locationDao()
+    }
+
+    factory<GeocodeCacheDao> {
+        get<AppDatabase>().geocodeCacheDao()
     }
 }
 

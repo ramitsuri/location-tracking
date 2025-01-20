@@ -18,11 +18,13 @@ import com.ramitsuri.locationtracking.notification.NotificationConstants
 import com.ramitsuri.locationtracking.notification.NotificationManager
 import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
+import com.ramitsuri.locationtracking.repository.GeocoderRepository
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.tracking.Tracker
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -38,6 +40,7 @@ class BackgroundService : LifecycleService(), KoinComponent {
             locationProvider = get<LocationProvider>(),
             wifiInfoProvider = get<WifiInfoProvider>(),
             locationRepository = get<LocationRepository>(),
+            geocoderRepository = get<GeocoderRepository>(),
             settings = settings,
             scope = lifecycleScope,
         )
@@ -155,8 +158,13 @@ class BackgroundService : LifecycleService(), KoinComponent {
         startForegroundService()
         tracker.startTracking()
         lifecycleScope.launch {
-            settings.getMonitoringMode().collect { mode ->
-                notifyOngoing(mode)
+            combine(
+                settings.getMonitoringMode(),
+                tracker.lastKnownAddressOrLocation,
+            ) { mode, addressOrLocation ->
+                mode to addressOrLocation
+            }.collect { (mode, addressOrLocation) ->
+                notifyOngoing(mode, addressOrLocation)
             }
         }
     }
@@ -174,13 +182,13 @@ class BackgroundService : LifecycleService(), KoinComponent {
         )
     }
 
-    private fun notifyOngoing(mode: MonitoringMode) {
-        notificationManager.notify(getOngoingNotification(mode))
+    private fun notifyOngoing(mode: MonitoringMode, title: String? = null) {
+        notificationManager.notify(getOngoingNotification(mode, title))
     }
 
-    private fun getOngoingNotification(mode: MonitoringMode): Notification {
+    private fun getOngoingNotification(mode: MonitoringMode, title: String? = null): Notification {
         return notificationManager.getOngoingNotification(
-            title = getString(R.string.app_name),
+            title = title ?: getString(R.string.app_name),
             publishActionLabel = getString(R.string.notification_publish),
             changeMonitoringActionLabel = getString(R.string.notification_change_monitoring),
             modeLabel = mode.label(),
