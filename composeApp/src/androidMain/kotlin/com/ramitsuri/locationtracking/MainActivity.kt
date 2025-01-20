@@ -1,11 +1,15 @@
 package com.ramitsuri.locationtracking
 
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Process
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,19 +18,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.ramitsuri.locationtracking.log.logD
@@ -37,6 +45,7 @@ import com.ramitsuri.locationtracking.permissions.PermissionChecker
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.services.BackgroundService
 import com.ramitsuri.locationtracking.settings.Settings
+import com.ramitsuri.locationtracking.ui.AppTheme
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
@@ -50,91 +59,121 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         startService()
         permissionMonitor.monitorPermissions(Permission.entries)
+        enableEdgeToEdge()
         setContent {
-            val mode by settings.getMonitoringMode().collectAsStateWithLifecycle(null)
-            val locations by locationRepository
-                .getCount()
-                .collectAsStateWithLifecycle(0)
-            val notGrantedPermissions by permissionMonitor
-                .permissionState
-                .map { results ->
-                    results.filter { permissionResult ->
-                        !permissionResult.granted
-                    }
+            val darkTheme = isSystemInDarkTheme()
+            DisposableEffect(darkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle =
+                    SystemBarStyle.auto(
+                        Color.TRANSPARENT,
+                        Color.TRANSPARENT,
+                    ) { darkTheme },
+                    navigationBarStyle =
+                    SystemBarStyle.auto(
+                        lightScrim,
+                        darkScrim,
+                    ) { darkTheme },
+                )
+                onDispose {}
+            }
+            AppTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
+                ) {
+                    Screen()
                 }
-                .collectAsStateWithLifecycle(emptyList())
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+            }
+        }
+    }
+
+    @Composable
+    private fun Screen() {
+        val mode by settings.getMonitoringMode().collectAsStateWithLifecycle(null)
+        val locations by locationRepository
+            .getCount()
+            .collectAsStateWithLifecycle(0)
+        val notGrantedPermissions by permissionMonitor
+            .permissionState
+            .map { results ->
+                results.filter { permissionResult ->
+                    !permissionResult.granted
+                }
+            }
+            .collectAsStateWithLifecycle(emptyList())
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
+                Button(
+                    onClick = ::killApp,
                 ) {
-                    Button(
-                        onClick = ::killApp,
-                    ) {
-                        Text(stringResource(R.string.kill_app))
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Button(
-                        onClick = ::stopService,
-                    ) {
-                        Text(stringResource(R.string.stop_service))
-                    }
+                    Text(stringResource(R.string.kill_app))
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.width(16.dp))
+                Button(
+                    onClick = ::stopService,
+                ) {
+                    Text(stringResource(R.string.stop_service))
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Button(
+                    onClick = {
+                        lifecycleScope.launch {
+                            settings.setNextMonitoringMode()
+                        }
+                    },
+                ) {
+                    Text(stringResource(R.string.change_mode))
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Button(
+                    onClick = {
+                        startService(
+                            action = BackgroundService.INTENT_ACTION_SEND_LOCATION_USER,
+                        )
+                    },
+                ) {
+                    Text(stringResource(R.string.single_location))
+                }
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+            Text(stringResource(R.string.current_mode, mode.label()))
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(stringResource(R.string.locations, locations.toString()))
+            Spacer(modifier = Modifier.height(16.dp))
+            if (notGrantedPermissions.isNotEmpty()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Button(
-                        onClick = {
-                            lifecycleScope.launch {
-                                settings.setNextMonitoringMode()
+                    Column(modifier = Modifier.weight(3f)) {
+                        Text(stringResource(R.string.not_granted_permissions))
+                        notGrantedPermissions
+                            .forEach {
+                                Text(it.permission.name)
                             }
-                        },
-                    ) {
-                        Text(stringResource(R.string.change_mode))
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Button(
-                        onClick = {
-                            startService(
-                                action = BackgroundService.INTENT_ACTION_SEND_LOCATION_USER,
-                            )
-                        },
+                    IconButton(
+                        onClick = ::navToAppSettings,
+                        modifier = Modifier.weight(1f),
                     ) {
-                        Text(stringResource(R.string.single_location))
-                    }
-                }
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(stringResource(R.string.current_mode, mode.label()))
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(stringResource(R.string.locations, locations.toString()))
-                Spacer(modifier = Modifier.height(16.dp))
-                if (notGrantedPermissions.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(modifier = Modifier.weight(3f)) {
-                            Text(stringResource(R.string.not_granted_permissions))
-                            notGrantedPermissions
-                                .forEach {
-                                    Text(it.permission.name)
-                                }
-                        }
-                        IconButton(
-                            onClick = ::navToAppSettings,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Icon(Icons.Default.Settings, contentDescription = null)
-                        }
+                        Icon(Icons.Default.Settings, contentDescription = null)
                     }
                 }
             }
@@ -185,3 +224,19 @@ class MainActivity : ComponentActivity() {
         private const val TAG = "MainActivity"
     }
 }
+
+/**
+ * The default light scrim, as defined by androidx and the platform:
+ * https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:
+ * activity/activity/src/main/java/androidx/activity/EdgeToEdge.kt;l=35-38;
+ * drc=27e7d52e8604a080133e8b842db10c89b4482598
+ */
+private val lightScrim = Color.argb(0xe6, 0xFF, 0xFF, 0xFF)
+
+/**
+ * The default dark scrim, as defined by androidx and the platform:
+ * https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:
+ * activity/activity/src/main/java/androidx/activity/EdgeToEdge.kt;l=40-44;
+ * drc=27e7d52e8604a080133e8b842db10c89b4482598
+ */
+private val darkScrim = Color.argb(0x80, 0x1b, 0x1b, 0x1b)

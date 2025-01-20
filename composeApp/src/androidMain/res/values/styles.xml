@@ -1,0 +1,15 @@
+<resources>
+    <style name="NightAdjusted.Theme.LocationTracking" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.Podcasts" parent="NightAdjusted.Theme.LocationTracking" />
+
+    <style name="NightAdjusted.Theme.Splash" parent="Theme.SplashScreen">
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <style name="Theme.Podcasts.Splash" parent="NightAdjusted.Theme.Splash">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Podcasts</item>
+    </style>
+</resources>
