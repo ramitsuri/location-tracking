@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,22 +18,36 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -106,11 +121,37 @@ class MainActivity : ComponentActivity() {
                 }
             }
             .collectAsStateWithLifecycle(emptyList())
+
+        val url by settings.getBaseUrlFlow().collectAsStateWithLifecycle("")
+        val deviceName by settings.getDeviceNameFlow().collectAsStateWithLifecycle("")
+
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            TextField(
+                text = url,
+                label = stringResource(R.string.url_hint),
+                onTextSet = {
+                    lifecycleScope.launch {
+                        settings.setBaseUrl(it)
+                    }
+                },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            TextField(
+                text = deviceName,
+                label = stringResource(R.string.device_name_hint),
+                onTextSet = {
+                    lifecycleScope.launch {
+                        settings.setDeviceName(it)
+                    }
+                },
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -153,9 +194,21 @@ class MainActivity : ComponentActivity() {
                 }
             }
             Spacer(modifier = Modifier.height(32.dp))
-            Text(stringResource(R.string.current_mode, mode.label()))
+            val currentMode = buildAnnotatedString {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(stringResource(R.string.current_mode))
+                }
+                append(mode.label())
+            }
+            Text(text = currentMode)
             Spacer(modifier = Modifier.height(16.dp))
-            Text(stringResource(R.string.locations, locations.toString()))
+            val count = buildAnnotatedString {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(stringResource(R.string.locations))
+                }
+                append(locations.toString())
+            }
+            Text(text = count)
             Spacer(modifier = Modifier.height(16.dp))
             if (notGrantedPermissions.isNotEmpty()) {
                 Row(
@@ -174,6 +227,67 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.weight(1f),
                     ) {
                         Icon(Icons.Default.Settings, contentDescription = null)
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun TextField(text: String, label: String, onTextSet: (String) -> Unit) {
+        var showDialog by remember { mutableStateOf(false) }
+        Row(
+            modifier = Modifier
+                .clickable(onClick = { showDialog = true })
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            val annotatedText = buildAnnotatedString {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(label)
+                }
+                append(text)
+            }
+            Text(text = annotatedText)
+        }
+
+        if (showDialog) {
+            Dialog(onDismissRequest = { showDialog = false }) {
+                Card {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp),
+                    ) {
+                        var inputValue by remember {
+                            mutableStateOf(
+                                TextFieldValue(
+                                    text = text,
+                                    selection = TextRange(text.length),
+                                ),
+                            )
+                        }
+                        OutlinedTextField(
+                            value = inputValue,
+                            onValueChange = { inputValue = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = {
+                                Text(label)
+                            },
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    onTextSet(inputValue.text)
+                                    showDialog = false
+                                },
+                            ) {
+                                Text(stringResource(R.string.ok))
+                            }
+                        }
                     }
                 }
             }

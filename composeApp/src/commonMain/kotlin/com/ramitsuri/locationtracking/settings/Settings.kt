@@ -28,12 +28,20 @@ class Settings internal constructor(private val keyValueStore: KeyValueStore) {
         return keyValueStore.getString(Key.BASE_URL, "") ?: ""
     }
 
+    fun getBaseUrlFlow(): Flow<String> {
+        return keyValueStore.getStringFlow(Key.BASE_URL, "").map { it.orEmpty() }
+    }
+
     suspend fun setBaseUrl(baseUrl: String) {
         keyValueStore.putString(Key.BASE_URL, baseUrl)
     }
 
     suspend fun getDeviceName(): String {
         return keyValueStore.getString(Key.DEVICE_NAME, "") ?: ""
+    }
+
+    fun getDeviceNameFlow(): Flow<String> {
+        return keyValueStore.getStringFlow(Key.DEVICE_NAME, "").map { it.orEmpty() }
     }
 
     suspend fun setDeviceName(deviceName: String) {

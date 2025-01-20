@@ -5,6 +5,7 @@
     <string name="notification_publish">"Report Location"</string>
     <string name="notification_change_monitoring">"Mode"</string>
     <string name="notification_uploading_locations">"Uploading locations"</string>
+    <string name="ok">OK</string>
 
     <string name="monitoring_mode_quiet">"Off"</string>
     <string name="monitoring_mode_manual">"Slow"</string>
@@ -17,9 +18,12 @@
 
     <string name="kill_app">"Kill App"</string>
     <string name="stop_service">Stop Service</string>
-    <string name="current_mode">Current mode: %1$s</string>
-    <string name="locations">Locations: %1$s</string>
+    <string name="current_mode">"Current mode: "</string>
+    <string name="locations">"Locations: "</string>
     <string name="change_mode">Change Mode</string>
     <string name="single_location">Single Location</string>
     <string name="not_granted_permissions">Not granted permissions</string>
+
+    <string name="url_hint">"URL: "</string>
+    <string name="device_name_hint">"Device Name: "</string>
 </resources>
