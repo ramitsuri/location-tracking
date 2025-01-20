@@ -3,6 +3,7 @@ package com.ramitsuri.locationtracking
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Process
 import androidx.activity.ComponentActivity
@@ -55,7 +56,9 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.ramitsuri.locationtracking.log.logD
+import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.MonitoringMode
+import com.ramitsuri.locationtracking.notification.NotificationManager
 import com.ramitsuri.locationtracking.permissions.AndroidPermissionMonitor
 import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
@@ -72,6 +75,9 @@ import org.koin.android.ext.android.inject
 class MainActivity : ComponentActivity() {
     private val settings by inject<Settings>()
     private val locationRepository by inject<LocationRepository>()
+    private val permissionChecker by inject<PermissionChecker>()
+    private val notificationManager by inject<NotificationManager>()
+
     private val permissionMonitor by lazy {
         AndroidPermissionMonitor(get<PermissionChecker>(), this@MainActivity)
     }
@@ -128,6 +134,7 @@ class MainActivity : ComponentActivity() {
         val url by settings.getBaseUrlFlow().collectAsStateWithLifecycle("")
         val deviceName by settings.getDeviceNameFlow().collectAsStateWithLifecycle("")
         val isWorkRunning by UploadWorker.isRunning(this).collectAsStateWithLifecycle(false)
+        val isServiceRunning by BackgroundService.isRunning.collectAsStateWithLifecycle(false)
 
         Column(
             modifier = Modifier
@@ -169,9 +176,23 @@ class MainActivity : ComponentActivity() {
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Button(
-                    onClick = ::stopService,
+                    onClick = {
+                        if (isServiceRunning) {
+                            stopService()
+                        } else {
+                            startService()
+                        }
+                    },
                 ) {
-                    Text(stringResource(R.string.stop_service))
+                    Text(
+                        stringResource(
+                            if (isServiceRunning) {
+                                R.string.stop_service
+                            } else {
+                                R.string.start_service
+                            },
+                        ),
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -345,6 +366,24 @@ class MainActivity : ComponentActivity() {
 
     private fun startService(action: String? = null) {
         logD(TAG) { "requesting service start" }
+        if ((
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+                    !permissionChecker.hasPermission(Permission.ACCESS_BACKGROUND_LOCATION)
+                ) ||
+            !permissionChecker.hasPermissions(
+                listOf(
+                    Permission.FINE_LOCATION,
+                    Permission.COARSE_LOCATION,
+                ),
+            ).any { it.granted }
+        ) {
+            notificationManager.notifyBackgroundLocationRestriction(
+                title = getString(R.string.fg_service_restriction_title),
+                text = getString(R.string.fg_service_restriction_text),
+            )
+            logW(TAG) { "can't start location fg service without bg location permission" }
+            return
+        }
         ContextCompat.startForegroundService(
             this,
             Intent()

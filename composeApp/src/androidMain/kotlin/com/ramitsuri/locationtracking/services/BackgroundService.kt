@@ -24,8 +24,11 @@ import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.tracking.Tracker
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.core.component.KoinComponent
@@ -61,6 +64,7 @@ class BackgroundService : LifecycleService(), KoinComponent {
         logD(TAG) { "onDestroy" }
         stopForeground(STOP_FOREGROUND_REMOVE)
         tracker.stopTracking()
+        _isRunning.update { false }
         super.onDestroy()
     }
 
@@ -132,6 +136,7 @@ class BackgroundService : LifecycleService(), KoinComponent {
                         getOngoingNotification(mode),
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
                     )
+                    _isRunning.update { true }
                 } catch (e: ForegroundServiceStartNotAllowedException) {
                     logE(TAG, e) {
                         "Foreground service start not allowed. " +
@@ -147,6 +152,7 @@ class BackgroundService : LifecycleService(), KoinComponent {
                     NotificationConstants.NOTIFICATION_ONGOING_ID,
                     getOngoingNotification(mode),
                 )
+                _isRunning.update { true }
             }
         }
     }
@@ -204,6 +210,9 @@ class BackgroundService : LifecycleService(), KoinComponent {
 
     companion object {
         private const val TAG = "BackgroundService"
+
+        private val _isRunning = MutableStateFlow(false)
+        val isRunning = _isRunning.asStateFlow()
 
         // NEW ACTIONS ALSO HAVE TO BE ADDED TO THE SERVICE INTENT FILTER
         const val INTENT_ACTION_SEND_LOCATION_USER =
