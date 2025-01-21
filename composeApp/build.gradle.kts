@@ -66,6 +66,7 @@ kotlin {
 }
 
 android {
+    val appVersion = libs.versions.appVersion.get()
     namespace = "com.ramitsuri.locationtracking"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
@@ -73,8 +74,8 @@ android {
         applicationId = "com.ramitsuri.locationtracking"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersion.toDouble().times(100).toInt()
+        versionName = appVersion
     }
     packaging {
         resources {
