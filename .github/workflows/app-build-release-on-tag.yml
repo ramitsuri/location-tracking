@@ -45,4 +45,4 @@ jobs:
           prerelease: false
           automatic_release_tag: ${{ github.ref_name }}
           files: |
-            composeApp/build/outputs/bundle/release/composeApp-release.apk
+            composeApp/build/outputs/apk/release/composeApp-release.apk
