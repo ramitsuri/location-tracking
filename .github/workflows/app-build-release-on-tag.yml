@@ -23,14 +23,14 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Generate Release bundles
-        run: ./gradlew bundleRelease
+      - name: Generate Release Apk
+        run: ./gradlew assembleRelease
 
-      - name: Sign phone bundle
+      - name: Sign phone Apk
         uses: r0adkll/sign-android-release@v1
         id: sign_phone_app
         with:
-          releaseDirectory: composeApp/build/outputs/bundle/release
+          releaseDirectory: composeApp/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -43,4 +43,4 @@ jobs:
           prerelease: false
           automatic_release_tag: ${{ github.ref_name }}
           files: |
-            composeApp/build/outputs/bundle/release/composeApp-release.aab
+            composeApp/build/outputs/bundle/release/composeApp-release.apk
