@@ -6,6 +6,7 @@ app that sends data to Owntracks server of your choice.
 ## TODO
 - [ ] Add map view to see history within the app
 - [ ] Rules to configure auto mode switching based on connected Wi-Fi network
+- [ ] Track address when single location is tracked
 
 ## Resources
 - https://bhdouglass.com/blog/self-hosted-device-tracking-with-owntracks/
