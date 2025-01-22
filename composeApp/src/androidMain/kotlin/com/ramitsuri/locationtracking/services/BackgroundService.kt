@@ -168,7 +168,7 @@ class BackgroundService : LifecycleService(), KoinComponent {
             ) { mode, addressOrLocation ->
                 mode to addressOrLocation
             }.collect { (mode, addressOrLocation) ->
-                notifyOngoing(mode, addressOrLocation)
+                notifyOngoing(mode, addressOrLocation?.string())
             }
         }
     }

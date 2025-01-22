@@ -10,6 +10,7 @@ import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.location.Request
 import com.ramitsuri.locationtracking.tracking.location.forMonitoringMode
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
+import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -33,7 +34,8 @@ class Tracker(
     private var monitoringModeCollectionJob: Job? = null
     private var reverseGeocodeJob: Job? = null
 
-    private val _lastKnownAddressOrLocation: MutableStateFlow<String?> = MutableStateFlow(null)
+    private val _lastKnownAddressOrLocation: MutableStateFlow<LocationAndAddress?> =
+        MutableStateFlow(null)
     val lastKnownAddressOrLocation = _lastKnownAddressOrLocation.asStateFlow()
 
     fun startTracking() {
@@ -65,7 +67,7 @@ class Tracker(
                     bssid = wifiInfo.bssid,
                 )
                 locationRepository.insert(locationWithWifi)
-                saveAddressOf(location)
+                onNewLocation(location)
             }
         }
     }
@@ -97,7 +99,7 @@ class Tracker(
                                         bssid = wifiInfo.bssid,
                                     )
                                     locationRepository.insert(locationWithWifi)
-                                    saveAddressOf(location)
+                                    onNewLocation(location)
                                 }
                         }
                     }
@@ -105,13 +107,18 @@ class Tracker(
         }
     }
 
-    private fun saveAddressOf(location: Location) {
+    private fun onNewLocation(location: Location) {
         // Put coordinates right away while we wait to get address so that we're able to show
         // something to the user indicating the location has changed
-        _lastKnownAddressOrLocation.update {
-            val lat = location.latitude.toBigDecimal().setScale(4, RoundingMode.HALF_EVEN)
-            val lon = location.longitude.toBigDecimal().setScale(4, RoundingMode.HALF_EVEN)
-            "$lat, $lon"
+        _lastKnownAddressOrLocation.update { existing ->
+            if (existing == null || !existing.isSameLocation(location)) {
+                LocationAndAddress(location.latitude, location.longitude)
+            } else {
+                existing
+            }
+        }
+        if (_lastKnownAddressOrLocation.value?.isSameLocation(location) == true) {
+            return
         }
         reverseGeocodeJob?.cancel()
         reverseGeocodeJob = scope.launch {
@@ -120,8 +127,40 @@ class Tracker(
                 location.latitude,
                 location.longitude,
             )?.let { address ->
-                _lastKnownAddressOrLocation.update { address }
+                _lastKnownAddressOrLocation.update {
+                    LocationAndAddress(
+                        location.latitude,
+                        location.longitude,
+                        address,
+                    )
+                }
             }
         }
     }
+
+    data class LocationAndAddress(
+        val lat: BigDecimal,
+        val lon: BigDecimal,
+        val address: String? = null,
+    ) {
+        constructor(lat: Double, lon: Double) : this(
+            lat.asBd(),
+            lon.asBd(),
+        )
+
+        constructor(lat: Double, lon: Double, address: String) : this(
+            lat.asBd(),
+            lon.asBd(),
+            address,
+        )
+
+        fun isSameLocation(location: Location): Boolean {
+            return lat.compareTo(location.latitude.asBd()) == 0 &&
+                lon.compareTo(location.longitude.asBd()) == 0
+        }
+
+        fun string(): String = address ?: "$lat, $lon"
+    }
 }
+
+private fun Double.asBd() = this.toBigDecimal().setScale(4, RoundingMode.HALF_EVEN)
