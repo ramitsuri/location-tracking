@@ -23,16 +23,16 @@ fun Request.Companion.forMonitoringMode(monitoringMode: MonitoringMode) = when (
             interval = 1.hours,
             priority = Priority.LowPower,
             minUpdateDistanceMeters = 500f,
-            fastestInterval = 1.seconds,
+            fastestInterval = 20.minutes,
         )
     }
 
     MonitoringMode.SignificantChanges -> {
         Request(
-            interval = 1.minutes,
+            interval = 5.minutes,
             priority = Priority.BalancedPowerAccuracy,
-            minUpdateDistanceMeters = 500f,
-            fastestInterval = 1.seconds,
+            minUpdateDistanceMeters = 100f,
+            fastestInterval = 1.minutes,
         )
     }
 
