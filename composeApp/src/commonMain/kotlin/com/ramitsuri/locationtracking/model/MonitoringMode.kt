@@ -10,27 +10,27 @@ import kotlinx.serialization.encoding.Encoder
 
 @Serializable(with = MonitoringModeSerializer::class)
 enum class MonitoringMode(override val value: String) : DbEnum {
-    Quiet("quiet"), // Means off
-    Slow("manual"), // Named as manual in owntracks so keeping that
-    Significant("significant"),
-    Move("move"),
+    Off("off"), // Owntracks quiet
+    Slow("slow"), // Owntracks manual
+    SignificantChanges("significant"),
+    Moving("move"),
     ;
 
     companion object {
         fun default(): MonitoringMode {
-            return Quiet
+            return Off
         }
     }
 
     fun getNextMode(): MonitoringMode {
         return when (this) {
-            Quiet -> Slow
+            Off -> Slow
 
-            Slow -> Significant
+            Slow -> SignificantChanges
 
-            Significant -> Move
+            SignificantChanges -> Moving
 
-            Move -> Quiet
+            Moving -> Off
         }
     }
 }
@@ -42,17 +42,17 @@ object MonitoringModeSerializer : KSerializer<MonitoringMode> {
     )
 
     override fun serialize(encoder: Encoder, value: MonitoringMode) = when (value) {
-        MonitoringMode.Quiet -> encoder.encodeInt(0)
+        MonitoringMode.Off -> encoder.encodeInt(0)
         MonitoringMode.Slow -> encoder.encodeInt(1)
-        MonitoringMode.Significant -> encoder.encodeInt(2)
-        MonitoringMode.Move -> encoder.encodeInt(3)
+        MonitoringMode.SignificantChanges -> encoder.encodeInt(2)
+        MonitoringMode.Moving -> encoder.encodeInt(3)
     }
 
     override fun deserialize(decoder: Decoder): MonitoringMode = when (decoder.decodeInt()) {
-        0 -> MonitoringMode.Quiet
+        0 -> MonitoringMode.Off
         1 -> MonitoringMode.Slow
-        2 -> MonitoringMode.Significant
-        3 -> MonitoringMode.Move
+        2 -> MonitoringMode.SignificantChanges
+        3 -> MonitoringMode.Moving
         else -> MonitoringMode.default()
     }
 }

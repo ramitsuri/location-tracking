@@ -407,10 +407,12 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun MonitoringMode?.label() = when (this) {
-        MonitoringMode.Quiet -> stringResource(R.string.monitoring_mode_quiet)
-        MonitoringMode.Slow -> stringResource(R.string.monitoring_mode_manual)
-        MonitoringMode.Significant -> stringResource(R.string.monitoring_mode_significant_changes)
-        MonitoringMode.Move -> stringResource(R.string.monitoring_mode_move)
+        MonitoringMode.Off -> stringResource(R.string.monitoring_mode_off)
+        MonitoringMode.Slow -> stringResource(R.string.monitoring_mode_slow)
+        MonitoringMode.SignificantChanges -> stringResource(
+            R.string.monitoring_mode_significant_changes,
+        )
+        MonitoringMode.Moving -> stringResource(R.string.monitoring_mode_moving)
         else -> ""
     }
 
