@@ -16,7 +16,7 @@ data class Request(
 }
 
 fun Request.Companion.forMonitoringMode(monitoringMode: MonitoringMode) = when (monitoringMode) {
-    MonitoringMode.Quiet -> null
+    MonitoringMode.Off -> null
 
     MonitoringMode.Slow -> {
         Request(
@@ -27,7 +27,7 @@ fun Request.Companion.forMonitoringMode(monitoringMode: MonitoringMode) = when (
         )
     }
 
-    MonitoringMode.Significant -> {
+    MonitoringMode.SignificantChanges -> {
         Request(
             interval = 1.minutes,
             priority = Priority.BalancedPowerAccuracy,
@@ -36,7 +36,7 @@ fun Request.Companion.forMonitoringMode(monitoringMode: MonitoringMode) = when (
         )
     }
 
-    MonitoringMode.Move -> {
+    MonitoringMode.Moving -> {
         Request(
             interval = 10.seconds,
             priority = Priority.HighAccuracy,

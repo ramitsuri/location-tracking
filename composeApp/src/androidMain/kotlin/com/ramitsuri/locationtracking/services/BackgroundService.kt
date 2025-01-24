@@ -200,10 +200,10 @@ class BackgroundService : LifecycleService(), KoinComponent {
     }
 
     private fun MonitoringMode.label() = when (this) {
-        MonitoringMode.Quiet -> R.string.monitoring_mode_quiet
-        MonitoringMode.Slow -> R.string.monitoring_mode_manual
-        MonitoringMode.Significant -> R.string.monitoring_mode_significant_changes
-        MonitoringMode.Move -> R.string.monitoring_mode_move
+        MonitoringMode.Off -> R.string.monitoring_mode_off
+        MonitoringMode.Slow -> R.string.monitoring_mode_slow
+        MonitoringMode.SignificantChanges -> R.string.monitoring_mode_significant_changes
+        MonitoringMode.Moving -> R.string.monitoring_mode_moving
     }.let {
         getString(it)
     }
