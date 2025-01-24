@@ -17,6 +17,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -92,6 +93,7 @@ class Tracker(
                     if (locationRequest != null) {
                         locationCollectionJob = launch {
                             locationProvider.requestUpdates(locationRequest)
+                                .filter { it.accuracy <= MIN_HORIZONTAL_ACCURACY }
                                 .collect { location ->
                                     val wifiInfo = wifiInfoProvider.wifiInfo.value
                                     val locationWithWifi = location.copy(
@@ -160,6 +162,10 @@ class Tracker(
         }
 
         fun string(): String = address ?: "$lat, $lon"
+    }
+
+    companion object {
+        private const val MIN_HORIZONTAL_ACCURACY = 200f // In meters
     }
 }
 
