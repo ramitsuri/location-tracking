@@ -61,6 +61,10 @@ kotlin {
 
         jvmTest.dependencies {
             implementation(libs.room.testing)
+            implementation(libs.koin.test)
+            implementation(libs.koin.test.junit)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.turbine)
         }
     }
 }
@@ -109,8 +113,8 @@ android {
 
 dependencies {
     add("kspAndroid", libs.room.compiler)
-    /*add("kspJvm", libs.room.compiler)
-    add("kspJvmTest", libs.room.compiler)*/
+    add("kspJvm", libs.room.compiler)
+    add("kspJvmTest", libs.room.compiler)
     debugImplementation(compose.uiTooling)
 }
 
