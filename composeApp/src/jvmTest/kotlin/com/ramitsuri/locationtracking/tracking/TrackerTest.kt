@@ -1,5 +1,6 @@
 package com.ramitsuri.locationtracking.tracking
 
+import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import com.ramitsuri.locationtracking.data.dao.GeocodeCacheDao
 import com.ramitsuri.locationtracking.model.BatteryStatus
@@ -54,11 +55,9 @@ class TrackerTest : BaseTest() {
             }
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("1"), BigDecimal("-1"), null),
-                awaitItem(),
             )
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("1"), BigDecimal("-1"), "1, -1"),
-                awaitItem(),
             )
 
             geocoderApi.address = "2, -2"
@@ -67,11 +66,9 @@ class TrackerTest : BaseTest() {
             }
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("2"), BigDecimal("-2"), null),
-                awaitItem(),
             )
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("2"), BigDecimal("-2"), "2, -2"),
-                awaitItem(),
             )
             cancelAndIgnoreRemainingEvents()
         }
@@ -89,7 +86,6 @@ class TrackerTest : BaseTest() {
             }
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("1"), BigDecimal("-1"), null),
-                awaitItem(),
             )
             geocoderApi.address = "2, -2"
             locationProvider.locationsFlow.update {
@@ -97,11 +93,9 @@ class TrackerTest : BaseTest() {
             }
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("2"), BigDecimal("-2"), null),
-                awaitItem(),
             )
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("2"), BigDecimal("-2"), "2, -2"),
-                awaitItem(),
             )
             cancelAndIgnoreRemainingEvents()
         }
@@ -119,7 +113,6 @@ class TrackerTest : BaseTest() {
             }
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("1"), BigDecimal("-1"), null),
-                awaitItem(),
             )
             geocoderApi.address = "1`, -1`"
             locationProvider.locationsFlow.update {
@@ -127,7 +120,6 @@ class TrackerTest : BaseTest() {
             }
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("1"), BigDecimal("-1"), "1`, -1`"),
-                awaitItem(),
             )
             cancelAndIgnoreRemainingEvents()
         }
@@ -146,11 +138,9 @@ class TrackerTest : BaseTest() {
             tracker.trackSingle()
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("1"), BigDecimal("-1"), null),
-                awaitItem(),
             )
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("1"), BigDecimal("-1"), "1, -1"),
-                awaitItem(),
             )
 
             geocoderApi.address = "2, -2"
@@ -160,11 +150,9 @@ class TrackerTest : BaseTest() {
             tracker.trackSingle()
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("2"), BigDecimal("-2"), null),
-                awaitItem(),
             )
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("2"), BigDecimal("-2"), "2, -2"),
-                awaitItem(),
             )
             cancelAndIgnoreRemainingEvents()
         }
@@ -183,7 +171,6 @@ class TrackerTest : BaseTest() {
             tracker.trackSingle()
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("1"), BigDecimal("-1"), null),
-                awaitItem(),
             )
             geocoderApi.address = "2, -2"
             locationProvider.locationsFlow.update {
@@ -192,11 +179,9 @@ class TrackerTest : BaseTest() {
             tracker.trackSingle()
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("2"), BigDecimal("-2"), null),
-                awaitItem(),
             )
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("2"), BigDecimal("-2"), "2, -2"),
-                awaitItem(),
             )
             cancelAndIgnoreRemainingEvents()
         }
@@ -215,7 +200,6 @@ class TrackerTest : BaseTest() {
             tracker.trackSingle()
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("1"), BigDecimal("-1"), null),
-                awaitItem(),
             )
             geocoderApi.address = "1`, -1`"
             locationProvider.locationsFlow.update {
@@ -224,7 +208,6 @@ class TrackerTest : BaseTest() {
             tracker.trackSingle()
             assertLocationAndAddressEquals(
                 Tracker.LocationAndAddress(BigDecimal("1"), BigDecimal("-1"), "1`, -1`"),
-                awaitItem(),
             )
             cancelAndIgnoreRemainingEvents()
         }
@@ -254,10 +237,10 @@ class TrackerTest : BaseTest() {
         }
     }
 
-    private fun assertLocationAndAddressEquals(
+    private suspend fun ReceiveTurbine<Tracker.LocationAndAddress?>.assertLocationAndAddressEquals(
         expected: Tracker.LocationAndAddress,
-        actual: Tracker.LocationAndAddress?,
     ) {
+        val actual: Tracker.LocationAndAddress? = awaitItem()
         actual!!
         assertEquals(0, expected.lat.compareTo(actual.lat))
         assertEquals(0, expected.lon.compareTo(actual.lon))
