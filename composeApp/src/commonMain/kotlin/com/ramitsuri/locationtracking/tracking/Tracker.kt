@@ -110,16 +110,18 @@ class Tracker(
     }
 
     private fun onNewLocation(location: Location) {
+        var shouldReverseGeocode = true
         // Put coordinates right away while we wait to get address so that we're able to show
         // something to the user indicating the location has changed
         _lastKnownAddressOrLocation.update { existing ->
             if (existing == null || !existing.isSameLocation(location)) {
                 LocationAndAddress(location.latitude, location.longitude)
             } else {
+                shouldReverseGeocode = false
                 existing
             }
         }
-        if (_lastKnownAddressOrLocation.value?.isSameLocation(location) == true) {
+        if (!shouldReverseGeocode) {
             return
         }
         reverseGeocodeJob?.cancel()
