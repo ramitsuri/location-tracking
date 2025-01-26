@@ -24,6 +24,7 @@ import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.tracking.Tracker
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
+import com.ramitsuri.locationtracking.ui.label
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -195,17 +196,8 @@ class BackgroundService : LifecycleService(), KoinComponent {
             title = title ?: getString(R.string.app_name),
             publishActionLabel = getString(R.string.notification_publish),
             changeMonitoringActionLabel = getString(R.string.notification_change_monitoring),
-            modeLabel = mode.label(),
+            modeLabel = mode.label(context = this),
         )
-    }
-
-    private fun MonitoringMode.label() = when (this) {
-        MonitoringMode.Off -> R.string.monitoring_mode_off
-        MonitoringMode.Slow -> R.string.monitoring_mode_slow
-        MonitoringMode.SignificantChanges -> R.string.monitoring_mode_significant_changes
-        MonitoringMode.Moving -> R.string.monitoring_mode_moving
-    }.let {
-        getString(it)
     }
 
     companion object {

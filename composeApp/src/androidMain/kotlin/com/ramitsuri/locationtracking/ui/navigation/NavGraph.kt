@@ -18,6 +18,8 @@ import com.ramitsuri.locationtracking.ui.home.HomeScreen
 import com.ramitsuri.locationtracking.ui.home.HomeViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsScreen
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
+import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesScreen
+import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -72,6 +74,23 @@ fun NavGraph(
                         onUpload = viewModel::onUpload,
                         onServiceStart = onServiceStart,
                         onServiceStop = onServiceStop,
+                        onNavToWifiRules = {
+                            navController.navigate(Destination.WifiRules)
+                        },
+                    )
+                }
+
+                composable<Destination.WifiRules> {
+                    val viewModel = koinViewModel<WifiRulesViewModel>()
+                    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
+                    WifiRulesScreen(
+                        viewState = viewState,
+                        onNavBack = {
+                            navController.navigateUp()
+                        },
+                        onDelete = viewModel::delete,
+                        onEdit = viewModel::edit,
+                        onAdd = viewModel::add,
                     )
                 }
             }

@@ -4,6 +4,7 @@ import androidx.room.RoomDatabase
 import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.data.dao.GeocodeCacheDao
 import com.ramitsuri.locationtracking.data.dao.LocationDao
+import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.network.GeocoderApi
 import com.ramitsuri.locationtracking.network.LocationApi
 import com.ramitsuri.locationtracking.network.impl.LocationApiImpl
@@ -91,6 +92,10 @@ private val coreModule = module {
 
     factory<GeocodeCacheDao> {
         get<AppDatabase>().geocodeCacheDao()
+    }
+
+    factory<WifiMonitoringModeRuleDao> {
+        get<AppDatabase>().wifiMonitoringModeRuleDao()
     }
 }
 
