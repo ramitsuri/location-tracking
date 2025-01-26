@@ -1,7 +1,6 @@
 package com.ramitsuri.locationtracking.di
 
 import androidx.room.RoomDatabase
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.data.dao.GeocodeCacheDao
 import com.ramitsuri.locationtracking.data.dao.LocationDao
@@ -42,10 +41,7 @@ private val coreModule = module {
 
     single<AppDatabase> {
         val ioDispatcher = get<CoroutineDispatcher>(qualifier = KoinQualifier.IO_DISPATCHER)
-        get<RoomDatabase.Builder<AppDatabase>>()
-            .setDriver(BundledSQLiteDriver())
-            .setQueryCoroutineContext(ioDispatcher)
-            .build()
+        AppDatabase.getDb(get<RoomDatabase.Builder<AppDatabase>>(), ioDispatcher)
     }
 
     single<CoroutineDispatcher>(qualifier = KoinQualifier.IO_DISPATCHER) {

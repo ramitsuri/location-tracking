@@ -1,31 +1,33 @@
 package com.ramitsuri.locationtracking.testutils
 
 import androidx.room.Room
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.data.dao.GeocodeCacheDao
 import com.ramitsuri.locationtracking.data.dao.LocationDao
 import com.ramitsuri.locationtracking.repository.GeocoderRepository
 import com.ramitsuri.locationtracking.repository.LocationRepository
+import com.ramitsuri.locationtracking.settings.DataStoreKeyValueStore
 import com.ramitsuri.locationtracking.settings.Settings
+import java.nio.file.Paths
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import okio.Path.Companion.toOkioPath
 import org.koin.dsl.module
 
+@OptIn(ExperimentalUuidApi::class)
 val testModule = module {
-    factory<TestKeyValueStore> {
-        TestKeyValueStore()
-    }
 
     factory<Settings> {
-        Settings(get<TestKeyValueStore>())
+        val dataStore = DataStoreKeyValueStore {
+            Paths.get(BaseTest.TEMP_DIR).resolve("${Uuid.random()}.preferences_pb").toOkioPath()
+        }
+        Settings(dataStore)
     }
 
     factory<AppDatabase> {
-        Room.inMemoryDatabaseBuilder<AppDatabase>()
-            .setDriver(BundledSQLiteDriver())
-            .setQueryCoroutineContext(get<CoroutineDispatcher>())
-            .build()
+        AppDatabase.getDb(Room.inMemoryDatabaseBuilder<AppDatabase>(), get<CoroutineDispatcher>())
     }
 
     single<CoroutineDispatcher> {
