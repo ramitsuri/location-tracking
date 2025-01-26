@@ -7,18 +7,16 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.ramitsuri.locationtracking.model.SeenWifi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 
 @Dao
 abstract class SeenWifiDao {
     @Transaction
-    open suspend fun upsert(ssid: String, time: Instant = Clock.System.now()) {
+    open suspend fun upsert(ssid: String) {
         val existing = get(ssid)
         if (existing == null) {
             insert(SeenWifi(ssid = ssid))
         } else {
-            update(SeenWifi(ssid = ssid, lastSeenAt = time, seenCount = existing.seenCount + 1))
+            update(SeenWifi(ssid = ssid, seenCount = existing.seenCount + 1))
         }
     }
 
