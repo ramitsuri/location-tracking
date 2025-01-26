@@ -49,6 +49,7 @@ fun SettingsScreen(
     onUpload: () -> Unit,
     onServiceStart: () -> Unit,
     onServiceStop: () -> Unit,
+    onNavToWifiRules: () -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -107,6 +108,12 @@ fun SettingsScreen(
             ) {
                 Text(stringResource(R.string.start_service))
             }
+        }
+        Button(
+            onClick = onNavToWifiRules,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.wifi_rules))
         }
     }
 }

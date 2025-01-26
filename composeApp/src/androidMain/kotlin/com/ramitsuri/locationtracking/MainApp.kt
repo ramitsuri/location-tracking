@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.ramitsuri.locationtracking.data.AppDatabase
+import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.di.KoinQualifier
 import com.ramitsuri.locationtracking.di.initKoin
 import com.ramitsuri.locationtracking.network.AndroidGeocoderApi
@@ -22,6 +23,7 @@ import com.ramitsuri.locationtracking.tracking.wifi.AndroidWifiInfoProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import com.ramitsuri.locationtracking.ui.home.HomeViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
+import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesViewModel
 import com.ramitsuri.locationtracking.upload.UploadWorker
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.android.Android
@@ -130,6 +132,12 @@ class MainApp : Application(), KoinComponent {
                         permissionState = {
                             get<PermissionMonitor>().permissionState
                         },
+                    )
+                }
+
+                viewModel<WifiRulesViewModel> {
+                    WifiRulesViewModel(
+                        wifiMonitoringModeRuleDao = get<WifiMonitoringModeRuleDao>(),
                     )
                 }
             }
