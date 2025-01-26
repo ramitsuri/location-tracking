@@ -10,83 +10,31 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import com.ramitsuri.locationtracking.log.logD
 import com.ramitsuri.locationtracking.log.logW
-import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.notification.NotificationManager
-import com.ramitsuri.locationtracking.permissions.AndroidPermissionMonitor
 import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
-import com.ramitsuri.locationtracking.repository.LocationRepository
+import com.ramitsuri.locationtracking.permissions.PermissionMonitor
 import com.ramitsuri.locationtracking.services.BackgroundService
-import com.ramitsuri.locationtracking.settings.Settings
-import com.ramitsuri.locationtracking.ui.AppTheme
-import com.ramitsuri.locationtracking.upload.UploadWorker
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import org.koin.android.ext.android.get
+import com.ramitsuri.locationtracking.ui.navigation.NavGraph
 import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
-    private val settings by inject<Settings>()
-    private val locationRepository by inject<LocationRepository>()
     private val permissionChecker by inject<PermissionChecker>()
     private val notificationManager by inject<NotificationManager>()
 
-    private val permissionMonitor by lazy {
-        AndroidPermissionMonitor(get<PermissionChecker>(), this@MainActivity)
-    }
+    private val permissionMonitor by inject<PermissionMonitor>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         startService()
-        permissionMonitor.monitorPermissions(Permission.entries)
+        permissionMonitor.monitorPermissions(Permission.entries, this.lifecycle)
         enableEdgeToEdge()
         setContent {
             val darkTheme = isSystemInDarkTheme()
@@ -105,254 +53,17 @@ class MainActivity : ComponentActivity() {
                 )
                 onDispose {}
             }
-            AppTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    Screen()
-                }
-            }
-        }
-    }
-
-    @Composable
-    private fun Screen() {
-        val mode by settings.getMonitoringMode().collectAsStateWithLifecycle(null)
-        val locations by locationRepository
-            .getCount()
-            .collectAsStateWithLifecycle(0)
-        val notGrantedPermissions by permissionMonitor
-            .permissionState
-            .map { results ->
-                results.filter { permissionResult ->
-                    !permissionResult.granted
-                }
-            }
-            .collectAsStateWithLifecycle(emptyList())
-
-        val url by settings.getBaseUrlFlow().collectAsStateWithLifecycle("")
-        val deviceName by settings.getDeviceNameFlow().collectAsStateWithLifecycle("")
-        val isWorkRunning by UploadWorker.isRunning(this).collectAsStateWithLifecycle(false)
-        val isServiceRunning by BackgroundService.isRunning.collectAsStateWithLifecycle(false)
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            TextField(
-                text = url,
-                label = stringResource(R.string.url_hint),
-                enabled = !isWorkRunning,
-                onTextSet = {
-                    lifecycleScope.launch {
-                        settings.setBaseUrl(it)
-                    }
-                },
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            TextField(
-                text = deviceName,
-                label = stringResource(R.string.device_name_hint),
-                enabled = !isWorkRunning,
-                onTextSet = {
-                    lifecycleScope.launch {
-                        settings.setDeviceName(it)
-                    }
-                },
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Button(
-                    onClick = ::killApp,
-                ) {
-                    Text(stringResource(R.string.kill_app))
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Button(
-                    onClick = {
-                        if (isServiceRunning) {
-                            stopService()
-                        } else {
-                            startService()
-                        }
-                    },
-                ) {
-                    Text(
-                        stringResource(
-                            if (isServiceRunning) {
-                                R.string.stop_service
-                            } else {
-                                R.string.start_service
-                            },
-                        ),
+            NavGraph(
+                onKillApp = ::killApp,
+                onSingleLocation = {
+                    startService(
+                        action = BackgroundService.INTENT_ACTION_SEND_LOCATION_USER,
                     )
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Button(
-                    onClick = {
-                        lifecycleScope.launch {
-                            settings.setNextMonitoringMode()
-                        }
-                    },
-                ) {
-                    Text(stringResource(R.string.change_mode))
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Button(
-                    onClick = {
-                        startService(
-                            action = BackgroundService.INTENT_ACTION_SEND_LOCATION_USER,
-                        )
-                    },
-                ) {
-                    Text(stringResource(R.string.single_location))
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Button(
-                    onClick = {
-                        if (!isWorkRunning) {
-                            UploadWorker.enqueueImmediate(this@MainActivity)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    if (isWorkRunning) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                        )
-                    } else {
-                        Text(stringResource(R.string.upload_locations))
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(32.dp))
-            val currentMode = buildAnnotatedString {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(stringResource(R.string.current_mode))
-                }
-                append(mode.label())
-            }
-            Text(text = currentMode)
-            Spacer(modifier = Modifier.height(16.dp))
-            val count = buildAnnotatedString {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(stringResource(R.string.locations))
-                }
-                append(locations.toString())
-            }
-            Text(text = count)
-            Spacer(modifier = Modifier.height(16.dp))
-            if (notGrantedPermissions.isNotEmpty()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(3f)) {
-                        Text(stringResource(R.string.not_granted_permissions))
-                        notGrantedPermissions
-                            .forEach {
-                                Text(it.permission.name)
-                            }
-                    }
-                    IconButton(
-                        onClick = ::navToAppSettings,
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Icon(Icons.Default.Settings, contentDescription = null)
-                    }
-                }
-            }
-        }
-    }
-
-    @Composable
-    private fun TextField(
-        text: String,
-        label: String,
-        enabled: Boolean,
-        onTextSet: (String) -> Unit,
-    ) {
-        var showDialog by remember { mutableStateOf(false) }
-        Row(
-            modifier = Modifier
-                .clickable(enabled = enabled, onClick = { showDialog = true })
-                .fillMaxWidth()
-                .padding(16.dp),
-        ) {
-            val annotatedText = buildAnnotatedString {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(label)
-                }
-                append(text)
-            }
-            Text(
-                text = annotatedText,
-                color = if (enabled) {
-                    MaterialTheme.colorScheme.onBackground
-                } else {
-                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                 },
+                onNavToAppSettings = ::navToAppSettings,
+                onServiceStart = ::startService,
+                onServiceStop = ::stopService,
             )
-        }
-
-        if (showDialog) {
-            Dialog(onDismissRequest = { showDialog = false }) {
-                Card {
-                    Column(
-                        modifier = Modifier
-                            .padding(16.dp),
-                    ) {
-                        var inputValue by remember {
-                            mutableStateOf(
-                                TextFieldValue(
-                                    text = text,
-                                    selection = TextRange(text.length),
-                                ),
-                            )
-                        }
-                        OutlinedTextField(
-                            value = inputValue,
-                            onValueChange = { inputValue = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = {
-                                Text(label)
-                            },
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                        ) {
-                            TextButton(
-                                onClick = {
-                                    onTextSet(inputValue.text)
-                                    showDialog = false
-                                },
-                            ) {
-                                Text(stringResource(R.string.ok))
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -366,7 +77,8 @@ class MainActivity : ComponentActivity() {
 
     private fun startService(action: String? = null) {
         logD(TAG) { "requesting service start" }
-        if ((
+        if (
+            (
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
                     !permissionChecker.hasPermission(Permission.ACCESS_BACKGROUND_LOCATION)
                 ) ||
@@ -403,17 +115,6 @@ class MainActivity : ComponentActivity() {
         stopService(Intent(this, BackgroundService::class.java))
         finishAffinity()
         Process.killProcess(Process.myPid())
-    }
-
-    @Composable
-    private fun MonitoringMode?.label() = when (this) {
-        MonitoringMode.Off -> stringResource(R.string.monitoring_mode_off)
-        MonitoringMode.Slow -> stringResource(R.string.monitoring_mode_slow)
-        MonitoringMode.SignificantChanges -> stringResource(
-            R.string.monitoring_mode_significant_changes,
-        )
-        MonitoringMode.Moving -> stringResource(R.string.monitoring_mode_moving)
-        else -> ""
     }
 
     companion object {

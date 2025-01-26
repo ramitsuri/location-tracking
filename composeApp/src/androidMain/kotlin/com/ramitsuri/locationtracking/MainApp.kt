@@ -10,12 +10,18 @@ import com.ramitsuri.locationtracking.network.AndroidGeocoderApi
 import com.ramitsuri.locationtracking.network.GeocoderApi
 import com.ramitsuri.locationtracking.notification.NotificationManager
 import com.ramitsuri.locationtracking.permissions.AndroidPermissionChecker
+import com.ramitsuri.locationtracking.permissions.AndroidPermissionMonitor
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
+import com.ramitsuri.locationtracking.permissions.PermissionMonitor
 import com.ramitsuri.locationtracking.repository.LocationRepository
+import com.ramitsuri.locationtracking.services.BackgroundService
+import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.tracking.location.AndroidLocationProvider
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.AndroidWifiInfoProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
+import com.ramitsuri.locationtracking.ui.home.HomeViewModel
+import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
 import com.ramitsuri.locationtracking.upload.UploadWorker
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.android.Android
@@ -27,6 +33,7 @@ import org.koin.androidx.workmanager.dsl.worker
 import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 class MainApp : Application(), KoinComponent {
@@ -74,6 +81,12 @@ class MainApp : Application(), KoinComponent {
                     )
                 }
 
+                single<PermissionMonitor> {
+                    AndroidPermissionMonitor(
+                        permissionChecker = get<PermissionChecker>(),
+                    )
+                }
+
                 factory<PermissionChecker> {
                     AndroidPermissionChecker(this@MainApp)
                 }
@@ -100,6 +113,24 @@ class MainApp : Application(), KoinComponent {
                 factory<Path> {
                     val fileName = get<String>(qualifier = KoinQualifier.DATASTORE_FILE_NAME)
                     this@MainApp.filesDir.resolve(fileName).absolutePath.toPath()
+                }
+
+                viewModel<SettingsViewModel> {
+                    SettingsViewModel(
+                        settings = get<Settings>(),
+                        isUploadWorkerRunning = { UploadWorker.isRunning(this@MainApp) },
+                        isServiceRunning = { BackgroundService.isRunning },
+                        upload = { UploadWorker.enqueueImmediate(this@MainApp) },
+                    )
+                }
+
+                viewModel<HomeViewModel> {
+                    HomeViewModel(
+                        locationRepository = get<LocationRepository>(),
+                        permissionState = {
+                            get<PermissionMonitor>().permissionState
+                        },
+                    )
                 }
             }
         }
