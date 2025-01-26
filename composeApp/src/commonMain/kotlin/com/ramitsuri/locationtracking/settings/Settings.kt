@@ -24,6 +24,10 @@ class Settings internal constructor(private val keyValueStore: KeyValueStore) {
         keyValueStore.putString(Key.MONITORING_MODE, monitoringMode.value)
     }
 
+    suspend fun setMonitoringMode(mode: MonitoringMode) {
+        keyValueStore.putString(Key.MONITORING_MODE, mode.value)
+    }
+
     suspend fun getBaseUrl(): String {
         return keyValueStore.getString(Key.BASE_URL, "") ?: ""
     }

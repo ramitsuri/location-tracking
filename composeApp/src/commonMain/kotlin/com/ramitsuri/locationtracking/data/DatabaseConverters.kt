@@ -3,6 +3,7 @@ package com.ramitsuri.locationtracking.data
 import androidx.room.TypeConverter
 import com.ramitsuri.locationtracking.model.BatteryStatus
 import com.ramitsuri.locationtracking.model.MonitoringMode
+import com.ramitsuri.locationtracking.model.WifiMonitoringModeRule
 import java.math.BigDecimal
 import kotlinx.datetime.Instant
 
@@ -35,6 +36,16 @@ class DatabaseConverters {
     @TypeConverter
     fun fromMonitoringMode(monitoringMode: MonitoringMode): String {
         return monitoringMode.value
+    }
+
+    @TypeConverter
+    fun toWifiMonitoringModeRuleStatus(string: String): WifiMonitoringModeRule.Status {
+        return toEnum(string, WifiMonitoringModeRule.Status.UNKNOWN)
+    }
+
+    @TypeConverter
+    fun fromWifiMonitoringModeRuleStatus(status: WifiMonitoringModeRule.Status): String {
+        return status.value
     }
 
     @TypeConverter
