@@ -22,8 +22,7 @@ class AndroidWifiInfoProvider(context: Context) : WifiInfoProvider {
 
     override fun requestUpdates() {
         if (updatesRequested) {
-            unrequestUpdates()
-            updatesRequested = false
+            return
         }
         callback?.let {
             manager.registerDefaultNetworkCallback(it)
