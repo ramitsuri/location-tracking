@@ -1,7 +1,7 @@
 package com.ramitsuri.locationtracking.permissions
 
-import androidx.activity.ComponentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -9,16 +9,13 @@ import kotlinx.coroutines.flow.update
 
 class AndroidPermissionMonitor(
     private val permissionChecker: PermissionChecker,
-    activity: ComponentActivity,
-) : DefaultLifecycleObserver {
-    init {
-        activity.lifecycle.addObserver(this)
-    }
+) : PermissionMonitor, DefaultLifecycleObserver {
 
     private val _permissionState = MutableStateFlow<List<PermissionResult>>(listOf())
-    val permissionState = _permissionState.asStateFlow()
+    override val permissionState = _permissionState.asStateFlow()
 
-    fun monitorPermissions(permissions: List<Permission>) {
+    override fun monitorPermissions(permissions: List<Permission>, lifecycle: Lifecycle) {
+        lifecycle.addObserver(this)
         _permissionState.update {
             permissionChecker.hasPermissions(permissions)
         }
