@@ -25,7 +25,6 @@
     <string name="current_mode">"Current mode: "</string>
     <string name="locations">"Locations: "</string>
     <string name="change_mode">Change Mode</string>
-    <string name="upload_locations">"Upload Locations"</string>
     <string name="single_location">Single Location</string>
     <string name="not_granted_permissions">Not granted permissions</string>
 

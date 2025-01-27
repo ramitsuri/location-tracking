@@ -1,8 +1,10 @@
 package com.ramitsuri.locationtracking.ui.navigation
 
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -55,8 +57,12 @@ fun NavGraph(
                         onNavToSettings = {
                             navController.navigate(Destination.Settings)
                         },
+                        onUpload = viewModel::onUpload,
                         onSingleLocation = onSingleLocation,
                         onNavToAppSettings = onNavToAppSettings,
+                        modifier = Modifier
+                            .statusBarsPadding()
+                            .displayCutoutPadding(),
                     )
                 }
 
@@ -71,12 +77,14 @@ fun NavGraph(
                         onNavBack = {
                             navController.navigateUp()
                         },
-                        onUpload = viewModel::onUpload,
                         onServiceStart = onServiceStart,
                         onServiceStop = onServiceStop,
                         onNavToWifiRules = {
                             navController.navigate(Destination.WifiRules)
                         },
+                        modifier = Modifier
+                            .statusBarsPadding()
+                            .displayCutoutPadding(),
                     )
                 }
 
@@ -91,6 +99,9 @@ fun NavGraph(
                         onDelete = viewModel::delete,
                         onEdit = viewModel::edit,
                         onAdd = viewModel::add,
+                        modifier = Modifier
+                            .statusBarsPadding()
+                            .displayCutoutPadding(),
                     )
                 }
             }
