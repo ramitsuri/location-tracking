@@ -122,7 +122,6 @@ class MainApp : Application(), KoinComponent {
                         settings = get<Settings>(),
                         isUploadWorkerRunning = { UploadWorker.isRunning(this@MainApp) },
                         isServiceRunning = { BackgroundService.isRunning },
-                        upload = { UploadWorker.enqueueImmediate(this@MainApp) },
                     )
                 }
 
@@ -132,6 +131,8 @@ class MainApp : Application(), KoinComponent {
                         permissionState = {
                             get<PermissionMonitor>().permissionState
                         },
+                        isUploadWorkerRunning = { UploadWorker.isRunning(this@MainApp) },
+                        upload = { UploadWorker.enqueueImmediate(this@MainApp) },
                     )
                 }
 

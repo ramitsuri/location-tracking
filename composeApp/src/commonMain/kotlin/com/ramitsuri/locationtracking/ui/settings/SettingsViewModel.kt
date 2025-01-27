@@ -13,7 +13,6 @@ class SettingsViewModel(
     private val settings: Settings,
     isUploadWorkerRunning: () -> Flow<Boolean>,
     isServiceRunning: () -> Flow<Boolean>,
-    private val upload: () -> Unit,
 ) : ViewModel() {
     val viewState = combine(
         settings.getBaseUrlFlow(),
@@ -43,9 +42,5 @@ class SettingsViewModel(
         viewModelScope.launch {
             settings.setDeviceName(deviceName)
         }
-    }
-
-    fun onUpload() {
-        upload()
     }
 }

@@ -9,12 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,7 +45,6 @@ fun SettingsScreen(
     onBaseUrlChange: (String) -> Unit,
     onDeviceNameChange: (String) -> Unit,
     onKillApp: () -> Unit,
-    onUpload: () -> Unit,
     onServiceStart: () -> Unit,
     onServiceStop: () -> Unit,
     onNavToWifiRules: () -> Unit,
@@ -76,44 +74,35 @@ fun SettingsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Button(
-            onClick = onKillApp,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(stringResource(R.string.kill_app))
-        }
-        Button(
-            onClick = onUpload,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            if (viewState.isUploadWorkerRunning) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                )
-            } else {
-                Text(stringResource(R.string.upload_locations))
-            }
-        }
-        if (viewState.isServiceRunning) {
-            Button(
-                onClick = onServiceStop,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.stop_service))
-            }
-        } else {
-            Button(
-                onClick = onServiceStart,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.start_service))
-            }
-        }
-        Button(
             onClick = onNavToWifiRules,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(stringResource(R.string.wifi_rules))
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        Row(modifier = Modifier.fillMaxWidth()) {
+            if (viewState.isServiceRunning) {
+                Button(
+                    onClick = onServiceStop,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(R.string.stop_service))
+                }
+            } else {
+                Button(
+                    onClick = onServiceStart,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(R.string.start_service))
+                }
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Button(
+                onClick = onKillApp,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(stringResource(R.string.kill_app))
+            }
         }
     }
 }
