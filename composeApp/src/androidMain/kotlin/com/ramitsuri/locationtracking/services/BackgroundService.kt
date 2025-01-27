@@ -10,6 +10,8 @@ import android.os.Process
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.ramitsuri.locationtracking.R
+import com.ramitsuri.locationtracking.data.dao.SeenWifiDao
+import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.log.logD
 import com.ramitsuri.locationtracking.log.logE
 import com.ramitsuri.locationtracking.log.logI
@@ -22,6 +24,7 @@ import com.ramitsuri.locationtracking.repository.GeocoderRepository
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.tracking.Tracker
+import com.ramitsuri.locationtracking.tracking.WifiMonitor
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import com.ramitsuri.locationtracking.ui.label
@@ -48,6 +51,15 @@ class BackgroundService : LifecycleService(), KoinComponent {
             geocoderRepository = get<GeocoderRepository>(),
             settings = settings,
             scope = lifecycleScope,
+        )
+    }
+    private val wifiMonitor by lazy {
+        WifiMonitor(
+            wifiInfoProvider = get<WifiInfoProvider>(),
+            settings = settings,
+            scope = lifecycleScope,
+            seenWifiDao = get<SeenWifiDao>(),
+            wifiMonitoringModeRuleDao = get<WifiMonitoringModeRuleDao>(),
         )
     }
     private val activityManager by lazy {
@@ -162,6 +174,7 @@ class BackgroundService : LifecycleService(), KoinComponent {
         logD(TAG) { "setupAndStartService" }
         startForegroundService()
         tracker.startTracking()
+        wifiMonitor.startMonitoring()
         lifecycleScope.launch {
             combine(
                 settings.getMonitoringMode(),
