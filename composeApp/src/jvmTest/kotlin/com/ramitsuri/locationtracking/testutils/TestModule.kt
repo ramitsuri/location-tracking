@@ -76,4 +76,8 @@ val testModule = module {
     factory<GeocodeCacheDao> {
         get<AppDatabase>().geocodeCacheDao()
     }
+
+    factory<TestBatteryInfoProvider> {
+        TestBatteryInfoProvider()
+    }
 }

@@ -12,6 +12,7 @@ import com.ramitsuri.locationtracking.repository.GeocoderRepository
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.testutils.BaseTest
+import com.ramitsuri.locationtracking.testutils.TestBatteryInfoProvider
 import com.ramitsuri.locationtracking.testutils.TestGeocoderApi
 import com.ramitsuri.locationtracking.testutils.TestLocationProvider
 import com.ramitsuri.locationtracking.testutils.TestPermissionChecker
@@ -225,6 +226,7 @@ class TrackerTest : BaseTest() {
             settings = settings,
             scope = backgroundScope,
             permissionChecker = permissionChecker,
+            batteryInfoProvider = get<TestBatteryInfoProvider>(),
         )
         if (grantPermissions) {
             permissionChecker.permissionResults.addAll(

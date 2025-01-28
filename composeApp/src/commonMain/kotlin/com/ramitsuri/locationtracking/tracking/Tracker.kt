@@ -6,6 +6,7 @@ import com.ramitsuri.locationtracking.permissions.PermissionChecker
 import com.ramitsuri.locationtracking.repository.GeocoderRepository
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.Settings
+import com.ramitsuri.locationtracking.tracking.battery.BatteryInfoProvider
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.location.Request
 import com.ramitsuri.locationtracking.tracking.location.forMonitoringMode
@@ -25,6 +26,7 @@ class Tracker(
     private val permissionChecker: PermissionChecker,
     private val locationProvider: LocationProvider,
     private val wifiInfoProvider: WifiInfoProvider,
+    private val batteryInfoProvider: BatteryInfoProvider,
     private val locationRepository: LocationRepository,
     private val geocoderRepository: GeocoderRepository,
     private val settings: Settings,
@@ -63,11 +65,13 @@ class Tracker(
             }
             locationProvider.requestSingle()?.let { location ->
                 val wifiInfo = wifiInfoProvider.wifiInfo.value
-                val locationWithWifi = location.copy(
+                val locationDetailed = location.copy(
                     ssid = wifiInfo.ssid,
                     bssid = wifiInfo.bssid,
+                    battery = batteryInfoProvider.getLevel(),
+                    batteryStatus = batteryInfoProvider.getChargingStatus(),
                 )
-                locationRepository.insert(locationWithWifi)
+                locationRepository.insert(locationDetailed)
                 onNewLocation(location)
             }
         }
@@ -96,11 +100,14 @@ class Tracker(
                                 .filter { it.accuracy <= MIN_HORIZONTAL_ACCURACY }
                                 .collect { location ->
                                     val wifiInfo = wifiInfoProvider.wifiInfo.value
-                                    val locationWithWifi = location.copy(
+                                    val locationDetailed = location.copy(
                                         ssid = wifiInfo.ssid,
                                         bssid = wifiInfo.bssid,
+                                        battery = batteryInfoProvider.getLevel(),
+                                        batteryStatus = batteryInfoProvider.getChargingStatus(),
+                                        monitoringMode = mode,
                                     )
-                                    locationRepository.insert(locationWithWifi)
+                                    locationRepository.insert(locationDetailed)
                                     onNewLocation(location)
                                 }
                         }
