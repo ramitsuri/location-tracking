@@ -17,6 +17,8 @@ import com.ramitsuri.locationtracking.permissions.PermissionMonitor
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.services.BackgroundService
 import com.ramitsuri.locationtracking.settings.Settings
+import com.ramitsuri.locationtracking.tracking.battery.AndroidBatteryInfoProvider
+import com.ramitsuri.locationtracking.tracking.battery.BatteryInfoProvider
 import com.ramitsuri.locationtracking.tracking.location.AndroidLocationProvider
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.AndroidWifiInfoProvider
@@ -91,6 +93,10 @@ class MainApp : Application(), KoinComponent {
 
                 factory<PermissionChecker> {
                     AndroidPermissionChecker(this@MainApp)
+                }
+
+                factory<BatteryInfoProvider> {
+                    AndroidBatteryInfoProvider(this@MainApp)
                 }
 
                 factory<HttpClientEngine> {

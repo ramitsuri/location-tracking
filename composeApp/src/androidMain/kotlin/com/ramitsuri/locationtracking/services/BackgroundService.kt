@@ -25,6 +25,7 @@ import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.tracking.Tracker
 import com.ramitsuri.locationtracking.tracking.WifiMonitor
+import com.ramitsuri.locationtracking.tracking.battery.BatteryInfoProvider
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import com.ramitsuri.locationtracking.ui.label
@@ -47,6 +48,7 @@ class BackgroundService : LifecycleService(), KoinComponent {
             permissionChecker = permissionChecker,
             locationProvider = get<LocationProvider>(),
             wifiInfoProvider = get<WifiInfoProvider>(),
+            batteryInfoProvider = get<BatteryInfoProvider>(),
             locationRepository = get<LocationRepository>(),
             geocoderRepository = get<GeocoderRepository>(),
             settings = settings,
