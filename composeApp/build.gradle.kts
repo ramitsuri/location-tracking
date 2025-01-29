@@ -56,6 +56,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlin.datetime)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.maps.compose)
             implementation(libs.room.ktx)
             implementation(libs.room.runtime)
             implementation(libs.androidx.sqlite.bundled)
