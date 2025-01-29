@@ -15,6 +15,10 @@ class LocationRepository(
     private val locationApi: LocationApi,
     private val settings: Settings,
 ) {
+    fun getLastKnownLocation(): Flow<Location?> {
+        return settings.getLastKnownLocationFlow()
+    }
+
     suspend fun insert(location: Location) {
         locationDao.insert(location)
     }

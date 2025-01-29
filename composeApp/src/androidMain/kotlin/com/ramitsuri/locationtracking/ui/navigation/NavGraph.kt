@@ -9,7 +9,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -30,7 +29,7 @@ fun NavGraph(
     navController: NavHostController = rememberNavController(),
     onKillApp: () -> Unit,
     onSingleLocation: () -> Unit,
-    onNavToAppSettings: () -> Unit,
+    onNavToSystemSettings: () -> Unit,
     onServiceStart: () -> Unit,
     onServiceStop: () -> Unit,
 ) {
@@ -45,7 +44,7 @@ fun NavGraph(
                 navController = navController,
                 startDestination = Destination.Home,
                 modifier = Modifier.padding(
-                    top = innerPadding.calculateTopPadding().plus(16.dp),
+                    top = innerPadding.calculateTopPadding(),
                     bottom = innerPadding.calculateBottomPadding(),
                 ),
             ) {
@@ -59,10 +58,8 @@ fun NavGraph(
                         },
                         onUpload = viewModel::onUpload,
                         onSingleLocation = onSingleLocation,
-                        onNavToAppSettings = onNavToAppSettings,
-                        modifier = Modifier
-                            .statusBarsPadding()
-                            .displayCutoutPadding(),
+                        onNavToSystemSettings = onNavToSystemSettings,
+                        modifier = Modifier,
                     )
                 }
 

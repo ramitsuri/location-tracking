@@ -25,11 +25,13 @@ class HomeViewModel(
             }.map { it.permission }
         },
         isUploadWorkerRunning(),
-    ) { count, permissions, isUploadWorkerRunning ->
+        locationRepository.getLastKnownLocation(),
+    ) { count, permissions, isUploadWorkerRunning, lastKnownLocation ->
         HomeViewState(
             numOfLocations = count,
             notGrantedPermissions = permissions,
             isUploadWorkerRunning = isUploadWorkerRunning,
+            lastKnownLocation = lastKnownLocation,
         )
     }.stateIn(
         scope = viewModelScope,

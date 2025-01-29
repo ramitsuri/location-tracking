@@ -1,12 +1,17 @@
 package com.ramitsuri.locationtracking.settings
 
 import com.ramitsuri.locationtracking.data.toEnum
+import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 
-class Settings internal constructor(private val keyValueStore: KeyValueStore) {
+class Settings internal constructor(
+    private val keyValueStore: KeyValueStore,
+    private val json: Json,
+) {
     fun getMonitoringMode(): Flow<MonitoringMode> {
         return keyValueStore
             .getStringFlow(Key.MONITORING_MODE, MonitoringMode.default().value)
@@ -50,5 +55,19 @@ class Settings internal constructor(private val keyValueStore: KeyValueStore) {
 
     suspend fun setDeviceName(deviceName: String) {
         keyValueStore.putString(Key.DEVICE_NAME, deviceName)
+    }
+
+    fun getLastKnownLocationFlow(): Flow<Location?> {
+        return keyValueStore.getStringFlow(Key.LAST_KNOWN_LOCATION, null).map {
+            if (it == null) {
+                null
+            } else {
+                json.decodeFromString(Location.serializer(), it)
+            }
+        }
+    }
+
+    suspend fun setLastKnownLocation(lastKnownLocation: Location) {
+        keyValueStore.putString(Key.LAST_KNOWN_LOCATION, json.encodeToString(lastKnownLocation))
     }
 }

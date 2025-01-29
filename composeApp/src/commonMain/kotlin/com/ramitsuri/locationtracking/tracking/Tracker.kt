@@ -13,6 +13,7 @@ import com.ramitsuri.locationtracking.tracking.location.forMonitoringMode
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import java.math.BigDecimal
 import java.math.RoundingMode
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -36,6 +37,7 @@ class Tracker(
     private var locationCollectionJob: Job? = null
     private var monitoringModeCollectionJob: Job? = null
     private var reverseGeocodeJob: Job? = null
+    private var saveLastKnownLocationJob: Job? = null
 
     private val _lastKnownAddressOrLocation: MutableStateFlow<LocationAndAddress?> =
         MutableStateFlow(null)
@@ -117,6 +119,11 @@ class Tracker(
     }
 
     private fun onNewLocation(location: Location) {
+        saveLastKnownLocationJob?.cancel()
+        saveLastKnownLocationJob = scope.launch {
+            delay(1.seconds)
+            settings.setLastKnownLocation(location)
+        }
         var shouldReverseGeocode = true
         // Put coordinates right away while we wait to get address so that we're able to show
         // something to the user indicating the location has changed
