@@ -121,11 +121,11 @@ fun HomeScreen(
                             icon = Icons.Default.Upload,
                         )
                     }
+                    TintedIconButton(
+                        onClick = onSingleLocation,
+                        icon = Icons.Default.AddLocation,
+                    )
                 }
-                TintedIconButton(
-                    onClick = onSingleLocation,
-                    icon = Icons.Default.AddLocation,
-                )
                 TintedIconButton(
                     onClick = onNavToSettings,
                     icon = Icons.Default.Settings,
