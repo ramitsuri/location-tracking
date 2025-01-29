@@ -13,6 +13,7 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.json.Json
 import okio.Path.Companion.toOkioPath
 import org.koin.dsl.module
 
@@ -23,7 +24,7 @@ val testModule = module {
         val dataStore = DataStoreKeyValueStore {
             Paths.get(BaseTest.TEMP_DIR).resolve("${Uuid.random()}.preferences_pb").toOkioPath()
         }
-        Settings(dataStore)
+        Settings(dataStore, get<Json>())
     }
 
     factory<AppDatabase> {
@@ -32,6 +33,14 @@ val testModule = module {
 
     single<CoroutineDispatcher> {
         Dispatchers.IO
+    }
+
+    single<Json> {
+        Json {
+            prettyPrint = true
+            isLenient = true
+            ignoreUnknownKeys = true
+        }
     }
 
     factory<LocationRepository> {
