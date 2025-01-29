@@ -17,6 +17,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.json.Json
 import okio.Path
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
@@ -38,7 +39,10 @@ fun initKoin(appModule: KoinApplication.() -> Module): KoinApplication {
 private val coreModule = module {
     single<Settings> {
         val dataStore = DataStoreKeyValueStore { get<Path>() }
-        Settings(dataStore)
+        Settings(
+            keyValueStore = dataStore,
+            json = get<Json>(),
+        )
     }
 
     single<AppDatabase> {
@@ -53,8 +57,17 @@ private val coreModule = module {
     single<HttpClient> {
         provideHttpClient(
             clientEngine = get<HttpClientEngine>(),
+            json = get<Json>(),
             enableAllLogging = get<Boolean>(qualifier = KoinQualifier.IS_DEBUG),
         )
+    }
+
+    single<Json> {
+        Json {
+            prettyPrint = true
+            isLenient = true
+            ignoreUnknownKeys = true
+        }
     }
 
     single<LocationRepository> {

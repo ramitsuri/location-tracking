@@ -47,6 +47,11 @@
         android:supportsRtl="true"
         android:theme="@style/NightAdjusted.Theme.LocationTracking"
         android:usesCleartextTraffic="true">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyD7v-Ixs8EITpXbyJh-Ga6JxbtM63Yfu5c" />
+
         <activity
             android:name="com.ramitsuri.locationtracking.MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"

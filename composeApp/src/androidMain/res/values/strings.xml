@@ -26,7 +26,6 @@
     <string name="locations">"Locations: "</string>
     <string name="change_mode">Change Mode</string>
     <string name="single_location">Single Location</string>
-    <string name="not_granted_permissions">Not granted permissions</string>
 
     <string name="url_hint">"URL: "</string>
     <string name="device_name_hint">"Device Name: "</string>

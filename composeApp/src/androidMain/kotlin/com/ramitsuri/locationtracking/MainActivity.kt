@@ -60,14 +60,14 @@ class MainActivity : ComponentActivity() {
                         action = BackgroundService.INTENT_ACTION_SEND_LOCATION_USER,
                     )
                 },
-                onNavToAppSettings = ::navToAppSettings,
+                onNavToSystemSettings = ::navToSystemSettings,
                 onServiceStart = ::startService,
                 onServiceStop = ::stopService,
             )
         }
     }
 
-    private fun navToAppSettings() {
+    private fun navToSystemSettings() {
         startActivity(
             Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                 data = Uri.parse("package:$packageName")

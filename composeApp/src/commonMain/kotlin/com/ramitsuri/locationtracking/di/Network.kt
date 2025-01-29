@@ -14,29 +14,26 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-internal fun provideHttpClient(clientEngine: HttpClientEngine, enableAllLogging: Boolean = false) =
-    HttpClient(clientEngine) {
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    prettyPrint = true
-                    isLenient = true
-                    ignoreUnknownKeys = true
-                },
-            )
-        }
-        install(Logging) {
-            logger =
-                object : Logger {
-                    override fun log(message: String) {
-                        logI("HTTP") { message }
-                    }
-                }
-            level = if (enableAllLogging) LogLevel.ALL else LogLevel.HEADERS
-        }
-
-        install(DefaultRequest) {
-            header(HttpHeaders.ContentType, ContentType.Application.Json)
-            header("User-Agent", "LocationTrackingAndroid")
-        }
+internal fun provideHttpClient(
+    clientEngine: HttpClientEngine,
+    json: Json,
+    enableAllLogging: Boolean = false,
+) = HttpClient(clientEngine) {
+    install(ContentNegotiation) {
+        json(json)
     }
+    install(Logging) {
+        logger =
+            object : Logger {
+                override fun log(message: String) {
+                    logI("HTTP") { message }
+                }
+            }
+        level = if (enableAllLogging) LogLevel.ALL else LogLevel.HEADERS
+    }
+
+    install(DefaultRequest) {
+        header(HttpHeaders.ContentType, ContentType.Application.Json)
+        header("User-Agent", "LocationTrackingAndroid")
+    }
+}
