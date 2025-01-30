@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import okio.Path
@@ -21,6 +22,7 @@ internal class DataStoreKeyValueStore(
             .map {
                 it[stringPreferencesKey(key.value)] ?: defaultValue
             }
+            .distinctUntilChanged()
     }
 
     override suspend fun getString(key: Key, defaultValue: String?): String? {

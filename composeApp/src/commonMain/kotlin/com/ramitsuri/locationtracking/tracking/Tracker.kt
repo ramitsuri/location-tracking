@@ -1,5 +1,8 @@
 package com.ramitsuri.locationtracking.tracking
 
+import com.ramitsuri.locationtracking.log.logD
+import com.ramitsuri.locationtracking.log.logI
+import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
@@ -15,11 +18,15 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -35,7 +42,6 @@ class Tracker(
 ) {
 
     private var locationCollectionJob: Job? = null
-    private var monitoringModeCollectionJob: Job? = null
     private var reverseGeocodeJob: Job? = null
     private var saveLastKnownLocationJob: Job? = null
 
@@ -44,6 +50,7 @@ class Tracker(
     val lastKnownAddressOrLocation = _lastKnownAddressOrLocation.asStateFlow()
 
     fun startTracking() {
+        logI(TAG) { "startTracking" }
         wifiInfoProvider.requestUpdates()
         setupLocationRequest()
     }
@@ -51,7 +58,6 @@ class Tracker(
     fun stopTracking() {
         wifiInfoProvider.unrequestUpdates()
         locationCollectionJob?.cancel()
-        monitoringModeCollectionJob?.cancel()
     }
 
     fun trackSingle() {
@@ -79,8 +85,10 @@ class Tracker(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun setupLocationRequest() {
-        monitoringModeCollectionJob?.cancel()
+        logI(TAG) { "setupLocationRequest" }
+        locationCollectionJob?.cancel()
         if (!permissionChecker.hasPermissions(
                 listOf(
                     Permission.FINE_LOCATION,
@@ -88,37 +96,37 @@ class Tracker(
                 ),
             ).any { it.granted }
         ) {
+            logW(TAG) { "No permissions, cannot setup tracking" }
             return
         }
-        monitoringModeCollectionJob = scope.launch {
+        locationCollectionJob = scope.launch {
             settings
                 .getMonitoringMode()
-                .collect { mode ->
-                    locationCollectionJob?.cancel()
-                    val locationRequest = Request.forMonitoringMode(mode)
-                    if (locationRequest != null) {
-                        locationCollectionJob = launch {
+                .flatMapLatest { mode ->
+                    Request.forMonitoringMode(mode)
+                        ?.let { locationRequest ->
                             locationProvider.requestUpdates(locationRequest)
                                 .filter { it.accuracy <= MIN_HORIZONTAL_ACCURACY }
-                                .collect { location ->
+                                .map { location ->
                                     val wifiInfo = wifiInfoProvider.wifiInfo.value
-                                    val locationDetailed = location.copy(
+                                    location.copy(
                                         ssid = wifiInfo.ssid,
                                         bssid = wifiInfo.bssid,
                                         battery = batteryInfoProvider.getLevel(),
                                         batteryStatus = batteryInfoProvider.getChargingStatus(),
                                         monitoringMode = mode,
                                     )
-                                    locationRepository.insert(locationDetailed)
-                                    onNewLocation(location)
                                 }
-                        }
-                    }
+                        } ?: emptyFlow()
+                }.collect { location ->
+                    locationRepository.insert(location)
+                    onNewLocation(location)
                 }
         }
     }
 
     private fun onNewLocation(location: Location) {
+        logD(TAG) { "onNewLocation: $location" }
         saveLastKnownLocationJob?.cancel()
         saveLastKnownLocationJob = scope.launch {
             delay(1.seconds)
@@ -182,6 +190,7 @@ class Tracker(
 
     companion object {
         private const val MIN_HORIZONTAL_ACCURACY = 200f // In meters
+        private const val TAG = "Tracker"
     }
 }
 
