@@ -50,7 +50,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyD7v-Ixs8EITpXbyJh-Ga6JxbtM63Yfu5c" />
+            android:value="AIzaSyDD5XWlNwSkvnFQ4dLrKB_Lz13vquWScpQ" />
 
         <activity
             android:name="com.ramitsuri.locationtracking.MainActivity"

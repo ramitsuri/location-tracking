@@ -13,6 +13,8 @@ import com.google.android.gms.location.LocationRequest.Builder as GmsRequestBuil
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority as GmsPriority
+import com.ramitsuri.locationtracking.log.logE
+import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location
 import kotlin.coroutines.resume
@@ -58,10 +60,14 @@ class AndroidLocationProvider(context: Context) : LocationProvider {
             callback,
             handler.looper,
         ).addOnFailureListener { e ->
+            logE(TAG, e) { "Failed to start location updates" }
             close(e)
+        }.addOnSuccessListener {
+            logI(TAG) { "Starting location updates: $callback" }
         }
 
         awaitClose {
+            logI(TAG) { "Stopping location updates: $callback" }
             fusedLocationProviderClient.removeLocationUpdates(callback)
         }
     }
@@ -86,7 +92,7 @@ class AndroidLocationProvider(context: Context) : LocationProvider {
                 // Turns out location can be null! Especially if there's no location available or if
                 // locations are turned off on the device.
                 if (location == null) {
-                    logW("LocationProvider") {
+                    logW(TAG) {
                         "No location available for single high accuracy request. Device location " +
                             "disabled?"
                     }
@@ -133,4 +139,8 @@ class AndroidLocationProvider(context: Context) : LocationProvider {
         // Convert m/s to km/h
         velocity = if (hasSpeed()) ((speed * 3.6).toInt()) else 0,
     )
+
+    companion object {
+        private const val TAG = "AndroidLocationProvider"
+    }
 }
