@@ -189,7 +189,7 @@ class Tracker(
     }
 
     companion object {
-        private const val MIN_HORIZONTAL_ACCURACY = 200f // In meters
+        private const val MIN_HORIZONTAL_ACCURACY = 40f // In meters
         private const val TAG = "Tracker"
     }
 }
