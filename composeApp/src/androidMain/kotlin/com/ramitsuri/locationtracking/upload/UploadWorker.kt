@@ -12,7 +12,9 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.ramitsuri.locationtracking.BuildConfig
 import com.ramitsuri.locationtracking.R
+import com.ramitsuri.locationtracking.log.logD
 import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.notification.NotificationConstants
 import com.ramitsuri.locationtracking.repository.LocationRepository
@@ -27,6 +29,10 @@ class UploadWorker(
 ) : CoroutineWorker(context, workerParams) {
     override suspend fun doWork(): Result {
         logI(TAG) { "doing work" }
+        if (BuildConfig.DEBUG) {
+            logD(TAG) { "Skipping upload in debug mode" }
+            return Result.success()
+        }
         val result = repository.upload()
         return if (result.isSuccess) {
             Result.success()
