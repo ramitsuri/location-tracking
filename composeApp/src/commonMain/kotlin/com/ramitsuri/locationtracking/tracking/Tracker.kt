@@ -74,14 +74,15 @@ class Tracker(
             }
             locationProvider.requestSingle()?.let { location ->
                 val wifiInfo = wifiInfoProvider.wifiInfo.value
-                val locationDetailed = location.copy(
+                location.copy(
                     ssid = wifiInfo.ssid,
                     bssid = wifiInfo.bssid,
                     battery = batteryInfoProvider.getLevel(),
                     batteryStatus = batteryInfoProvider.getChargingStatus(),
-                )
-                locationRepository.insert(locationDetailed)
-                onNewLocation(location)
+                ).let {
+                    locationRepository.insert(it)
+                    onNewLocation(it)
+                }
             }
         }
     }

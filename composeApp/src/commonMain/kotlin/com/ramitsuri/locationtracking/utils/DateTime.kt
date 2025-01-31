@@ -20,14 +20,14 @@ fun LocalDate.format(): String {
 
 fun Instant.format(timeZone: TimeZone, am: String, pm: String): String {
     return LocalDateTime.Format {
-        monthNumber(padding = Padding.ZERO)
+        monthNumber(padding = Padding.NONE)
         char('/')
-        dayOfMonth(padding = Padding.ZERO)
+        dayOfMonth(padding = Padding.NONE)
         char('/')
         year(padding = Padding.ZERO)
         char(',')
         char(' ')
-        hour(padding = Padding.ZERO)
+        amPmHour(padding = Padding.NONE)
         char(':')
         minute(padding = Padding.ZERO)
         char(' ')
