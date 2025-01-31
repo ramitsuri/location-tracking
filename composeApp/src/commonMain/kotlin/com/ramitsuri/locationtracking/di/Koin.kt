@@ -17,6 +17,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.Json
 import okio.Path
 import org.koin.core.KoinApplication
@@ -90,6 +91,10 @@ private val coreModule = module {
             httpClient = get<HttpClient>(),
             ioDispatcher = get<CoroutineDispatcher>(qualifier = KoinQualifier.IO_DISPATCHER),
         )
+    }
+
+    single<TimeZone> {
+        TimeZone.currentSystemDefault()
     }
 
     factory<String>(qualifier = KoinQualifier.DATABASE_NAME) {

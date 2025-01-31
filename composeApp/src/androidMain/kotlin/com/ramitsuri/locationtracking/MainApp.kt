@@ -30,6 +30,7 @@ import com.ramitsuri.locationtracking.upload.UploadWorker
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.android.Android
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.datetime.TimeZone
 import okio.Path
 import okio.Path.Companion.toPath
 import org.koin.android.ext.koin.androidContext
@@ -139,6 +140,7 @@ class MainApp : Application(), KoinComponent {
                         },
                         isUploadWorkerRunning = { UploadWorker.isRunning(this@MainApp) },
                         upload = { UploadWorker.enqueueImmediate(this@MainApp) },
+                        timeZone = get<TimeZone>(),
                     )
                 }
 
