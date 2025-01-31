@@ -14,6 +14,7 @@ import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.location.Request
 import com.ramitsuri.locationtracking.tracking.location.forMonitoringMode
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
+import com.ramitsuri.locationtracking.utils.Constants
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.time.Duration.Companion.seconds
@@ -106,7 +107,9 @@ class Tracker(
                     Request.forMonitoringMode(mode)
                         ?.let { locationRequest ->
                             locationProvider.requestUpdates(locationRequest)
-                                .filter { it.accuracy <= MIN_HORIZONTAL_ACCURACY }
+                                .filter {
+                                    it.accuracy <= Constants.LOCATION_MIN_HORIZONTAL_ACCURACY
+                                }
                                 .map { location ->
                                     val wifiInfo = wifiInfoProvider.wifiInfo.value
                                     location.copy(
@@ -189,7 +192,6 @@ class Tracker(
     }
 
     companion object {
-        private const val MIN_HORIZONTAL_ACCURACY = 40f // In meters
         private const val TAG = "Tracker"
     }
 }
