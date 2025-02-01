@@ -3,10 +3,12 @@ package com.ramitsuri.locationtracking
 import android.app.Application
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import co.touchlab.kermit.Logger
 import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.di.KoinQualifier
 import com.ramitsuri.locationtracking.di.initKoin
+import com.ramitsuri.locationtracking.log.DbLogWriter
 import com.ramitsuri.locationtracking.network.AndroidGeocoderApi
 import com.ramitsuri.locationtracking.network.GeocoderApi
 import com.ramitsuri.locationtracking.notification.NotificationManager
@@ -24,6 +26,7 @@ import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.AndroidWifiInfoProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import com.ramitsuri.locationtracking.ui.home.HomeViewModel
+import com.ramitsuri.locationtracking.ui.logs.LogScreenViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
 import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesViewModel
 import com.ramitsuri.locationtracking.upload.UploadWorker
@@ -37,6 +40,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.workmanager.dsl.worker
 import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import org.koin.core.component.inject
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -49,6 +53,7 @@ class MainApp : Application(), KoinComponent {
         initDependencyInjection()
         notificationManager.createChannels()
         UploadWorker.enqueuePeriodic(this)
+        Logger.setLogWriters(get<DbLogWriter>())
     }
 
     private fun initDependencyInjection() {
@@ -147,6 +152,13 @@ class MainApp : Application(), KoinComponent {
                 viewModel<WifiRulesViewModel> {
                     WifiRulesViewModel(
                         wifiMonitoringModeRuleDao = get<WifiMonitoringModeRuleDao>(),
+                    )
+                }
+
+                viewModel<LogScreenViewModel> {
+                    LogScreenViewModel(
+                        logWriter = get<DbLogWriter>(),
+                        timeZone = get<TimeZone>(),
                     )
                 }
             }

@@ -15,8 +15,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.ramitsuri.locationtracking.ui.AppTheme
+import com.ramitsuri.locationtracking.ui.LogsScreen
 import com.ramitsuri.locationtracking.ui.home.HomeScreen
 import com.ramitsuri.locationtracking.ui.home.HomeViewModel
+import com.ramitsuri.locationtracking.ui.logs.LogScreenViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsScreen
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
 import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesScreen
@@ -83,6 +85,9 @@ fun NavGraph(
                         onNavToWifiRules = {
                             navController.navigate(Destination.WifiRules)
                         },
+                        onNavToLogs = {
+                            navController.navigate(Destination.Logs)
+                        },
                         modifier = Modifier
                             .statusBarsPadding()
                             .displayCutoutPadding(),
@@ -103,6 +108,17 @@ fun NavGraph(
                         modifier = Modifier
                             .statusBarsPadding()
                             .displayCutoutPadding(),
+                    )
+                }
+
+                composable<Destination.Logs> {
+                    val viewModel = koinViewModel<LogScreenViewModel>()
+                    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
+                    LogsScreen(
+                        viewState = viewState,
+                        onNavBack = {
+                            navController.navigateUp()
+                        },
                     )
                 }
             }
