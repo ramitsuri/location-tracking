@@ -11,4 +11,7 @@ sealed interface Destination {
 
     @Serializable
     data object WifiRules : Destination
+
+    @Serializable
+    data object Logs : Destination
 }

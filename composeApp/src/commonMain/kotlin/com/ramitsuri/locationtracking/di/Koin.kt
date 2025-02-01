@@ -4,8 +4,10 @@ import androidx.room.RoomDatabase
 import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.data.dao.GeocodeCacheDao
 import com.ramitsuri.locationtracking.data.dao.LocationDao
+import com.ramitsuri.locationtracking.data.dao.LogItemDao
 import com.ramitsuri.locationtracking.data.dao.SeenWifiDao
 import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
+import com.ramitsuri.locationtracking.log.DbLogWriter
 import com.ramitsuri.locationtracking.network.GeocoderApi
 import com.ramitsuri.locationtracking.network.LocationApi
 import com.ramitsuri.locationtracking.network.impl.LocationApiImpl
@@ -16,6 +18,7 @@ import com.ramitsuri.locationtracking.settings.Settings
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.Json
@@ -49,6 +52,10 @@ private val coreModule = module {
     single<AppDatabase> {
         val ioDispatcher = get<CoroutineDispatcher>(qualifier = KoinQualifier.IO_DISPATCHER)
         AppDatabase.getDb(get<RoomDatabase.Builder<AppDatabase>>(), ioDispatcher)
+    }
+
+    single<CoroutineScope> {
+        CoroutineScope(get<CoroutineDispatcher>(qualifier = KoinQualifier.IO_DISPATCHER))
     }
 
     single<CoroutineDispatcher>(qualifier = KoinQualifier.IO_DISPATCHER) {
@@ -97,6 +104,13 @@ private val coreModule = module {
         TimeZone.currentSystemDefault()
     }
 
+    single<DbLogWriter> {
+        DbLogWriter(
+            logItemDao = get<LogItemDao>(),
+            scope = get<CoroutineScope>(),
+        )
+    }
+
     factory<String>(qualifier = KoinQualifier.DATABASE_NAME) {
         "app_database"
     }
@@ -119,6 +133,10 @@ private val coreModule = module {
 
     factory<SeenWifiDao> {
         get<AppDatabase>().seenWifiDao()
+    }
+
+    factory<LogItemDao> {
+        get<AppDatabase>().logItemDao()
     }
 }
 

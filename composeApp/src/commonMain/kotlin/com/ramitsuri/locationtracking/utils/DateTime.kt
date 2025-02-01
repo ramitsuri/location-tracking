@@ -4,6 +4,7 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
 import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
@@ -32,5 +33,19 @@ fun Instant.format(timeZone: TimeZone, am: String, pm: String): String {
         minute(padding = Padding.ZERO)
         char(' ')
         amPmMarker(am = am, pm = pm)
+    }.format(this.toLocalDateTime(timeZone))
+}
+
+fun Instant.formatForLogs(timeZone: TimeZone, amString: String, pmString: String): String {
+    return LocalDateTime.Format {
+        amPmHour(padding = Padding.NONE)
+        char(':')
+        minute()
+        char(':')
+        second()
+        char('.')
+        secondFraction(maxLength = 3)
+        char(' ')
+        amPmMarker(am = amString, pm = pmString)
     }.format(this.toLocalDateTime(timeZone))
 }
