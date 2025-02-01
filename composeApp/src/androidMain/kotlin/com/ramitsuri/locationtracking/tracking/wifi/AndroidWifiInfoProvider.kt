@@ -6,6 +6,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.wifi.WifiInfo as AndroidWifiInfo
 import android.os.Build
+import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.model.WifiInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,6 +43,9 @@ class AndroidWifiInfoProvider(context: Context) : WifiInfoProvider {
                 network: Network,
                 networkCapabilities: NetworkCapabilities,
             ) {
+                logI(TAG) {
+                    "onCapabilitiesChanged: $networkCapabilities"
+                }
                 (networkCapabilities.transportInfo as? AndroidWifiInfo)
                     ?.let { info ->
                         _wifiInfo.update {
@@ -53,6 +57,11 @@ class AndroidWifiInfoProvider(context: Context) : WifiInfoProvider {
 
             override fun onLost(network: Network) {
                 super.onLost(network)
+                logI(TAG) {
+                    "onLost network - $network, capabilities - ${manager.getNetworkCapabilities(
+                        network,
+                    )}"
+                }
                 if (manager.getNetworkCapabilities(network)?.transportInfo is AndroidWifiInfo) {
                     _wifiInfo.update { WifiInfo() }
                 }
@@ -64,4 +73,8 @@ class AndroidWifiInfoProvider(context: Context) : WifiInfoProvider {
 
     private fun AndroidWifiInfo.getUnquotedSSID(): String =
         this.ssid.replace(Regex("^\"(.*)\"$"), "$1")
+
+    companion object {
+        private const val TAG = "AndroidWifiInfoProvider"
+    }
 }
