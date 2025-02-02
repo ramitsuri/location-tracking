@@ -107,7 +107,7 @@ class Tracker(
                         ?.let { locationRequest ->
                             locationProvider.requestUpdates(locationRequest)
                                 .mapNotNull { location ->
-                                    if (location.accuracy <= mode.horizontalAccuracyMeters) {
+                                    if (location.accuracy > mode.horizontalAccuracyMeters) {
                                         logI(TAG) { "Ignoring $location" }
                                         null
                                     } else {
