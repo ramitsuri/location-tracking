@@ -33,6 +33,7 @@ import com.ramitsuri.locationtracking.upload.UploadWorker
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.android.Android
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.datetime.TimeZone
 import okio.Path
 import okio.Path.Companion.toPath
@@ -73,7 +74,10 @@ class MainApp : Application(), KoinComponent {
                 }
 
                 single<WifiInfoProvider> {
-                    AndroidWifiInfoProvider(this@MainApp)
+                    AndroidWifiInfoProvider(
+                        context = this@MainApp,
+                        scope = get<CoroutineScope>(),
+                    )
                 }
 
                 single<GeocoderApi> {

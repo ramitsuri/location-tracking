@@ -8,11 +8,19 @@ import android.net.wifi.WifiInfo as AndroidWifiInfo
 import android.os.Build
 import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.model.WifiInfo
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class AndroidWifiInfoProvider(context: Context) : WifiInfoProvider {
+class AndroidWifiInfoProvider(
+    context: Context,
+    private val scope: CoroutineScope,
+) : WifiInfoProvider {
     private val manager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
@@ -20,6 +28,8 @@ class AndroidWifiInfoProvider(context: Context) : WifiInfoProvider {
     override val wifiInfo = _wifiInfo.asStateFlow()
 
     private var updatesRequested = false
+
+    private var updateWifiInfoJob: Job? = null
 
     override fun requestUpdates() {
         if (updatesRequested) {
@@ -43,32 +53,36 @@ class AndroidWifiInfoProvider(context: Context) : WifiInfoProvider {
                 network: Network,
                 networkCapabilities: NetworkCapabilities,
             ) {
-                logI(TAG) {
-                    "onCapabilitiesChanged: $networkCapabilities"
+                val info = networkCapabilities.transportInfo
+                if (info is AndroidWifiInfo) {
+                    val ssid = info.getUnquotedSSID()
+                    logI(TAG) { "onCapabilitiesChanged: Wifi network: $ssid" }
+                    updateWifiInfo(WifiInfo(ssid, info.bssid))
+                } else {
+                    logI(TAG) { "onCapabilitiesChanged: Non Wifi network" }
+                    updateWifiInfo()
                 }
-                (networkCapabilities.transportInfo as? AndroidWifiInfo)
-                    ?.let { info ->
-                        _wifiInfo.update {
-                            WifiInfo(info.getUnquotedSSID(), info.bssid)
-                        }
-                    }
                 super.onCapabilitiesChanged(network, networkCapabilities)
             }
 
             override fun onLost(network: Network) {
                 super.onLost(network)
-                logI(TAG) {
-                    "onLost network - $network, capabilities - ${manager.getNetworkCapabilities(
-                        network,
-                    )}"
-                }
+                logI(TAG) { "onLost" }
                 if (manager.getNetworkCapabilities(network)?.transportInfo is AndroidWifiInfo) {
-                    _wifiInfo.update { WifiInfo() }
+                    updateWifiInfo()
                 }
             }
         }
     } else {
         null
+    }
+
+    private fun updateWifiInfo(wifiInfo: WifiInfo = WifiInfo()) {
+        updateWifiInfoJob?.cancel()
+        updateWifiInfoJob = scope.launch {
+            delay(1.seconds)
+            _wifiInfo.update { wifiInfo }
+        }
     }
 
     private fun AndroidWifiInfo.getUnquotedSSID(): String =
