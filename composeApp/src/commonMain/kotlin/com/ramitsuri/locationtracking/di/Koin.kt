@@ -20,6 +20,7 @@ import io.ktor.client.engine.HttpClientEngine
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.Json
 import okio.Path
@@ -55,7 +56,7 @@ private val coreModule = module {
     }
 
     single<CoroutineScope> {
-        CoroutineScope(get<CoroutineDispatcher>(qualifier = KoinQualifier.IO_DISPATCHER))
+        CoroutineScope(SupervisorJob())
     }
 
     single<CoroutineDispatcher>(qualifier = KoinQualifier.IO_DISPATCHER) {
