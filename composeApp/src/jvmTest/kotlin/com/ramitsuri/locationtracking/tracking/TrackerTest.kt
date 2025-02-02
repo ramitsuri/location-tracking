@@ -233,7 +233,7 @@ class TrackerTest : BaseTest() {
                 Permission.entries.map { PermissionResult(it, true) },
             )
         }
-        settings.setNextMonitoringMode()
+        settings.setMonitoringMode(MonitoringMode.Rest)
         if (startTracker) {
             tracker.startTracking()
         }
