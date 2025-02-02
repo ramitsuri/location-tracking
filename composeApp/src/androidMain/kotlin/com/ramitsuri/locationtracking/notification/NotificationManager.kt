@@ -14,7 +14,8 @@ import com.ramitsuri.locationtracking.MainActivity
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
-import com.ramitsuri.locationtracking.services.BackgroundService.Companion.INTENT_ACTION_CHANGE_MONITORING
+import com.ramitsuri.locationtracking.services.BackgroundService.Companion.INTENT_ACTION_CHANGE_MONITORING_NEXT
+import com.ramitsuri.locationtracking.services.BackgroundService.Companion.INTENT_ACTION_CHANGE_MONITORING_NEXT_NEXT
 import com.ramitsuri.locationtracking.services.BackgroundService.Companion.INTENT_ACTION_SEND_LOCATION_USER
 
 class NotificationManager(
@@ -105,7 +106,8 @@ class NotificationManager(
     fun getOngoingNotification(
         title: String,
         publishActionLabel: String,
-        changeMonitoringActionLabel: String,
+        nextModeLabel: String,
+        nextNextModeLabel: String,
         modeLabel: String,
     ): Notification {
         return NotificationCompat.Builder(
@@ -134,11 +136,21 @@ class NotificationManager(
             )
             .addAction(
                 0,
-                changeMonitoringActionLabel,
+                nextModeLabel,
                 PendingIntent.getService(
                     appContext,
                     0,
-                    Intent().setAction(INTENT_ACTION_CHANGE_MONITORING),
+                    Intent().setAction(INTENT_ACTION_CHANGE_MONITORING_NEXT),
+                    UPDATE_CURRENT_INTENT_FLAGS,
+                ),
+            )
+            .addAction(
+                0,
+                nextNextModeLabel,
+                PendingIntent.getService(
+                    appContext,
+                    0,
+                    Intent().setAction(INTENT_ACTION_CHANGE_MONITORING_NEXT_NEXT),
                     UPDATE_CURRENT_INTENT_FLAGS,
                 ),
             )

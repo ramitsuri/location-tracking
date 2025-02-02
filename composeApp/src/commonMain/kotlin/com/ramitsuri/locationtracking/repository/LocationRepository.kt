@@ -6,7 +6,6 @@ import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.network.LocationApi
 import com.ramitsuri.locationtracking.settings.Settings
-import com.ramitsuri.locationtracking.utils.Constants
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -57,7 +56,7 @@ class LocationRepository(
         }
     }
 
-    suspend fun get(from: Instant, to: Instant): List<Location> {
+    suspend fun get(from: Instant, to: Instant, minAccuracyMeters: Int): List<Location> {
         val baseUrl = settings.getBaseUrl()
         val deviceName = settings.getDeviceName()
         locationApi.getLocations(
@@ -66,7 +65,7 @@ class LocationRepository(
             fromDate = from,
             toDate = to,
         ).onSuccess { locations ->
-            return locations.filter { it.accuracy <= Constants.LOCATION_MIN_HORIZONTAL_ACCURACY }
+            return locations.filter { it.accuracy <= minAccuracyMeters }
         }
         return emptyList()
     }

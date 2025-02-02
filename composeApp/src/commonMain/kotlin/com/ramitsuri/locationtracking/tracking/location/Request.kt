@@ -18,30 +18,27 @@ data class Request(
 fun Request.Companion.forMonitoringMode(monitoringMode: MonitoringMode) = when (monitoringMode) {
     MonitoringMode.Off -> null
 
-    MonitoringMode.Slow -> {
+    MonitoringMode.Rest -> {
         Request(
             interval = 1.hours,
-            priority = Priority.LowPower,
-            minUpdateDistanceMeters = 500f,
+            priority = Priority.BalancedPowerAccuracy,
+            minUpdateDistanceMeters = 100f,
             fastestInterval = 20.minutes,
         )
     }
 
-    MonitoringMode.SignificantChanges -> {
+    MonitoringMode.Walk -> {
         Request(
-            interval = 5.minutes,
-            priority = Priority.BalancedPowerAccuracy,
-            minUpdateDistanceMeters = 100f,
-            fastestInterval = 1.minutes,
+            interval = 30.seconds,
+            priority = Priority.HighAccuracy,
+            fastestInterval = 10.seconds,
         )
     }
 
-    MonitoringMode.Moving -> {
+    MonitoringMode.Move -> {
         Request(
             interval = 10.seconds,
             priority = Priority.HighAccuracy,
-            minUpdateDistanceMeters = null,
-            fastestInterval = 1.seconds,
         )
     }
 }

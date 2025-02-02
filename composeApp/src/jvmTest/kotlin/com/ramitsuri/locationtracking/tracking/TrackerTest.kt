@@ -266,7 +266,7 @@ class TrackerTest : BaseTest() {
         trigger = "",
         battery = null,
         batteryStatus = BatteryStatus.FULL,
-        monitoringMode = MonitoringMode.Slow,
+        monitoringMode = MonitoringMode.Rest,
         inRegions = listOf(),
         trackerId = "",
     )

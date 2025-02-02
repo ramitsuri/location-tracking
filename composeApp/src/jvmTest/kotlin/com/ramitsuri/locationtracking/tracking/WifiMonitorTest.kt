@@ -67,14 +67,14 @@ class WifiMonitorTest : BaseTest() {
         insertRule(
             WifiMonitoringModeRule(
                 ssid = "1",
-                mode = MonitoringMode.Moving,
+                mode = MonitoringMode.Move,
                 status = WifiMonitoringModeRule.Status.CONNECTED,
             ),
         )
         settings.getMonitoringMode().test {
             assertEquals(MonitoringMode.Off, awaitItem())
             wifiInfoProvider.wifiInfo.value = wifiInfo().copy(ssid = "1")
-            assertEquals(MonitoringMode.Moving, awaitItem())
+            assertEquals(MonitoringMode.Move, awaitItem())
         }
     }
 
@@ -103,14 +103,14 @@ class WifiMonitorTest : BaseTest() {
             insertRule(
                 WifiMonitoringModeRule(
                     ssid = "1",
-                    mode = MonitoringMode.Moving,
+                    mode = MonitoringMode.Move,
                     status = WifiMonitoringModeRule.Status.CONNECTED,
                 ),
             )
             insertRule(
                 WifiMonitoringModeRule(
                     ssid = "2",
-                    mode = MonitoringMode.SignificantChanges,
+                    mode = MonitoringMode.Walk,
                     status = WifiMonitoringModeRule.Status.DISCONNECTED,
                 ),
             )
@@ -118,7 +118,7 @@ class WifiMonitorTest : BaseTest() {
                 assertEquals(MonitoringMode.Off, awaitItem())
                 wifiInfoProvider.wifiInfo.update { wifiInfo().copy(ssid = "2") }
                 wifiInfoProvider.wifiInfo.update { wifiInfo().copy(ssid = "1") }
-                assertEquals(MonitoringMode.Moving, awaitItem())
+                assertEquals(MonitoringMode.Move, awaitItem())
                 cancelAndConsumeRemainingEvents()
             }
         }

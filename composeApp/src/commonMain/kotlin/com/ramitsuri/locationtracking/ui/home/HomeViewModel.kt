@@ -81,6 +81,7 @@ class HomeViewModel(
             locationRepository.get(
                 from = from,
                 to = to,
+                minAccuracyMeters = 100,
             ).let { locations ->
                 viewMode.update {
                     HomeViewState.ViewMode.LocationsForDate(
