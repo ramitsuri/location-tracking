@@ -101,4 +101,8 @@ data class Location(
     @Required
     @Ignore
     val type: String = "location"
+
+    override fun toString(): String {
+        return "lat: $latitude, lng: $longitude, wifi: $ssid"
+    }
 }

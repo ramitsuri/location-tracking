@@ -53,7 +53,7 @@ class MainApp : Application(), KoinComponent {
         initDependencyInjection()
         notificationManager.createChannels()
         UploadWorker.enqueuePeriodic(this)
-        Logger.setLogWriters(get<DbLogWriter>())
+        Logger.addLogWriter(get<DbLogWriter>())
     }
 
     private fun initDependencyInjection() {
