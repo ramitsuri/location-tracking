@@ -12,6 +12,8 @@
     <string name="am">AM</string>
     <string name="pm">PM</string>
     <string name="logs">Logs</string>
+    <string name="select_all">Select all</string>
+    <string name="unselect_all">Unselect all</string>
 
     <string name="monitoring_mode_off">"Off"</string>
     <string name="monitoring_mode_slow">"Slow"</string>

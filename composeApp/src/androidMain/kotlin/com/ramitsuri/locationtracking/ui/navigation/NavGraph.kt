@@ -119,6 +119,13 @@ fun NavGraph(
                         onNavBack = {
                             navController.navigateUp()
                         },
+                        onSelectAllTags = viewModel::selectAllTagsClicked,
+                        onUnselectAllTags = viewModel::unselectAllTagsClicked,
+                        onTagClick = viewModel::tagClicked,
+                        onClearLogs = viewModel::clearLogsClicked,
+                        modifier = Modifier
+                            .statusBarsPadding()
+                            .displayCutoutPadding(),
                     )
                 }
             }

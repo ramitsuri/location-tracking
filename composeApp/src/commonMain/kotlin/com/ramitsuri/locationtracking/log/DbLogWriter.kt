@@ -25,8 +25,12 @@ class DbLogWriter(
         }
     }
 
-    fun getAllLogs(): Flow<List<LogItem>> {
-        return logItemDao.getAll()
+    suspend fun getAllLogs(tags: List<String>): List<LogItem> {
+        return logItemDao.getAll(tags)
+    }
+
+    fun getAllTags(): Flow<List<String>> {
+        return logItemDao.getTags()
     }
 
     fun clear() {

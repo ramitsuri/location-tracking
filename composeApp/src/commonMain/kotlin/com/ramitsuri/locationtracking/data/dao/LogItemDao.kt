@@ -15,6 +15,9 @@ interface LogItemDao {
     @Query("DELETE FROM logs")
     suspend fun deleteAll()
 
-    @Query("SELECT * FROM logs ORDER BY time DESC")
-    fun getAll(): Flow<List<LogItem>>
+    @Query("SELECT * FROM logs WHERE tag IN (:tags) ORDER BY time DESC")
+    suspend fun getAll(tags: List<String>): List<LogItem>
+
+    @Query("SELECT DISTINCT tag FROM logs ORDER BY tag")
+    fun getTags(): Flow<List<String>>
 }
