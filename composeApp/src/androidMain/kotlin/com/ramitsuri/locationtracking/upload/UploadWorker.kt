@@ -69,7 +69,6 @@ class UploadWorker(
                 .addTag(WORK_NAME_PERIODIC)
                 .setConstraints(
                     Constraints.Builder()
-                        .setRequiresCharging(true)
                         .setRequiredNetworkType(NetworkType.UNMETERED)
                         .build(),
                 )
