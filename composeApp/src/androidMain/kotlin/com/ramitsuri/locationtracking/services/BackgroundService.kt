@@ -98,8 +98,12 @@ class BackgroundService : LifecycleService(), KoinComponent {
                     tracker.trackSingle()
                 }
 
-                INTENT_ACTION_CHANGE_MONITORING -> {
-                    changeMonitoringMode()
+                INTENT_ACTION_CHANGE_MONITORING_NEXT -> {
+                    changeMonitoringMode(isNextNext = false)
+                }
+
+                INTENT_ACTION_CHANGE_MONITORING_NEXT_NEXT -> {
+                    changeMonitoringMode(isNextNext = true)
                 }
 
                 INTENT_ACTION_BOOT_COMPLETED,
@@ -121,10 +125,18 @@ class BackgroundService : LifecycleService(), KoinComponent {
         }
     }
 
-    private fun changeMonitoringMode() {
+    private fun changeMonitoringMode(isNextNext: Boolean) {
         logD(TAG) { "changeMonitoringMode" }
         lifecycleScope.launch {
-            settings.setNextMonitoringMode()
+            settings.getMonitoringMode().first()
+                .let {
+                    val mode = if (isNextNext) {
+                        it.getNextMode().getNextMode()
+                    } else {
+                        it.getNextMode()
+                    }
+                    settings.setMonitoringMode(mode)
+                }
             hasBeenStartedExplicitly = true
             notificationManager.cancelBackgroundRestrictionNotification()
         }
@@ -207,11 +219,14 @@ class BackgroundService : LifecycleService(), KoinComponent {
     }
 
     private fun getOngoingNotification(mode: MonitoringMode, title: String? = null): Notification {
+        val nextMode = mode.getNextMode()
+        val nextNextMode = nextMode.getNextMode()
         return notificationManager.getOngoingNotification(
             title = title ?: getString(R.string.app_name),
             publishActionLabel = getString(R.string.notification_publish),
-            changeMonitoringActionLabel = getString(R.string.notification_change_monitoring),
             modeLabel = mode.label(context = this),
+            nextModeLabel = nextMode.label(this),
+            nextNextModeLabel = nextNextMode.label(this),
         )
     }
 
@@ -224,8 +239,10 @@ class BackgroundService : LifecycleService(), KoinComponent {
         // NEW ACTIONS ALSO HAVE TO BE ADDED TO THE SERVICE INTENT FILTER
         const val INTENT_ACTION_SEND_LOCATION_USER =
             "com.ramitsuri.locationtracking.SEND_LOCATION_USER"
-        const val INTENT_ACTION_CHANGE_MONITORING =
-            "com.ramitsuri.locationtracking.CHANGE_MONITORING"
+        const val INTENT_ACTION_CHANGE_MONITORING_NEXT =
+            "com.ramitsuri.locationtracking.CHANGE_MONITORING_NEXT"
+        const val INTENT_ACTION_CHANGE_MONITORING_NEXT_NEXT =
+            "com.ramitsuri.locationtracking.CHANGE_MONITORING_NEXT_NEXT"
         private const val INTENT_ACTION_EXIT = "com.ramitsuri.locationtracking.EXIT"
         private const val INTENT_ACTION_BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED"
         private const val INTENT_ACTION_PACKAGE_REPLACED =

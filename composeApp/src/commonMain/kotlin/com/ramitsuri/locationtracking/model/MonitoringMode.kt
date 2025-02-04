@@ -9,11 +9,30 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
 @Serializable(with = MonitoringModeSerializer::class)
-enum class MonitoringMode(override val value: String) : DbEnum {
-    Off("off"), // Owntracks quiet
-    Slow("slow"), // Owntracks manual
-    SignificantChanges("significant"),
-    Moving("move"),
+enum class MonitoringMode(
+    override val value: String,
+    val horizontalAccuracyMeters: Float = 0f,
+) : DbEnum {
+    // Owntracks quiet
+    Off(
+        value = "off",
+    ),
+
+    // Owntracks manual - very slow updates
+    Rest(
+        value = "rest",
+        horizontalAccuracyMeters = 200f,
+    ),
+
+    Walk(
+        value = "walk",
+        horizontalAccuracyMeters = 50f,
+    ),
+
+    Move(
+        value = "move",
+        horizontalAccuracyMeters = 100f,
+    ),
     ;
 
     companion object {
@@ -24,13 +43,13 @@ enum class MonitoringMode(override val value: String) : DbEnum {
 
     fun getNextMode(): MonitoringMode {
         return when (this) {
-            Off -> Slow
+            Off -> Rest
 
-            Slow -> SignificantChanges
+            Rest -> Walk
 
-            SignificantChanges -> Moving
+            Walk -> Move
 
-            Moving -> Off
+            Move -> Rest
         }
     }
 }
@@ -43,16 +62,16 @@ object MonitoringModeSerializer : KSerializer<MonitoringMode> {
 
     override fun serialize(encoder: Encoder, value: MonitoringMode) = when (value) {
         MonitoringMode.Off -> encoder.encodeInt(0)
-        MonitoringMode.Slow -> encoder.encodeInt(1)
-        MonitoringMode.SignificantChanges -> encoder.encodeInt(2)
-        MonitoringMode.Moving -> encoder.encodeInt(3)
+        MonitoringMode.Rest -> encoder.encodeInt(1)
+        MonitoringMode.Walk -> encoder.encodeInt(2)
+        MonitoringMode.Move -> encoder.encodeInt(3)
     }
 
     override fun deserialize(decoder: Decoder): MonitoringMode = when (decoder.decodeInt()) {
         0 -> MonitoringMode.Off
-        1 -> MonitoringMode.Slow
-        2 -> MonitoringMode.SignificantChanges
-        3 -> MonitoringMode.Moving
+        1 -> MonitoringMode.Rest
+        2 -> MonitoringMode.Walk
+        3 -> MonitoringMode.Move
         else -> MonitoringMode.default()
     }
 }

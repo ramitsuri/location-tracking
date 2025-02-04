@@ -4,7 +4,6 @@ import com.ramitsuri.locationtracking.data.toEnum
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
@@ -22,11 +21,6 @@ class Settings internal constructor(
                     toEnum(monitoringModeValue, MonitoringMode.default())
                 }
             }
-    }
-
-    suspend fun setNextMonitoringMode() {
-        val monitoringMode = getMonitoringMode().first().getNextMode()
-        keyValueStore.putString(Key.MONITORING_MODE, monitoringMode.value)
     }
 
     suspend fun setMonitoringMode(mode: MonitoringMode) {

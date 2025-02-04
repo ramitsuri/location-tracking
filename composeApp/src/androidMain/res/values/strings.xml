@@ -4,8 +4,7 @@
     <string name="background_location_restriction_text">"This version of Android restricts receiving locations when started in the background until the app is opened. Click this notification to open the app and start tracking location."</string>
     <string name="fg_service_restriction_title">"Foreground service"</string>
     <string name="fg_service_restriction_text">"This version of Android restricts starting foreground service without location permission"</string>
-    <string name="notification_publish">"Report Location"</string>
-    <string name="notification_change_monitoring">"Mode"</string>
+    <string name="notification_publish">"Report"</string>
     <string name="notification_uploading_locations">"Uploading locations"</string>
     <string name="ok">OK</string>
     <string name="add">Add</string>
@@ -16,8 +15,8 @@
     <string name="unselect_all">Unselect all</string>
 
     <string name="monitoring_mode_off">"Off"</string>
-    <string name="monitoring_mode_slow">"Slow"</string>
-    <string name="monitoring_mode_significant_changes">"Significant Changes"</string>
+    <string name="monitoring_mode_rest">"Resting"</string>
+    <string name="monitoring_mode_walking">"Walking"</string>
     <string name="monitoring_mode_moving">"Moving"</string>
 
     <string name="notification_channel_ongoing">"Ongoing"</string>

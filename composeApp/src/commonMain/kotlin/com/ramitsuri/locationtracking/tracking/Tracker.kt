@@ -14,7 +14,6 @@ import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.location.Request
 import com.ramitsuri.locationtracking.tracking.location.forMonitoringMode
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
-import com.ramitsuri.locationtracking.utils.Constants
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.time.Duration.Companion.seconds
@@ -25,9 +24,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -108,18 +106,20 @@ class Tracker(
                     Request.forMonitoringMode(mode)
                         ?.let { locationRequest ->
                             locationProvider.requestUpdates(locationRequest)
-                                .filter {
-                                    it.accuracy <= Constants.LOCATION_MIN_HORIZONTAL_ACCURACY
-                                }
-                                .map { location ->
-                                    val wifiInfo = wifiInfoProvider.wifiInfo.value
-                                    location.copy(
-                                        ssid = wifiInfo.ssid,
-                                        bssid = wifiInfo.bssid,
-                                        battery = batteryInfoProvider.getLevel(),
-                                        batteryStatus = batteryInfoProvider.getChargingStatus(),
-                                        monitoringMode = mode,
-                                    )
+                                .mapNotNull { location ->
+                                    if (location.accuracy > mode.horizontalAccuracyMeters) {
+                                        logI(TAG) { "Ignoring $location" }
+                                        null
+                                    } else {
+                                        val wifiInfo = wifiInfoProvider.wifiInfo.value
+                                        location.copy(
+                                            ssid = wifiInfo.ssid,
+                                            bssid = wifiInfo.bssid,
+                                            battery = batteryInfoProvider.getLevel(),
+                                            batteryStatus = batteryInfoProvider.getChargingStatus(),
+                                            monitoringMode = mode,
+                                        )
+                                    }
                                 }
                         } ?: emptyFlow()
                 }.collect { location ->

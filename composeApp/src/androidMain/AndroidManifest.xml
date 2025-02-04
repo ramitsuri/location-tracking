@@ -71,9 +71,10 @@
             tools:ignore="ExportedService">
 
             <intent-filter>
-                <action android:name="com.ramitsuri.locationtracking.SEND_LOCATION_USER" /> <!-- INTENT_ACTION_SEND_LOCATION_PING -->
-                <action android:name="com.ramitsuri.locationtracking.CHANGE_MONITORING" /> <!-- INTENT_ACTION_CHANGE_MONITORING -->
-                <action android:name="com.ramitsuri.locationtracking.EXIT" /> <!-- INTENT_ACTION_CHANGE_MONITORING -->
+                <action android:name="com.ramitsuri.locationtracking.SEND_LOCATION_USER" /> <!-- INTENT_ACTION_SEND_LOCATION_USER -->
+                <action android:name="com.ramitsuri.locationtracking.CHANGE_MONITORING_NEXT" /> <!-- INTENT_ACTION_CHANGE_MONITORING_NEXT -->
+                <action android:name="com.ramitsuri.locationtracking.CHANGE_MONITORING_NEXT_NEXT" /> <!-- INTENT_ACTION_CHANGE_MONITORING_NEXT_NEXT -->
+                <action android:name="com.ramitsuri.locationtracking.EXIT" /> <!-- INTENT_ACTION_EXIT -->
             </intent-filter>
         </service>
 
