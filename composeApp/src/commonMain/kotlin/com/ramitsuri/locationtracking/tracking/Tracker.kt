@@ -77,6 +77,7 @@ class Tracker(
                     bssid = wifiInfo.bssid,
                     battery = batteryInfoProvider.getLevel(),
                     batteryStatus = batteryInfoProvider.getChargingStatus(),
+                    inRegions = listOf(),
                 ).let {
                     locationRepository.insert(it)
                     onNewLocation(it)
