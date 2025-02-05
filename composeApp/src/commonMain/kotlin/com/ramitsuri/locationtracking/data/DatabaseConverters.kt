@@ -2,6 +2,7 @@ package com.ramitsuri.locationtracking.data
 
 import androidx.room.TypeConverter
 import com.ramitsuri.locationtracking.model.BatteryStatus
+import com.ramitsuri.locationtracking.model.LogLevel
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.model.WifiMonitoringModeRule
 import java.math.BigDecimal
@@ -66,5 +67,15 @@ class DatabaseConverters {
     @TypeConverter
     fun fromBigDecimal(bigDecimal: BigDecimal): String {
         return bigDecimal.toString()
+    }
+
+    @TypeConverter
+    fun toLogLevel(string: String): LogLevel {
+        return toEnum(string, LogLevel.DEBUG)
+    }
+
+    @TypeConverter
+    fun fromLogLevel(logLevel: LogLevel): String {
+        return logLevel.value
     }
 }

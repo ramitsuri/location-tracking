@@ -11,6 +11,7 @@ import com.ramitsuri.locationtracking.data.dao.SeenWifiDao
 import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.data.migration.Migration2To3
 import com.ramitsuri.locationtracking.data.migration.Migration3To4
+import com.ramitsuri.locationtracking.data.migration.Migration4To5
 import com.ramitsuri.locationtracking.model.GeocodeCache
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LogItem
@@ -26,7 +27,7 @@ import kotlinx.coroutines.CoroutineDispatcher
         WifiMonitoringModeRule::class,
         LogItem::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 @TypeConverters(DatabaseConverters::class)
@@ -49,6 +50,7 @@ abstract class AppDatabase : RoomDatabase() {
                 .addMigrations(
                     Migration2To3(),
                     Migration3To4(),
+                    Migration4To5(),
                 )
                 .build()
         }

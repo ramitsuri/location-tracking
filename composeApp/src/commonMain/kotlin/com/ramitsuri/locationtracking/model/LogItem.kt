@@ -26,6 +26,9 @@ constructor(
     @ColumnInfo(name = "tag")
     val tag: String,
 
+    @ColumnInfo(name = "level")
+    val level: LogLevel,
+
     @ColumnInfo(name = "error_message")
     val errorMessage: String?,
 

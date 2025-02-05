@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import co.touchlab.kermit.Logger
 import com.ramitsuri.locationtracking.data.AppDatabase
+import com.ramitsuri.locationtracking.data.dao.LogItemDao
 import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.di.KoinQualifier
 import com.ramitsuri.locationtracking.di.initKoin
@@ -161,7 +162,7 @@ class MainApp : Application(), KoinComponent {
 
                 viewModel<LogScreenViewModel> {
                     LogScreenViewModel(
-                        logWriter = get<DbLogWriter>(),
+                        logItemDao = get<LogItemDao>(),
                         timeZone = get<TimeZone>(),
                     )
                 }

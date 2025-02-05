@@ -123,6 +123,7 @@ fun NavGraph(
                         onUnselectAllTags = viewModel::unselectAllTagsClicked,
                         onTagClick = viewModel::tagClicked,
                         onClearLogs = viewModel::clearLogsClicked,
+                        onLevelClicked = viewModel::levelClicked,
                         modifier = Modifier
                             .statusBarsPadding()
                             .displayCutoutPadding(),
