@@ -44,4 +44,9 @@
 
     <string name="location_detail_latitude_longitude">%1$s, %2$s</string>
     <string name="location_detail_battery">%1$s \%%</string>
+
+    <string name="log_level_debug">Debug</string>
+    <string name="log_level_info">Info</string>
+    <string name="log_level_warning">Warning</string>
+    <string name="log_level_error">Error</string>
 </resources>
