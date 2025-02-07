@@ -11,7 +11,6 @@ import kotlinx.serialization.encoding.Encoder
 @Serializable(with = MonitoringModeSerializer::class)
 enum class MonitoringMode(
     override val value: String,
-    val horizontalAccuracyMeters: Float = 0f,
 ) : DbEnum {
     // Owntracks quiet
     Off(
@@ -21,17 +20,14 @@ enum class MonitoringMode(
     // Owntracks manual - very slow updates
     Rest(
         value = "rest",
-        horizontalAccuracyMeters = 200f,
     ),
 
     Walk(
         value = "walk",
-        horizontalAccuracyMeters = 50f,
     ),
 
     Move(
         value = "move",
-        horizontalAccuracyMeters = 100f,
     ),
     ;
 

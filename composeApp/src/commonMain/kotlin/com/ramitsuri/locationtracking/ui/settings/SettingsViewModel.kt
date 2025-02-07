@@ -19,12 +19,14 @@ class SettingsViewModel(
         settings.getDeviceNameFlow(),
         isUploadWorkerRunning(),
         isServiceRunning(),
-    ) { url, deviceName, isUploadWorkerRunning, isServiceRunning ->
+        settings.getMinAccuracyForDisplay(),
+    ) { url, deviceName, isUploadWorkerRunning, isServiceRunning, minAccuracyForDisplay ->
         SettingsViewState(
             baseUrl = url,
             deviceName = deviceName,
             isUploadWorkerRunning = isUploadWorkerRunning,
             isServiceRunning = isServiceRunning,
+            minAccuracyForDisplay = minAccuracyForDisplay,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -41,6 +43,12 @@ class SettingsViewModel(
     fun setDeviceName(deviceName: String) {
         viewModelScope.launch {
             settings.setDeviceName(deviceName)
+        }
+    }
+
+    fun setMinAccuracyForDisplay(minAccuracyForDisplay: Int) {
+        viewModelScope.launch {
+            settings.setMinAccuracyForDisplay(minAccuracyForDisplay)
         }
     }
 }

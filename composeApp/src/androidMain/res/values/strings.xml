@@ -33,6 +33,7 @@
 
     <string name="url_hint">"URL: "</string>
     <string name="device_name_hint">"Device Name: "</string>
+    <string name="min_accuracy_for_display_hint">"Min Accuracy (meters): "</string>
 
     <string name="wifi_rule_when_wifi_disconnected">"When device disconnects from WiFi"</string>
     <string name="wifi_rule_when_wifi_connected">"When device connects to WiFi"</string>

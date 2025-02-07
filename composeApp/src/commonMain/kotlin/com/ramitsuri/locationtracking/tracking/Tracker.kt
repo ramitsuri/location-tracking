@@ -108,8 +108,8 @@ class Tracker(
                         ?.let { locationRequest ->
                             locationProvider.requestUpdates(locationRequest)
                                 .mapNotNull { location ->
-                                    if (location.accuracy > mode.horizontalAccuracyMeters) {
-                                        logI(TAG) { "Ignoring $location" }
+                                    if (location.accuracy > MIN_LOCATION_ACCURACY_METERS) {
+                                        logI(TAG) { "Ignoring because inaccurate $location" }
                                         null
                                     } else {
                                         val wifiInfo = wifiInfoProvider.wifiInfo.value
@@ -195,6 +195,7 @@ class Tracker(
 
     companion object {
         private const val TAG = "Tracker"
+        private const val MIN_LOCATION_ACCURACY_METERS = 500
     }
 }
 

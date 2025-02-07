@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.permissions.PermissionResult
 import com.ramitsuri.locationtracking.repository.LocationRepository
+import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.utils.combine
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.nanoseconds
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -26,6 +28,7 @@ class HomeViewModel(
     isUploadWorkerRunning: () -> Flow<Boolean>,
     private val upload: () -> Unit,
     private val timeZone: TimeZone,
+    private val settings: Settings,
 ) : ViewModel() {
     private val viewMode =
         MutableStateFlow<HomeViewState.ViewMode>(HomeViewState.ViewMode.LastKnownLocation())
@@ -81,7 +84,7 @@ class HomeViewModel(
             locationRepository.get(
                 from = from,
                 to = to,
-                minAccuracyMeters = 100,
+                minAccuracyMeters = settings.getMinAccuracyForDisplay().first(),
             ).let { locations ->
                 viewMode.update {
                     HomeViewState.ViewMode.LocationsForDate(
