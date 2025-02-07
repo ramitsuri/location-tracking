@@ -76,6 +76,7 @@ fun NavGraph(
                         viewState = viewState,
                         onBaseUrlChange = viewModel::setBaseUrl,
                         onDeviceNameChange = viewModel::setDeviceName,
+                        onMinAccuracyForDisplayChange = viewModel::setMinAccuracyForDisplay,
                         onKillApp = onKillApp,
                         onNavBack = {
                             navController.navigateUp()

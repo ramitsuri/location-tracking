@@ -44,6 +44,7 @@ fun SettingsScreen(
     onNavBack: () -> Unit,
     onBaseUrlChange: (String) -> Unit,
     onDeviceNameChange: (String) -> Unit,
+    onMinAccuracyForDisplayChange: (Int) -> Unit,
     onKillApp: () -> Unit,
     onServiceStart: () -> Unit,
     onServiceStop: () -> Unit,
@@ -72,6 +73,13 @@ fun SettingsScreen(
             label = stringResource(R.string.device_name_hint),
             enabled = !viewState.isUploadWorkerRunning,
             onTextSet = onDeviceNameChange,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            text = viewState.minAccuracyForDisplay.toString(),
+            label = stringResource(R.string.min_accuracy_for_display_hint),
+            enabled = true,
+            onTextSet = { onMinAccuracyForDisplayChange(it.toIntOrNull() ?: 0) },
         )
         Spacer(modifier = Modifier.height(8.dp))
         Button(

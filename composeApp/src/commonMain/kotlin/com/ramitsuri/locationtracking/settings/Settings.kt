@@ -64,4 +64,12 @@ class Settings internal constructor(
     suspend fun setLastKnownLocation(lastKnownLocation: Location) {
         keyValueStore.putString(Key.LAST_KNOWN_LOCATION, json.encodeToString(lastKnownLocation))
     }
+
+    fun getMinAccuracyForDisplay(): Flow<Int> {
+        return keyValueStore.getIntFlow(Key.MIN_ACCURACY_FOR_DISPLAY, 100)
+    }
+
+    suspend fun setMinAccuracyForDisplay(minAccuracyForDisplay: Int) {
+        keyValueStore.putInt(Key.MIN_ACCURACY_FOR_DISPLAY, minAccuracyForDisplay)
+    }
 }

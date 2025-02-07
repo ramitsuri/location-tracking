@@ -5,4 +5,5 @@ data class SettingsViewState(
     val deviceName: String = "",
     val baseUrl: String = "",
     val isServiceRunning: Boolean = false,
+    val minAccuracyForDisplay: Int = 0,
 )

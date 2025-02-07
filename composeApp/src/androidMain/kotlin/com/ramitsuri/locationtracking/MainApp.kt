@@ -151,6 +151,7 @@ class MainApp : Application(), KoinComponent {
                         isUploadWorkerRunning = { UploadWorker.isRunning(this@MainApp) },
                         upload = { UploadWorker.enqueueImmediate(this@MainApp) },
                         timeZone = get<TimeZone>(),
+                        settings = get<Settings>(),
                     )
                 }
 
