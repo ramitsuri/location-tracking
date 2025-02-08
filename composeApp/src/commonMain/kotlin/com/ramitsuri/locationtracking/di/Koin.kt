@@ -141,7 +141,7 @@ private val coreModule = module {
     }
 }
 
-internal object KoinQualifier {
+object KoinQualifier {
     val IO_DISPATCHER = named("io_dispatcher")
     val IS_DEBUG = named("is_debug")
     val DATASTORE_FILE_NAME = named("datastore_file_name")
