@@ -4,11 +4,13 @@ agp = "8.5.2"
 android-compileSdk = "35"
 android-minSdk = "29"
 android-targetSdk = "34"
-androidx-activityCompose = "1.9.3"
+androidx-activityCompose = "1.10.0"
 androidx-lifecycle = "2.8.4"
 datastore = "1.1.2"
+compose-bom = "2025.01.01"
 compose-multiplatform = "1.7.0"
 coroutines = "1.9.0"
+horologist = "0.6.22"
 kermit = "2.0.4"
 koin = "4.0.1"
 kotlin = "2.1.0"
@@ -17,18 +19,24 @@ kotlinxSerializationJson = "1.8.0"
 ksp = "2.1.0-1.0.29"
 ktlint = "12.1.0"
 ktor = "3.0.3"
+ktx = "1.15.0"
 lifecycleService = "2.8.7"
+lifecycleWear = "2.8.3"
 maps = "6.4.2"
 navigationCompose = "2.8.0-alpha12"
 play-services-location = "21.3.0"
-room = "2.7.0-alpha12"
+playservices-wearable = "19.0.0"
+room = "2.7.0-alpha13"
 splash = "1.0.1"
-sqliteBundled = "2.5.0-alpha12"
+sqliteBundled = "2.5.0-alpha13"
 turbine = "1.2.0"
+wearCompose = "1.4.0"
+wearTiles = "1.4.1"
 workRuntimeKtx = "2.10.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+androidx-ktx = { module = "androidx.core:core-ktx", version.ref = "ktx" }
 androidx-lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.ref = "lifecycleService" }
 androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
@@ -36,6 +44,13 @@ androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navi
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqliteBundled" }
 datastore = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
+
+composeBom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
+compose-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
+compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+compose-runtime = { module = "androidx.compose.runtime:runtime" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui-toolingPreview = { module = "androidx.compose.ui:ui-tooling-preview" }
 
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
@@ -46,10 +61,9 @@ ktor-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = 
 ktor-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
-koin-android-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koin" }
-koin-test = { group = "io.insert-koin" , name = "koin-test", version.ref = "koin" }
-koin-test-junit = { group = "io.insert-koin" , name = "koin-test-junit4", version.ref = "koin" }
+koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koin" }
+koin-test-junit = { group = "io.insert-koin", name = "koin-test-junit4", version.ref = "koin" }
 koin-workmanager = { group = "io.insert-koin", name = "koin-androidx-workmanager", version.ref = "koin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
@@ -61,9 +75,19 @@ room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
-splash = {group = "androidx.core", name = "core-splashscreen", version.ref = "splash"}
+splash = { group = "androidx.core", name = "core-splashscreen", version.ref = "splash" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
+
+androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime", version.ref = "lifecycleWear" }
+androidx-lifecycle-viewmodel-ktx = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleWear" }
+horologist-compose-tools = { module = "com.google.android.horologist:horologist-compose-tools", version.ref = "horologist" }
+horologist-tiles = { module = "com.google.android.horologist:horologist-tiles", version.ref = "horologist" }
+playservices-wearable = { module = "com.google.android.gms:play-services-wearable", version.ref = "playservices-wearable" }
+wear-compose-foundation = { module = "androidx.wear.compose:compose-foundation", version.ref = "wearCompose" }
+wear-compose-material = { module = "androidx.wear.compose:compose-material", version.ref = "wearCompose" }
+wear-tiles = { module = "androidx.wear.tiles:tiles", version.ref = "wearTiles" }
+wear-tiles-material = { module = "androidx.wear.tiles:tiles-material", version.ref = "wearTiles" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -72,6 +96,7 @@ composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-mu
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 room = { id = "androidx.room", version.ref = "room" }
