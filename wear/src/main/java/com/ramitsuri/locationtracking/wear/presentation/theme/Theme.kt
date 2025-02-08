@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.presentation.theme
+package com.ramitsuri.locationtracking.wear.presentation.theme
 
 import androidx.compose.runtime.Composable
 import androidx.wear.compose.material.MaterialTheme

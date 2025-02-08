@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.presentation
+package com.ramitsuri.locationtracking.wear.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking
+package com.ramitsuri.locationtracking.wear
 
 import android.app.Application
 

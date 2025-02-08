@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.presentation.theme
+package com.ramitsuri.locationtracking.wear.presentation.theme
 
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily

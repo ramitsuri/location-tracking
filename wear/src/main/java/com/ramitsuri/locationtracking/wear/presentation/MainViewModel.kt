@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.presentation
+package com.ramitsuri.locationtracking.wear.presentation
 
 import androidx.lifecycle.ViewModel
 
