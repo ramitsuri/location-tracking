@@ -15,7 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.ramitsuri.locationtracking.ui.AppTheme
-import com.ramitsuri.locationtracking.ui.LogsScreen
+import com.ramitsuri.locationtracking.ui.logs.LogsScreen
 import com.ramitsuri.locationtracking.ui.home.HomeScreen
 import com.ramitsuri.locationtracking.ui.home.HomeViewModel
 import com.ramitsuri.locationtracking.ui.logs.LogScreenViewModel

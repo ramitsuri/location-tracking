@@ -1,7 +1,7 @@
 package com.ramitsuri.locationtracking.ui
 
 import android.content.Context
-import com.ramitsuri.locationtracking.R
+import com.ramitsuri.locationtracking.core.R
 import com.ramitsuri.locationtracking.model.WifiMonitoringModeRule
 
 fun WifiMonitoringModeRule.Status.label(context: Context) = when (this) {

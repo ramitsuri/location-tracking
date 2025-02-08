@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.ui
+package com.ramitsuri.locationtracking.ui.logs
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
@@ -44,8 +44,8 @@ import androidx.compose.ui.unit.dp
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.model.LogItem
 import com.ramitsuri.locationtracking.model.LogLevel
+import com.ramitsuri.locationtracking.ui.AppTheme
 import com.ramitsuri.locationtracking.ui.components.fullBorder
-import com.ramitsuri.locationtracking.ui.logs.LogsViewState
 import com.ramitsuri.locationtracking.utils.formatForLogs
 import kotlinx.datetime.TimeZone
 

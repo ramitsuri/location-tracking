@@ -1,0 +1,46 @@
+<resources>
+    <string name="app_name">Location History</string>
+    <string name="background_location_restriction_title">"Background Location Permission"</string>
+    <string name="background_location_restriction_text">"This version of Android restricts receiving locations when started in the background until the app is opened. Click this notification to open the app and start tracking location."</string>
+    <string name="fg_service_restriction_title">"Foreground service"</string>
+    <string name="fg_service_restriction_text">"This version of Android restricts starting foreground service without location permission"</string>
+    <string name="notification_publish">"Report"</string>
+    <string name="notification_uploading_locations">"Uploading locations"</string>
+    <string name="ok">OK</string>
+    <string name="add">Add</string>
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
+    <string name="logs">Logs</string>
+    <string name="select_all">Select all</string>
+    <string name="unselect_all">Unselect all</string>
+
+    <string name="notification_channel_ongoing">"Ongoing"</string>
+    <string name="notification_channel_ongoing_description">"Required to receive location updates in the background"</string>
+    <string name="notification_channel_errors">"Errors"</string>
+
+    <string name="kill_app">"Kill App"</string>
+    <string name="start_service">Start Service</string>
+    <string name="stop_service">Stop Service</string>
+    <string name="current_mode">"Current mode: "</string>
+    <string name="locations">"Locations: "</string>
+    <string name="change_mode">Change Mode</string>
+    <string name="single_location">Single Location</string>
+
+    <string name="url_hint">"URL: "</string>
+    <string name="device_name_hint">"Device Name: "</string>
+    <string name="min_accuracy_for_display_hint">"Min Accuracy (meters): "</string>
+
+    <string name="wifi_rule_when_wifi_disconnected">"When device disconnects from WiFi"</string>
+    <string name="wifi_rule_when_wifi_connected">"When device connects to WiFi"</string>
+    <string name="wifi_rule_change_mode">"Change mode to"</string>
+    <string name="wifi_rule_ssid">"SSID"</string>
+    <string name="wifi_rules">"Wifi Rules"</string>
+
+    <string name="location_detail_latitude_longitude">%1$s, %2$s</string>
+    <string name="location_detail_battery">%1$s \%%</string>
+
+    <string name="log_level_debug">Debug</string>
+    <string name="log_level_info">Info</string>
+    <string name="log_level_warning">Warning</string>
+    <string name="log_level_error">Error</string>
+</resources>
