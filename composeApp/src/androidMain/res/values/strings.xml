@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Location Tracking</string>
+    <string name="app_name">Location History</string>
     <string name="background_location_restriction_title">"Background Location Permission"</string>
     <string name="background_location_restriction_text">"This version of Android restricts receiving locations when started in the background until the app is opened. Click this notification to open the app and start tracking location."</string>
     <string name="fg_service_restriction_title">"Foreground service"</string>
