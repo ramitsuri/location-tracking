@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,20 +32,29 @@ import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.SlowMotionVideo
+import androidx.compose.material.icons.outlined.Timeline
 import androidx.compose.material.icons.outlined.Today
+import androidx.compose.material.icons.outlined.TripOrigin
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,6 +66,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
@@ -68,6 +77,7 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.GoogleMapComposable
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import com.ramitsuri.locationtracking.R
@@ -119,12 +129,22 @@ fun HomeScreen(
         }
 
         is HomeViewState.ViewMode.LocationsForDate -> {
+            var locationsViewMode by remember {
+                mutableStateOf<LocationsViewMode>(
+                    LocationsViewMode.Points,
+                )
+            }
+            val mode = locationsViewMode
             ScreenContent(
                 modifier = modifier,
                 timeZone = viewState.timeZone,
                 selectedLocation = viewState.selectedLocation,
                 mapContent = {
-                    LocationsForDateMap(viewState.viewMode.locations, onLocationSelected)
+                    LocationsForDateMap(
+                        mode = mode,
+                        locations = viewState.viewMode.locations,
+                        onLocationClick = onLocationSelected,
+                    )
                 },
                 pillContent = {
                     Row(
@@ -139,6 +159,29 @@ fun HomeScreen(
                                 text = viewState.viewMode.date.format(),
                                 color = MaterialTheme.colorScheme.onPrimary,
                             )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        when (mode) {
+                            is LocationsViewMode.Lines -> {
+                                TintedIconButton(
+                                    onClick = { locationsViewMode = LocationsViewMode.Motion },
+                                    icon = Icons.Outlined.SlowMotionVideo,
+                                )
+                            }
+
+                            is LocationsViewMode.Motion -> {
+                                TintedIconButton(
+                                    onClick = { locationsViewMode = LocationsViewMode.Points },
+                                    icon = Icons.Outlined.TripOrigin,
+                                )
+                            }
+
+                            is LocationsViewMode.Points -> {
+                                TintedIconButton(
+                                    onClick = { locationsViewMode = LocationsViewMode.Lines },
+                                    icon = Icons.Outlined.Timeline,
+                                )
+                            }
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         TintedIconButton(
@@ -165,6 +208,7 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScreenContent(
     mapContent: @Composable () -> Unit,
@@ -174,10 +218,11 @@ private fun ScreenContent(
     selectedLocation: Location?,
     onClearSelectedLocation: () -> Unit,
 ) {
-    var loc by remember { mutableStateOf(selectedLocation) }
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(true) }
     LaunchedEffect(selectedLocation) {
         if (selectedLocation != null) {
-            loc = selectedLocation
+            showBottomSheet = true
         }
     }
     Box(
@@ -195,65 +240,72 @@ private fun ScreenContent(
         ) {
             pillContent()
             Spacer(modifier = Modifier.weight(1f))
-            AnimatedVisibility(visible = selectedLocation != null) {
-                loc?.let { location ->
-                    Column(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                            .padding(horizontal = 8.dp),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                        ) {
-                            TintedIconButton(
-                                onClick = onClearSelectedLocation,
-                                icon = Icons.Outlined.Clear,
-                            )
-                        }
-                        LocationDetailRow(
-                            text = location.locationTimestamp.format(
-                                timeZone = timeZone,
-                                am = stringResource(R.string.am),
-                                pm = stringResource(R.string.pm),
-                            ),
-                            icon = Icons.Outlined.AccessTime,
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LocationDetailRow(
-                            text = stringResource(
-                                R.string.location_detail_latitude_longitude,
-                                location.latitude.toString(),
-                                location.longitude.toString(),
-                            ),
-                            icon = Icons.Outlined.LocationOn,
-                        )
-                        location.battery?.let {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            LocationDetailRow(
-                                text = stringResource(
-                                    R.string.location_detail_battery,
-                                    location.battery.toString(),
-                                ),
-                                icon = when (location.batteryStatus) {
-                                    BatteryStatus.CHARGING -> Icons.Outlined.BatteryChargingFull
-                                    BatteryStatus.FULL -> Icons.Outlined.BatteryFull
-                                    else -> Icons.Outlined.Battery4Bar
-                                },
-                            )
-                        }
-                        location.ssid?.let {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            LocationDetailRow(
-                                text = it,
-                                icon = Icons.Outlined.Wifi,
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+            selectedLocation?.let { location ->
+                if (showBottomSheet) {
+                    LocationDetail(sheetState, location, timeZone, onClearSelectedLocation)
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LocationDetail(
+    sheetState: SheetState,
+    location: Location,
+    timeZone: TimeZone,
+    onClearSelectedLocation: () -> Unit,
+) {
+    ModalBottomSheet(
+        containerColor = MaterialTheme.colorScheme.background,
+        onDismissRequest = onClearSelectedLocation,
+        sheetState = sheetState,
+    ) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .padding(horizontal = 8.dp),
+        ) {
+            LocationDetailRow(
+                text = location.locationTimestamp.format(
+                    timeZone = timeZone,
+                    am = stringResource(R.string.am),
+                    pm = stringResource(R.string.pm),
+                ),
+                icon = Icons.Outlined.AccessTime,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            LocationDetailRow(
+                text = stringResource(
+                    R.string.location_detail_latitude_longitude,
+                    location.latitude.toString(),
+                    location.longitude.toString(),
+                ),
+                icon = Icons.Outlined.LocationOn,
+            )
+            location.battery?.let {
+                Spacer(modifier = Modifier.height(8.dp))
+                LocationDetailRow(
+                    text = stringResource(
+                        R.string.location_detail_battery,
+                        location.battery.toString(),
+                    ),
+                    icon = when (location.batteryStatus) {
+                        BatteryStatus.CHARGING -> Icons.Outlined.BatteryChargingFull
+                        BatteryStatus.FULL -> Icons.Outlined.BatteryFull
+                        else -> Icons.Outlined.Battery4Bar
+                    },
+                )
+            }
+            location.ssid?.let {
+                Spacer(modifier = Modifier.height(8.dp))
+                LocationDetailRow(
+                    text = it,
+                    icon = Icons.Outlined.Wifi,
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -265,11 +317,11 @@ private fun LocationDetailRow(text: String, icon: ImageVector) {
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
     ) {
-        Icon(icon, null, tint = MaterialTheme.colorScheme.onPrimary)
+        Icon(icon, null, tint = MaterialTheme.colorScheme.onBackground)
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = text,
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
         )
     }
 }
@@ -278,13 +330,17 @@ private fun LocationDetailRow(text: String, icon: ImageVector) {
 private fun SingleLocationMap(location: Location?, onLocationClick: (Location) -> Unit) {
     val markerState = rememberMarkerState()
     val cameraPositionState = rememberCameraPositionState()
+    var zoom by remember { mutableFloatStateOf(13f) }
     LaunchedEffect(location) {
         location?.let {
             markerState.position =
                 LatLng(it.latitude, it.longitude)
             cameraPositionState.position =
-                CameraPosition.fromLatLngZoom(markerState.position, 13f)
+                CameraPosition.fromLatLngZoom(markerState.position, zoom)
         }
+    }
+    LaunchedEffect(cameraPositionState.position) {
+        zoom = cameraPositionState.position.zoom
     }
     Map(
         cameraPositionState = cameraPositionState,
@@ -302,35 +358,90 @@ private fun SingleLocationMap(location: Location?, onLocationClick: (Location) -
 }
 
 @Composable
-private fun LocationsForDateMap(locations: List<Location>, onLocationClick: (Location) -> Unit) {
+private fun LocationsForDateMap(
+    mode: LocationsViewMode,
+    locations: List<Location>,
+    onLocationClick: (Location) -> Unit,
+) {
+    val latLngs = remember(locations) { locations.map { LatLng(it.latitude, it.longitude) } }
     val cameraPositionState = rememberCameraPositionState()
-    LaunchedEffect(locations) {
+    var zoom by remember { mutableFloatStateOf(13f) }
+    LaunchedEffect(latLngs) {
         val center = LatLngBounds.Builder()
-            .apply {
-                locations.forEach {
-                    include(LatLng(it.latitude, it.longitude))
-                }
-            }
-            .build()
-            .center
-        cameraPositionState.position = CameraPosition.fromLatLngZoom(center, 13f)
+            .takeIf { latLngs.isNotEmpty() }
+            ?.apply { latLngs.forEach { include(it) } }
+            ?.build()
+            ?.center
+            ?: LatLng(0.0, 0.0)
+        cameraPositionState.position = CameraPosition.fromLatLngZoom(center, zoom)
+    }
+    LaunchedEffect(cameraPositionState.position) {
+        zoom = cameraPositionState.position.zoom
     }
     Map(
         cameraPositionState = cameraPositionState,
     ) {
-        locations.forEach {
-            Circle(
-                center = LatLng(it.latitude, it.longitude),
-                clickable = true,
-                fillColor = Color.Transparent,
-                strokeColor = mapsColor,
-                radius = 0.5,
-                strokeWidth = 20f,
-                onClick = { _ ->
-                    onLocationClick(it)
-                },
-            )
+        val (drawLines, drawPoints, useSecondaryColor) =
+            when (mode) {
+                is LocationsViewMode.Motion -> {
+                    MotionMap(latLngs, cameraPositionState)
+                    Triple(false, false, false)
+                }
+
+                is LocationsViewMode.Lines -> {
+                    Triple(true, true, true)
+                }
+
+                is LocationsViewMode.Points -> {
+                    Triple(false, true, false)
+                }
+            }
+        if (drawLines) {
+            Polyline(points = latLngs, color = primaryMapsColor)
         }
+        if (drawPoints) {
+            locations.forEach {
+                Circle(
+                    center = LatLng(it.latitude, it.longitude),
+                    clickable = true,
+                    fillColor = Color.Transparent,
+                    strokeColor = if (useSecondaryColor) secondaryMapsColor else primaryMapsColor,
+                    radius = 0.5,
+                    strokeWidth = 20f,
+                    onClick = { _ ->
+                        onLocationClick(it)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+@GoogleMapComposable
+private fun MotionMap(latLngs: List<LatLng>, cameraPositionState: CameraPositionState) {
+    val points = remember { mutableStateListOf<LatLng>() }
+    LaunchedEffect(latLngs) {
+        latLngs.forEach { latLng ->
+            points.add(latLng)
+            runCatching {
+                cameraPositionState.animate(
+                    CameraUpdateFactory.newLatLng(latLng),
+                    100,
+                )
+            }
+        }
+    }
+    points.forEach {
+        Circle(
+            center = LatLng(it.latitude, it.longitude),
+            clickable = true,
+            fillColor = Color.Transparent,
+            strokeColor = primaryMapsColor,
+            radius = 0.5,
+            strokeWidth = 20f,
+            onClick = { },
+        )
     }
 }
 
@@ -475,4 +586,10 @@ private fun TintedTextButton(text: String, modifier: Modifier = Modifier, onClic
     }
 }
 
-private val mapsColor = Color(0xFF2651F5)
+private val primaryMapsColor
+    @Composable
+    get() = MaterialTheme.colorScheme.primary
+
+private val secondaryMapsColor
+    @Composable
+    get() = MaterialTheme.colorScheme.secondary
