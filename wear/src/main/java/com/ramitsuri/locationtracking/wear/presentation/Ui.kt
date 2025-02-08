@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.presentation
+package com.ramitsuri.locationtracking.wear.presentation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -15,7 +15,7 @@ import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import androidx.wear.compose.material.scrollAway
 import com.ramitsuri.locationtracking.R
-import com.ramitsuri.locationtracking.presentation.theme.AppTheme
+import com.ramitsuri.locationtracking.wear.presentation.theme.AppTheme
 
 @Composable
 fun WearApp() {

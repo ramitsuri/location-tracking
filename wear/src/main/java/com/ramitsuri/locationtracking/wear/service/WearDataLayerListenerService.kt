@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.service
+package com.ramitsuri.locationtracking.wear.service
 
 import android.annotation.SuppressLint
 import com.google.android.gms.wearable.DataEventBuffer

@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.tile
+package com.ramitsuri.locationtracking.wear.tile
 
 import android.content.Context
 import androidx.wear.protolayout.ResourceBuilders.Resources

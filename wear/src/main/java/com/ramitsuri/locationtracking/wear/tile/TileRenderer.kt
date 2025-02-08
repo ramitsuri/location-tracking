@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.tile
+package com.ramitsuri.locationtracking.wear.tile
 
 import android.content.Context
 import androidx.wear.protolayout.ActionBuilders
@@ -13,7 +13,7 @@ import androidx.wear.protolayout.material.layouts.PrimaryLayout
 import com.google.android.horologist.annotations.ExperimentalHorologistApi
 import com.google.android.horologist.tiles.render.SingleTileLayoutRenderer
 import com.ramitsuri.locationtracking.R
-import com.ramitsuri.locationtracking.presentation.MainActivity
+import com.ramitsuri.locationtracking.wear.presentation.MainActivity
 
 @OptIn(ExperimentalHorologistApi::class)
 class TileRenderer(context: Context) :
