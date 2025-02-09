@@ -7,12 +7,16 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.ramitsuri.locationtracking.model.MonitoringMode
+import com.ramitsuri.locationtracking.wear.WearDataSharingClient
 import com.ramitsuri.locationtracking.wear.presentation.home.HomeScreen
 import com.ramitsuri.locationtracking.wear.presentation.home.HomeViewModel
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import org.koin.compose.viewmodel.koinViewModel
 
 class MainActivity : ComponentActivity() {
+    private val dataSharingClient by inject<WearDataSharingClient>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -49,7 +53,10 @@ class MainActivity : ComponentActivity() {
         }
         monitoringMode?.let {
             lifecycleScope.launch {
-                // TODO post to data sharing client
+                dataSharingClient.postMonitoringMode(
+                    mode = it,
+                    to = WearDataSharingClient.To.Phone,
+                )
                 finish()
             }
         }

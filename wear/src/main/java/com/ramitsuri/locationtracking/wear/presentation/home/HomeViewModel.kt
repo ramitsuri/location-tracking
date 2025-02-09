@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.settings.Settings
+import com.ramitsuri.locationtracking.wear.WearDataSharingClient
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
 
 class HomeViewModel(
     settings: Settings,
+    private val dataSharingClient: WearDataSharingClient,
 ) : ViewModel() {
     private var monitoringModeChangeJob: Job? = null
     private val monitoringModePosted = MutableStateFlow(false)
@@ -40,8 +42,11 @@ class HomeViewModel(
         monitoringModeChangeJob?.cancel()
         monitoringModeChangeJob = viewModelScope.launch {
             delay(1.seconds)
-            // TODO post to data sharing client
-            // monitoringModePosted.value = posted
+            val posted = dataSharingClient.postMonitoringMode(
+                mode = monitoringMode,
+                to = WearDataSharingClient.To.Phone,
+            )
+            monitoringModePosted.value = posted
         }
     }
 

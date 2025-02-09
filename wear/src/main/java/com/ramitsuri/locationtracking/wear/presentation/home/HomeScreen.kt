@@ -16,7 +16,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
+import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.wear.compose.foundation.lazy.AutoCenteringParams
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
@@ -43,6 +45,7 @@ fun HomeScreen(
     exit: () -> Unit,
 ) {
     val context = LocalContext.current
+    val view = LocalView.current
     LaunchedEffect(state.monitoringModePosted) {
         if (state.monitoringModePosted) {
             Toast.makeText(
@@ -51,6 +54,7 @@ fun HomeScreen(
                 Toast.LENGTH_SHORT,
             ).show()
             onMonitoringModePostedAcknowledged()
+            view.performHapticFeedback(HapticFeedbackConstantsCompat.LONG_PRESS)
             exit()
         }
     }

@@ -24,6 +24,7 @@ lifecycleService = "2.8.7"
 lifecycleWear = "2.8.3"
 maps = "6.4.2"
 navigationCompose = "2.8.0-alpha12"
+playservices-coroutines = "1.10.1"
 play-services-location = "21.3.0"
 playservices-wearable = "19.0.0"
 room = "2.7.0-alpha13"
@@ -33,11 +34,6 @@ turbine = "1.2.0"
 wearCompose = "1.4.0"
 wearTiles = "1.4.1"
 workRuntimeKtx = "2.10.0"
-junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
-appcompat = "1.7.0"
-material = "1.12.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
@@ -49,6 +45,7 @@ androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navi
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqliteBundled" }
 datastore = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
+playservices-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "playservices-coroutines" }
 
 composeBom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
 compose-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
@@ -93,11 +90,6 @@ wear-compose-foundation = { module = "androidx.wear.compose:compose-foundation",
 wear-compose-material = { module = "androidx.wear.compose:compose-material", version.ref = "wearCompose" }
 wear-tiles = { module = "androidx.wear.tiles:tiles", version.ref = "wearTiles" }
 wear-tiles-material = { module = "androidx.wear.tiles:tiles-material", version.ref = "wearTiles" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

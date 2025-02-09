@@ -55,6 +55,13 @@
         <service
             android:name=".wear.service.WearDataLayerListenerService"
             android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:host="*"
+                    android:pathPattern="/wear/monitoring-mode/.*"
+                    android:scheme="wear" />
+            </intent-filter>
         </service>
 
     </application>

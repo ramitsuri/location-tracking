@@ -1,4 +1,4 @@
-package com.ramitsuri.locationtracking.wear.service
+package com.ramitsuri.locationtracking.services
 
 import android.annotation.SuppressLint
 import com.google.android.gms.wearable.DataEvent
@@ -11,13 +11,12 @@ import com.ramitsuri.locationtracking.log.logE
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.wear.Constants
-import com.ramitsuri.locationtracking.wear.tile.TileService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
-class WearDataLayerListenerService : WearableListenerService(), KoinComponent {
+class PhoneDataLayerListenerService : WearableListenerService(), KoinComponent {
     private val settings: Settings by inject()
     private val scope: CoroutineScope by inject()
 
@@ -28,7 +27,7 @@ class WearDataLayerListenerService : WearableListenerService(), KoinComponent {
         dataEvents.forEach { event ->
             val path = event.dataItem.uri.path ?: ""
             when {
-                path.startsWith(Constants.Route.MONITORING_MODE_WEAR) -> {
+                path.startsWith(Constants.Route.MONITORING_MODE_PHONE) -> {
                     changeMonitoringModeEvents.add(event)
                 }
             }
@@ -45,12 +44,11 @@ class WearDataLayerListenerService : WearableListenerService(), KoinComponent {
             val monitoringMode = toEnum(monitoringModeText, MonitoringMode.default())
             scope.launch {
                 settings.setMonitoringMode(monitoringMode)
-                TileService.update(applicationContext)
             }
         }
     }
 
     companion object {
-        private const val TAG = "WearDataLayerListenerService"
+        private const val TAG = "PhoneDataLayerListenerService"
     }
 }
