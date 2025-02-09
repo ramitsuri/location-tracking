@@ -1,9 +1,12 @@
 name: Create Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  pull_request:
+    types: [ opened, synchronize ]
+    branches: [ main ]
+  #push:
+  #  tags:
+  #    - 'v*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,9 +31,36 @@ jobs:
 
       - name: Sign phone Apk
         uses: r0adkll/sign-android-release@v1
-        id: sign_phone_app
+        id: sign_phone_apk
         with:
-          releaseDirectory: composeApp/build/outputs/apk/release
+          releaseDirectory: phone/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      - name: Generate Release bundles
+        run: ./gradlew bundleRelease
+
+      - name: Sign phone bundle
+        uses: r0adkll/sign-android-release@v1
+        id: sign_phone_bundle
+        with:
+          releaseDirectory: phone/build/outputs/bundle/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      - name: Sign wear bundle
+        uses: r0adkll/sign-android-release@v1
+        id: sign_wear_bundle
+        with:
+          releaseDirectory: wear/build/outputs/bundle/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -45,4 +75,6 @@ jobs:
           prerelease: false
           automatic_release_tag: ${{ github.ref_name }}
           files: |
-            ${{steps.sign_phone_app.outputs.signedReleaseFile}}
+            ${{steps.sign_phone_apk.outputs.signedReleaseFile}}
+            ${{steps.sign_phone_bundle.outputs.signedReleaseFile}}
+            ${{steps.sign_wear_bundle.outputs.signedReleaseFile}}
