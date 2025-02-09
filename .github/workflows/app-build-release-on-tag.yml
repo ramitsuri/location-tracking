@@ -1,12 +1,9 @@
 name: Create Release
 
 on:
-  pull_request:
-    types: [ opened, synchronize ]
-    branches: [ main ]
-  #push:
-  #  tags:
-  #    - 'v*'
+  push:
+    tags:
+      - 'v*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
