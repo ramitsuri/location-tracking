@@ -1,5 +1,7 @@
 package com.ramitsuri.locationtracking.ui.home
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -39,12 +41,14 @@ import androidx.compose.material.icons.outlined.TripOrigin
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.outlined.Wifi
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -65,7 +69,9 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -83,6 +89,8 @@ import com.google.maps.android.compose.rememberMarkerState
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.model.BatteryStatus
 import com.ramitsuri.locationtracking.model.Location
+import com.ramitsuri.locationtracking.permissions.Permission
+import com.ramitsuri.locationtracking.permissions.asAndroidPermission
 import com.ramitsuri.locationtracking.ui.components.Date
 import com.ramitsuri.locationtracking.ui.components.Loading
 import com.ramitsuri.locationtracking.utils.format
@@ -114,7 +122,7 @@ fun HomeScreen(
                 },
                 pillContent = {
                     OptionsPill(
-                        permissionsNotGranted = viewState.permissionsNotGranted,
+                        missingPermissions = viewState.missingPermissions,
                         numOfLocations = viewState.numOfLocations,
                         isUploadWorkerRunning = viewState.isUploadWorkerRunning,
                         onNavToSettings = onNavToSettings,
@@ -450,7 +458,7 @@ private fun Map(
     cameraPositionState: CameraPositionState,
     content:
     @Composable @GoogleMapComposable
-    () -> Unit = {},
+        () -> Unit = {},
 ) {
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
@@ -464,7 +472,7 @@ private fun Map(
 
 @Composable
 private fun OptionsPill(
-    permissionsNotGranted: Boolean,
+    missingPermissions: List<Permission>,
     numOfLocations: Int,
     isUploadWorkerRunning: Boolean,
     onNavToSettings: () -> Unit,
@@ -473,16 +481,17 @@ private fun OptionsPill(
     onUpload: () -> Unit,
     onDatePickerClick: () -> Unit,
 ) {
-    var isPillExpanded by remember(permissionsNotGranted) {
-        mutableStateOf(permissionsNotGranted)
+    var isPillExpanded by remember(missingPermissions) {
+        mutableStateOf(missingPermissions.isNotEmpty())
     }
+    var showPermissionDisclosure by remember { mutableStateOf(false) }
     ExpandingPill(
         isExpanded = isPillExpanded,
         onExpandOrCollapse = { isPillExpanded = !isPillExpanded },
     ) {
-        if (permissionsNotGranted) {
+        if (missingPermissions.isNotEmpty()) {
             TintedIconButton(
-                onClick = onNavToSystemSettings,
+                onClick = { showPermissionDisclosure = true },
                 icon = Icons.Outlined.Warning,
             )
         } else {
@@ -507,6 +516,104 @@ private fun OptionsPill(
             onClick = onNavToSettings,
             icon = Icons.Outlined.Settings,
         )
+    }
+    if (showPermissionDisclosure) {
+        PermissionDisclosureDialog(
+            missingPermissions = missingPermissions,
+            onDismiss = { showPermissionDisclosure = false },
+            onNavToSystemSettings = onNavToSystemSettings,
+        )
+    }
+}
+
+@Composable
+private fun PermissionDisclosureDialog(
+    missingPermissions: List<Permission>,
+    onDismiss: () -> Unit,
+    onNavToSystemSettings: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+    ) {
+        Card {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp),
+            ) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(R.string.permission_dialog_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(R.string.permission_dialog_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Start,
+                )
+                if (missingPermissions.contains(Permission.FINE_LOCATION) &&
+                    missingPermissions.contains(Permission.COARSE_LOCATION)
+                ) {
+                    val permission = if (missingPermissions.contains(Permission.FINE_LOCATION)) {
+                        Permission.FINE_LOCATION
+                    } else {
+                        Permission.COARSE_LOCATION
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    MissingPermissionButton(
+                        permission = permission,
+                        permissionText = stringResource(R.string.permission_location),
+                        onNavToSystemSettings = onNavToSystemSettings,
+                    )
+                }
+                if (missingPermissions.contains(Permission.ACCESS_BACKGROUND_LOCATION)) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    MissingPermissionButton(
+                        permission = Permission.ACCESS_BACKGROUND_LOCATION,
+                        permissionText = stringResource(R.string.permission_background_location),
+                        onNavToSystemSettings = onNavToSystemSettings,
+                    )
+                }
+                if (missingPermissions.contains(Permission.NOTIFICATION)) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    MissingPermissionButton(
+                        permission = Permission.NOTIFICATION,
+                        permissionText = stringResource(R.string.permission_notification),
+                        onNavToSystemSettings = onNavToSystemSettings,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MissingPermissionButton(
+    permission: Permission,
+    permissionText: String,
+    onNavToSystemSettings: () -> Unit,
+) {
+    val request = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            if (!granted) {
+                onNavToSystemSettings()
+            }
+        },
+    )
+    val androidPermission = permission.asAndroidPermission()
+    OutlinedButton(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = {
+            if (androidPermission == null) {
+                return@OutlinedButton
+            }
+            request.launch(androidPermission)
+        },
+    ) {
+        Text(permissionText)
     }
 }
 
