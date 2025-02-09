@@ -37,11 +37,7 @@ class HomeViewModel(
 
     val viewState = combine(
         locationRepository.getCount(),
-        permissionState().map { results ->
-            results.filter { permissionResult ->
-                !permissionResult.granted
-            }.map { it.permission }
-        },
+        permissionState(),
         isUploadWorkerRunning(),
         locationRepository.getLastKnownLocation(),
         viewMode,
@@ -58,7 +54,7 @@ class HomeViewModel(
         }
         HomeViewState(
             numOfLocations = count,
-            permissionsNotGranted = permissions.isNotEmpty(),
+            permissionsResults = permissions,
             isUploadWorkerRunning = isUploadWorkerRunning,
             viewMode = newViewMode,
             isLoading = isLoading,
