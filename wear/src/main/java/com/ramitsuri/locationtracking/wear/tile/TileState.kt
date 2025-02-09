@@ -1,3 +1,5 @@
 package com.ramitsuri.locationtracking.wear.tile
 
-data object TileState
+import com.ramitsuri.locationtracking.model.MonitoringMode
+
+data class TileState(val monitoringMode: MonitoringMode)

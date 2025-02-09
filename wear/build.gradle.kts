@@ -55,6 +55,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":composeApp"))
     implementation(libs.androidx.ktx)
     implementation(libs.playservices.wearable)
 
@@ -66,6 +67,7 @@ dependencies {
     implementation(libs.compose.material.icons.extended)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.toolingPreview)
+    implementation(libs.datastore)
     implementation(libs.wear.compose.foundation)
     implementation(libs.wear.compose.material)
 
@@ -79,6 +81,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
     implementation(libs.kotlin.datetime)
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose.viewmodel)
 }
 
 ktlint {
