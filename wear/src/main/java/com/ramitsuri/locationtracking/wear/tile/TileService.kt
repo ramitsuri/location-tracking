@@ -7,10 +7,15 @@ import androidx.wear.tiles.RequestBuilders.ResourcesRequest
 import androidx.wear.tiles.TileBuilders.Tile
 import com.google.android.horologist.annotations.ExperimentalHorologistApi
 import com.google.android.horologist.tiles.SuspendingTileService
+import com.ramitsuri.locationtracking.settings.Settings
+import kotlinx.coroutines.flow.first
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 @OptIn(ExperimentalHorologistApi::class)
-class TileService : SuspendingTileService() {
+class TileService : SuspendingTileService(), KoinComponent {
     private lateinit var renderer: TileRenderer
+    private val settings by inject<Settings>()
 
     override fun onCreate() {
         super.onCreate()
@@ -18,7 +23,7 @@ class TileService : SuspendingTileService() {
     }
 
     override suspend fun tileRequest(requestParams: RequestBuilders.TileRequest): Tile {
-        val tileState = TileState
+        val tileState = TileState(settings.getMonitoringMode().first())
         return renderer.renderTimeline(tileState, requestParams)
     }
 
