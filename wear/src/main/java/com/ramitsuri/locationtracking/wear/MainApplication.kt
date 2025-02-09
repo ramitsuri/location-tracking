@@ -22,8 +22,13 @@ class MainApplication : Application() {
                     this@MainApplication.filesDir.resolve(fileName).absolutePath.toPath()
                 }
 
+                single<WearDataSharingClient> {
+                    WearDataSharingClientImpl(this@MainApplication)
+                }
+
                 viewModel<HomeViewModel> {
                     HomeViewModel(
+                        dataSharingClient = get<WearDataSharingClient>(),
                         settings = get<Settings>(),
                     )
                 }

@@ -31,6 +31,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.kotlin.datetime)
             implementation(libs.splash)
+            implementation(libs.playservices.coroutines)
+            implementation(libs.playservices.wearable)
         }
         commonMain.dependencies {
             implementation(libs.datastore)

@@ -31,6 +31,8 @@ import com.ramitsuri.locationtracking.ui.logs.LogScreenViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
 import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesViewModel
 import com.ramitsuri.locationtracking.upload.UploadWorker
+import com.ramitsuri.locationtracking.wear.WearDataSharingClient
+import com.ramitsuri.locationtracking.wear.WearDataSharingClientImpl
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.android.Android
 import kotlinx.coroutines.CoroutineDispatcher
@@ -100,6 +102,10 @@ class MainApp : Application(), KoinComponent {
                     AndroidPermissionMonitor(
                         permissionChecker = get<PermissionChecker>(),
                     )
+                }
+
+                single<WearDataSharingClient> {
+                    WearDataSharingClientImpl(this@MainApp)
                 }
 
                 factory<PermissionChecker> {

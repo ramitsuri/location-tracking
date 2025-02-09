@@ -78,6 +78,8 @@ dependencies {
     implementation(libs.kermit)
     implementation(libs.room.ktx)
     implementation(libs.room.runtime)
+    implementation(libs.playservices.coroutines)
+    implementation(libs.playservices.wearable)
 
     debugImplementation(compose.uiTooling)
 }

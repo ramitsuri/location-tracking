@@ -78,6 +78,18 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name=".services.PhoneDataLayerListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:host="*"
+                    android:pathPattern="/phone/monitoring-mode/.*"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name=".services.StartBackgroundServiceReceiver"
             android:enabled="true"

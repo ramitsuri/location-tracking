@@ -29,6 +29,7 @@ import com.ramitsuri.locationtracking.tracking.battery.BatteryInfoProvider
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import com.ramitsuri.locationtracking.ui.label
+import com.ramitsuri.locationtracking.wear.WearDataSharingClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -43,6 +44,7 @@ class BackgroundService : LifecycleService(), KoinComponent {
     private val permissionChecker: PermissionChecker by inject()
     private val settings: Settings by inject()
     private val notificationManager: NotificationManager by inject()
+    private val wearDataSharingClient: WearDataSharingClient by inject()
     private val tracker by lazy {
         Tracker(
             permissionChecker = permissionChecker,
@@ -108,7 +110,7 @@ class BackgroundService : LifecycleService(), KoinComponent {
 
                 INTENT_ACTION_BOOT_COMPLETED,
                 INTENT_ACTION_PACKAGE_REPLACED,
-                -> {
+                    -> {
                     onDeviceRestartOrAppUpdated()
                 }
 
@@ -197,6 +199,15 @@ class BackgroundService : LifecycleService(), KoinComponent {
                 mode to addressOrLocation
             }.collect { (mode, addressOrLocation) ->
                 notifyOngoing(mode, addressOrLocation?.string())
+            }
+        }
+
+        lifecycleScope.launch {
+            settings.getMonitoringMode().collect {
+                wearDataSharingClient.postMonitoringMode(
+                    mode = it,
+                    to = WearDataSharingClient.To.Wear,
+                )
             }
         }
     }
