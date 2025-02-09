@@ -6,15 +6,16 @@ plugins {
 }
 
 android {
+    val appVersion = libs.versions.appVersion.get()
     namespace = "com.ramitsuri.locationtracking"
-    compileSdk = 35
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.ramitsuri.locationtracking"
-        minSdk = 30
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
+        versionCode = appVersion.toDouble().times(100).plus(1).toInt()
+        versionName = appVersion
 
         vectorDrawables {
             useSupportLibrary = true
