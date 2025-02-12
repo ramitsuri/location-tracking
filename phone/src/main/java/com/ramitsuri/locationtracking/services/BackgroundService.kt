@@ -154,60 +154,62 @@ class BackgroundService : LifecycleService(), KoinComponent {
         setupAndStartService()
     }
 
-    private fun startForegroundService() {
+    private suspend fun startForegroundService(): Boolean {
         logD(TAG) { "startForegroundService" }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            lifecycleScope.launch {
-                try {
-                    val mode = settings.getMonitoringMode().first()
-                    startForeground(
-                        NotificationConstants.NOTIFICATION_ONGOING_ID,
-                        getOngoingNotification(mode),
-                        ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
-                    )
-                    _isRunning.update { true }
-                } catch (e: ForegroundServiceStartNotAllowedException) {
-                    logE(TAG, e) {
-                        "Foreground service start not allowed. " +
-                            "backgroundRestricted=${activityManager.isBackgroundRestricted}"
-                    }
-                    return@launch
-                }
-            }
-        } else {
-            lifecycleScope.launch {
+            try {
                 val mode = settings.getMonitoringMode().first()
                 startForeground(
                     NotificationConstants.NOTIFICATION_ONGOING_ID,
                     getOngoingNotification(mode),
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
                 )
                 _isRunning.update { true }
+            } catch (e: ForegroundServiceStartNotAllowedException) {
+                logE(TAG, e) {
+                    "Foreground service start not allowed. " +
+                        "backgroundRestricted=${activityManager.isBackgroundRestricted}"
+                }
+                notifyBackgroundLocationRestriction()
+                return false
             }
+        } else {
+            val mode = settings.getMonitoringMode().first()
+            startForeground(
+                NotificationConstants.NOTIFICATION_ONGOING_ID,
+                getOngoingNotification(mode),
+            )
+            _isRunning.update { true }
         }
+        return true
     }
 
     private fun setupAndStartService() {
         logD(TAG) { "setupAndStartService" }
-        startForegroundService()
-        tracker.startTracking()
-        wifiMonitor.startMonitoring()
         lifecycleScope.launch {
-            combine(
-                settings.getMonitoringMode(),
-                tracker.lastKnownAddressOrLocation,
-            ) { mode, addressOrLocation ->
-                mode to addressOrLocation
-            }.collect { (mode, addressOrLocation) ->
-                notifyOngoing(mode, addressOrLocation?.string())
+            val started = startForegroundService()
+            if (!started) {
+                return@launch
             }
-        }
-
-        lifecycleScope.launch {
-            settings.getMonitoringMode().collect {
-                wearDataSharingClient.postMonitoringMode(
-                    mode = it,
-                    to = WearDataSharingClient.To.Wear,
-                )
+            tracker.startTracking()
+            wifiMonitor.startMonitoring()
+            launch {
+                combine(
+                    settings.getMonitoringMode(),
+                    tracker.lastKnownAddressOrLocation,
+                ) { mode, addressOrLocation ->
+                    mode to addressOrLocation
+                }.collect { (mode, addressOrLocation) ->
+                    notifyOngoing(mode, addressOrLocation?.string())
+                }
+            }
+            launch {
+                settings.getMonitoringMode().collect {
+                    wearDataSharingClient.postMonitoringMode(
+                        mode = it,
+                        to = WearDataSharingClient.To.Wear,
+                    )
+                }
             }
         }
     }
@@ -229,7 +231,10 @@ class BackgroundService : LifecycleService(), KoinComponent {
         notificationManager.notify(getOngoingNotification(mode, title))
     }
 
-    private fun getOngoingNotification(mode: MonitoringMode, title: String? = null): Notification {
+    private fun getOngoingNotification(
+        mode: MonitoringMode,
+        title: String? = null,
+    ): Notification {
         val nextMode = mode.getNextMode()
         val nextNextMode = nextMode.getNextMode()
         return notificationManager.getOngoingNotification(
