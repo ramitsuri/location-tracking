@@ -76,12 +76,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startService(action: String? = null) {
-        logD(TAG) { "requesting service start" }
-        if (
-            (
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
-                    !permissionChecker.hasPermission(Permission.ACCESS_BACKGROUND_LOCATION)
-                ) ||
+        logD(TAG) { "requesting service start with action=$action" }
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+                !permissionChecker.hasPermission(Permission.ACCESS_BACKGROUND_LOCATION)) ||
             !permissionChecker.hasPermissions(
                 listOf(
                     Permission.FINE_LOCATION,
