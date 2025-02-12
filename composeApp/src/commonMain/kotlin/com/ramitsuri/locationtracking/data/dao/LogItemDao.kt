@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 interface LogItemDao {
 
     @Insert
-    suspend fun insert(logItem: LogItem)
+    suspend fun insert(logItems: List<LogItem>)
 
     @Query("DELETE FROM logs")
     suspend fun deleteAll()
