@@ -85,6 +85,7 @@ jobs:
           releaseFiles: phone/build/outputs/bundle/release/phone-release.aab
           track: internal
           status: completed
+          changesNotSentForReview: true
 
       - name: Publish wear app to Play Console
         uses: r0adkll/upload-google-play@v1
@@ -94,6 +95,7 @@ jobs:
           releaseFiles: wear/build/outputs/bundle/release/wear-release.aab
           track: wear:internal
           status: completed
+          changesNotSentForReview: true
 
       - name: Create github release
         uses: marvinpinto/action-automatic-releases@latest
