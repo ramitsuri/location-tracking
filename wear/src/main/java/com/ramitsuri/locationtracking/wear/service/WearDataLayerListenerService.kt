@@ -1,6 +1,9 @@
 package com.ramitsuri.locationtracking.wear.service
 
 import android.annotation.SuppressLint
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
@@ -20,9 +23,11 @@ import org.koin.core.component.inject
 class WearDataLayerListenerService : WearableListenerService(), KoinComponent {
     private val settings: Settings by inject()
     private val scope: CoroutineScope by inject()
+    private lateinit var vibrator: Vibrator
 
     @SuppressLint("VisibleForTests")
     override fun onDataChanged(dataEvents: DataEventBuffer) {
+        vibrator = getSystemService(Vibrator::class.java)
         logD(TAG) { "onDataChanged: $dataEvents" }
         val changeMonitoringModeEvents = mutableListOf<DataEvent>()
         dataEvents.forEach { event ->
@@ -47,7 +52,36 @@ class WearDataLayerListenerService : WearableListenerService(), KoinComponent {
                 settings.setMonitoringMode(monitoringMode)
                 TileService.update(applicationContext)
             }
+            vibrate(monitoringMode)
         }
+    }
+
+    private fun vibrate(monitoringMode: MonitoringMode) {
+        logD(TAG) { "onMonitoringModeChanged: $monitoringMode" }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return
+        }
+        val vibrateTimes = when (monitoringMode) {
+            MonitoringMode.Move -> 3
+            MonitoringMode.Walk -> 2
+            MonitoringMode.Rest -> 1
+            MonitoringMode.Off -> return
+        }
+        VibrationEffect
+            .startComposition()
+            .apply {
+                repeat(vibrateTimes) {
+                    addPrimitive(
+                        VibrationEffect.Composition.PRIMITIVE_QUICK_FALL,
+                        1f,
+                        100,
+                    )
+                }
+            }
+            .compose()
+            .let {
+                vibrator.vibrate(it)
+            }
     }
 
     companion object {
