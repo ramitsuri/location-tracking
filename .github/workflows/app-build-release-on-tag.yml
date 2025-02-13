@@ -1,9 +1,9 @@
 name: Create Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  pull_request:
+    types: [ opened, synchronize ]
+    branches: [ main ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,33 +23,33 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Generate Release Apks
-        run: ./gradlew assembleRelease
-
-      - name: Sign phone Apk
-        uses: r0adkll/sign-android-release@v1
-        id: sign_phone_apk
-        with:
-          releaseDirectory: phone/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: "34.0.0"
-
-      - name: Sign wear Apk
-        uses: r0adkll/sign-android-release@v1
-        id: sign_wear_apk
-        with:
-          releaseDirectory: wear/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: "34.0.0"
-
+#      - name: Generate Release Apks
+#        run: ./gradlew assembleRelease
+#
+#      - name: Sign phone Apk
+#        uses: r0adkll/sign-android-release@v1
+#        id: sign_phone_apk
+#        with:
+#          releaseDirectory: phone/build/outputs/apk/release
+#          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+#          alias: ${{ secrets.ALIAS }}
+#          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+#          keyPassword: ${{ secrets.KEY_PASSWORD }}
+#        env:
+#          BUILD_TOOLS_VERSION: "34.0.0"
+#
+#      - name: Sign wear Apk
+#        uses: r0adkll/sign-android-release@v1
+#        id: sign_wear_apk
+#        with:
+#          releaseDirectory: wear/build/outputs/apk/release
+#          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+#          alias: ${{ secrets.ALIAS }}
+#          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+#          keyPassword: ${{ secrets.KEY_PASSWORD }}
+#        env:
+#          BUILD_TOOLS_VERSION: "34.0.0"
+#
       - name: Generate Release bundles
         run: ./gradlew bundleRelease
 
@@ -85,6 +85,7 @@ jobs:
           releaseFiles: phone/build/outputs/bundle/release/phone-release.aab
           track: internal
           status: completed
+          changesNotSentForReview: true
 
       - name: Publish wear app to Play Console
         uses: r0adkll/upload-google-play@v1
@@ -94,15 +95,16 @@ jobs:
           releaseFiles: wear/build/outputs/bundle/release/wear-release.aab
           track: wear:internal
           status: completed
+          changesNotSentForReview: true
 
-      - name: Create github release
-        uses: marvinpinto/action-automatic-releases@latest
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          prerelease: false
-          automatic_release_tag: ${{ github.ref_name }}
-          files: |
-            ${{steps.sign_phone_apk.outputs.signedReleaseFile}}
-            ${{steps.sign_wear_apk.outputs.signedReleaseFile}}
-            ${{steps.sign_phone_bundle.outputs.signedReleaseFile}}
-            ${{steps.sign_wear_bundle.outputs.signedReleaseFile}}
+#      - name: Create github release
+#        uses: marvinpinto/action-automatic-releases@latest
+#        with:
+#          repo_token: ${{ secrets.GITHUB_TOKEN }}
+#          prerelease: false
+#          automatic_release_tag: ${{ github.ref_name }}
+#          files: |
+#            ${{steps.sign_phone_apk.outputs.signedReleaseFile}}
+#            ${{steps.sign_wear_apk.outputs.signedReleaseFile}}
+#            ${{steps.sign_phone_bundle.outputs.signedReleaseFile}}
+#            ${{steps.sign_wear_bundle.outputs.signedReleaseFile}}
