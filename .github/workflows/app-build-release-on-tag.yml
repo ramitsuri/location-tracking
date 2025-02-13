@@ -1,9 +1,9 @@
 name: Create Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  pull_request:
+    types: [ opened, synchronize ]
+    branches: [ main ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -38,7 +38,7 @@ jobs:
         env:
           BUILD_TOOLS_VERSION: "34.0.0"
 
-      - name: Sign wear bundle
+      - name: Sign wear Apk
         uses: r0adkll/sign-android-release@v1
         id: sign_wear_apk
         with:
@@ -76,6 +76,24 @@ jobs:
           keyPassword: ${{ secrets.KEY_PASSWORD }}
         env:
           BUILD_TOOLS_VERSION: "34.0.0"
+
+      - name: Publish phone app to Play Console
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_CONSOLE_SERVICE_ACCOUNT_JSON }}
+          packageName: com.ramitsuri.locationtracking
+          releaseFiles: phone/build/outputs/bundle/release/phone-release.aab
+          track: internal
+          status: completed
+
+      - name: Publish wear app to Play Console
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_CONSOLE_SERVICE_ACCOUNT_JSON }}
+          packageName: com.ramitsuri.locationtracking
+          releaseFiles: wear/build/outputs/bundle/release/wear-release.aab
+          track: wear:internal
+          status: completed
 
       - name: Create github release
         uses: marvinpinto/action-automatic-releases@latest
