@@ -187,6 +187,10 @@ class BackgroundService : LifecycleService(), KoinComponent {
     private fun setupAndStartService() {
         logD(TAG) { "setupAndStartService" }
         lifecycleScope.launch {
+            if (isRunning.value) {
+                logD(TAG) { "already running" }
+                return@launch
+            }
             val started = startForegroundService()
             if (!started) {
                 return@launch
