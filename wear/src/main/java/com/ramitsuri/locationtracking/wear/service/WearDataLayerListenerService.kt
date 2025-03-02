@@ -16,12 +16,15 @@ import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.ui.label
 import com.ramitsuri.locationtracking.wear.Constants
+import com.ramitsuri.locationtracking.wear.complication.ComplicationDataSourceService
 import com.ramitsuri.locationtracking.wear.tile.TileService
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -66,11 +69,14 @@ class WearDataLayerListenerService : WearableListenerService(), KoinComponent {
             delay(3.seconds)
             settings.setMonitoringMode(monitoringMode)
             TileService.update(applicationContext)
-            Toast.makeText(
-                applicationContext,
-                monitoringMode.label(applicationContext),
-                Toast.LENGTH_SHORT,
-            ).show()
+            ComplicationDataSourceService.update(applicationContext)
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    applicationContext,
+                    monitoringMode.label(applicationContext),
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val vibrateTimes = when (monitoringMode) {
                     MonitoringMode.Move,

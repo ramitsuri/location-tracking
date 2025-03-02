@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.datastore)
     implementation(libs.wear.compose.foundation)
     implementation(libs.wear.compose.material)
+    implementation(libs.wear.watchface.complications)
 
     implementation(libs.wear.tiles)
     implementation(libs.wear.tiles.material)
