@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.widget.Toast
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
@@ -13,9 +14,13 @@ import com.ramitsuri.locationtracking.log.logD
 import com.ramitsuri.locationtracking.log.logE
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.settings.Settings
+import com.ramitsuri.locationtracking.ui.label
 import com.ramitsuri.locationtracking.wear.Constants
 import com.ramitsuri.locationtracking.wear.tile.TileService
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -24,6 +29,7 @@ class WearDataLayerListenerService : WearableListenerService(), KoinComponent {
     private val settings: Settings by inject()
     private val scope: CoroutineScope by inject()
     private lateinit var vibrator: Vibrator
+    private var changeMonitoringModeJob: Job? = null
 
     @SuppressLint("VisibleForTests")
     override fun onDataChanged(dataEvents: DataEventBuffer) {
@@ -48,40 +54,49 @@ class WearDataLayerListenerService : WearableListenerService(), KoinComponent {
                 return@let
             }
             val monitoringMode = toEnum(monitoringModeText, MonitoringMode.default())
-            scope.launch {
-                settings.setMonitoringMode(monitoringMode)
-                TileService.update(applicationContext)
-            }
-            vibrate(monitoringMode)
+            changeMonitoringModeAndNotify(monitoringMode)
         }
     }
 
-    private fun vibrate(monitoringMode: MonitoringMode) {
+    private fun changeMonitoringModeAndNotify(monitoringMode: MonitoringMode) {
         logD(TAG) { "onMonitoringModeChanged: $monitoringMode" }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            return
-        }
-        val vibrateTimes = when (monitoringMode) {
-            MonitoringMode.Move -> 3
-            MonitoringMode.Walk -> 2
-            MonitoringMode.Rest -> 1
-            MonitoringMode.Off -> return
-        }
-        VibrationEffect
-            .startComposition()
-            .apply {
-                repeat(vibrateTimes) {
-                    addPrimitive(
-                        VibrationEffect.Composition.PRIMITIVE_QUICK_FALL,
-                        1f,
-                        100,
-                    )
+        changeMonitoringModeJob?.cancel()
+        changeMonitoringModeJob = scope.launch {
+            // Change if more certain that it's not a temporary change in monitoring mode
+            delay(3.seconds)
+            settings.setMonitoringMode(monitoringMode)
+            TileService.update(applicationContext)
+            Toast.makeText(
+                applicationContext,
+                monitoringMode.label(applicationContext),
+                Toast.LENGTH_SHORT,
+            ).show()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vibrateTimes = when (monitoringMode) {
+                    MonitoringMode.Move,
+                    MonitoringMode.Walk,
+                    MonitoringMode.Rest,
+                    -> 1
+
+                    MonitoringMode.Off -> return@launch
                 }
+                VibrationEffect
+                    .startComposition()
+                    .apply {
+                        repeat(vibrateTimes) {
+                            addPrimitive(
+                                VibrationEffect.Composition.PRIMITIVE_QUICK_FALL,
+                                1f,
+                                100,
+                            )
+                        }
+                    }
+                    .compose()
+                    .let {
+                        vibrator.vibrate(it)
+                    }
             }
-            .compose()
-            .let {
-                vibrator.vibrate(it)
-            }
+        }
     }
 
     companion object {
