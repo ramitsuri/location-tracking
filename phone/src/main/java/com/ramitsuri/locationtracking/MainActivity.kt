@@ -93,9 +93,6 @@ class MainActivity : ComponentActivity() {
             logW(TAG) { "can't start location fg service without bg location permission" }
             return
         }
-        if (BackgroundService.isRunning.value) {
-            return
-        }
         ContextCompat.startForegroundService(
             this,
             Intent()
