@@ -5,8 +5,11 @@ import co.touchlab.kermit.Severity
 import com.ramitsuri.locationtracking.data.dao.LogItemDao
 import com.ramitsuri.locationtracking.model.LogItem
 import com.ramitsuri.locationtracking.model.toLogLevel
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
@@ -33,6 +36,12 @@ class DbLogWriter(
                     logItems.update { it.minus(logs.toSet()) }
                     logD(TAG) { "wrote ${logs.size} logs to db" }
                 }
+            }
+        }
+        scope.launch {
+            while (true) {
+                delay(6.hours)
+                logItemDao.deleteAll(olderThan = clock.now().minus(3.days))
             }
         }
     }
