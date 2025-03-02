@@ -19,22 +19,22 @@ class HomeViewModel(
     private val dataSharingClient: WearDataSharingClient,
 ) : ViewModel() {
     private var monitoringModeChangeJob: Job? = null
-    private val monitoringModePosted = MutableStateFlow(false)
+    private val messagePosted = MutableStateFlow(false)
 
     val viewState = combine(
         settings.getMonitoringMode(),
-        monitoringModePosted,
+        messagePosted,
     ) { monitoringMode, posted ->
         HomeViewState(
             monitoringMode = monitoringMode,
-            monitoringModePosted = posted,
+            messagePosted = posted,
         )
     }.stateIn(
         scope = viewModelScope,
         started = WhileSubscribed(5_000),
         initialValue = HomeViewState(
             monitoringMode = MonitoringMode.default(),
-            monitoringModePosted = monitoringModePosted.value,
+            messagePosted = messagePosted.value,
         ),
     )
 
@@ -46,11 +46,20 @@ class HomeViewModel(
                 mode = monitoringMode,
                 to = WearDataSharingClient.To.Phone,
             )
-            monitoringModePosted.value = posted
+            messagePosted.value = posted
         }
     }
 
-    fun onMonitoringModePostedAcknowledged() {
-        monitoringModePosted.value = false
+    fun onSingleLocation() {
+        viewModelScope.launch {
+            val posted = dataSharingClient.postSingleLocation(
+                to = WearDataSharingClient.To.Phone,
+            )
+            messagePosted.value = posted
+        }
+    }
+
+    fun onMessagePostedAcknowledged() {
+        messagePosted.value = false
     }
 }

@@ -46,8 +46,8 @@ class TileRenderer(context: Context) :
                             launchActivityAction(MainActivity.MODE_REST),
                         )
                         addButton(
-                            Icon.OFF,
-                            launchActivityAction(MainActivity.MODE_OFF),
+                            Icon.SINGLE_LOCATION,
+                            launchActivityAction(MainActivity.SINGLE_LOCATION),
                         )
                         addButton(
                             Icon.APP,
@@ -138,5 +138,9 @@ enum class Icon(val id: String, val resId: Int) {
     OFF(
         id = "icon_off",
         resId = R.drawable.ic_off,
+    ),
+    SINGLE_LOCATION(
+        id = "icon_single_location",
+        resId = R.drawable.ic_single_location,
     ),
 }

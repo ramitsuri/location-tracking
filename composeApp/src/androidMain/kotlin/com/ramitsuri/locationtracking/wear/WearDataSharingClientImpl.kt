@@ -41,7 +41,28 @@ class WearDataSharingClientImpl(
             dataClient.putDataItem(request).await()
             true
         } catch (exception: Exception) {
-            logW(TAG) { "Failed to request upload: ${exception.message}" }
+            logW(TAG) { "Failed to post monitoring mode: ${exception.message}" }
+            false
+        }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    override suspend fun postSingleLocation(to: WearDataSharingClient.To): Boolean {
+        return try {
+            val id = Uuid.random().toString()
+            val path = when (to) {
+                WearDataSharingClient.To.Phone -> "${Constants.Route.SINGLE_LOCATION_PHONE}/$id"
+                WearDataSharingClient.To.Wear -> "${Constants.Route.SINGLE_LOCATION_WEAR}/$id"
+            }
+            val request =
+                PutDataMapRequest.create(path)
+                    .asPutDataRequest()
+                    .setUrgent()
+
+            dataClient.putDataItem(request).await()
+            true
+        } catch (exception: Exception) {
+            logW(TAG) { "Failed to post single location: ${exception.message}" }
             false
         }
     }

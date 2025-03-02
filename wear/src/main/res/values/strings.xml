@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Location History</string>
     <string name="posted">Posted</string>
+    <string name="single_location">Single Location</string>
 </resources>
