@@ -484,7 +484,9 @@ private fun OptionsPill(
     var isPillExpanded by remember(missingPermissions) {
         mutableStateOf(missingPermissions.isNotEmpty())
     }
-    var showPermissionDisclosure by remember { mutableStateOf(false) }
+    var showPermissionDisclosure by remember(missingPermissions) {
+        mutableStateOf((missingPermissions).isNotEmpty())
+    }
     ExpandingPill(
         isExpanded = isPillExpanded,
         onExpandOrCollapse = { isPillExpanded = !isPillExpanded },
