@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
-import androidx.compose.material.icons.outlined.Dangerous
+import androidx.compose.material.icons.outlined.AddLocation
 import androidx.compose.material.icons.outlined.Motorcycle
 import androidx.compose.material.icons.outlined.NightShelter
 import androidx.compose.runtime.Composable
@@ -41,19 +41,20 @@ import com.ramitsuri.locationtracking.wear.presentation.theme.AppTheme
 fun HomeScreen(
     state: HomeViewState,
     onMonitoringModeChanged: (MonitoringMode) -> Unit,
-    onMonitoringModePostedAcknowledged: () -> Unit,
+    onMessagePostedAcknowledged: () -> Unit,
+    onSingleLocation: () -> Unit,
     exit: () -> Unit,
 ) {
     val context = LocalContext.current
     val view = LocalView.current
-    LaunchedEffect(state.monitoringModePosted) {
-        if (state.monitoringModePosted) {
+    LaunchedEffect(state.messagePosted) {
+        if (state.messagePosted) {
             Toast.makeText(
                 context,
                 context.getString(R.string.posted),
                 Toast.LENGTH_SHORT,
             ).show()
-            onMonitoringModePostedAcknowledged()
+            onMessagePostedAcknowledged()
             view.performHapticFeedback(HapticFeedbackConstantsCompat.LONG_PRESS)
             exit()
         }
@@ -114,14 +115,12 @@ fun HomeScreen(
                                 contentDescription = mode.label(context),
                             )
                         }
-                        MonitoringMode.Off.let { mode ->
-                            LargeButton(
-                                modifier = Modifier.weight(1f),
-                                onClick = { onMonitoringModeChanged(mode) },
-                                icon = Icons.Outlined.Dangerous,
-                                contentDescription = mode.label(context),
-                            )
-                        }
+                        LargeButton(
+                            modifier = Modifier.weight(1f),
+                            onClick = onSingleLocation,
+                            icon = Icons.Outlined.AddLocation,
+                            contentDescription = context.getString(R.string.single_location),
+                        )
                     }
                 }
                 item {

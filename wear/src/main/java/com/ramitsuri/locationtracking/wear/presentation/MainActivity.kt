@@ -25,7 +25,8 @@ class MainActivity : ComponentActivity() {
             HomeScreen(
                 state = viewState,
                 onMonitoringModeChanged = viewModel::onMonitoringModeChanged,
-                onMonitoringModePostedAcknowledged = viewModel::onMonitoringModePostedAcknowledged,
+                onMessagePostedAcknowledged = viewModel::onMessagePostedAcknowledged,
+                onSingleLocation = viewModel::onSingleLocation,
                 exit = { finish() },
             )
         }
@@ -51,13 +52,22 @@ class MainActivity : ComponentActivity() {
                 null
             }
         }
-        monitoringMode?.let {
-            lifecycleScope.launch {
+        lifecycleScope.launch {
+            if (intent.extras?.getString(EXTRA_KEY) == SINGLE_LOCATION) {
+                dataSharingClient.postSingleLocation(to = WearDataSharingClient.To.Phone).let {
+                    if (it) {
+                        finish()
+                    }
+                }
+            } else if (monitoringMode != null) {
                 dataSharingClient.postMonitoringMode(
-                    mode = it,
+                    mode = monitoringMode,
                     to = WearDataSharingClient.To.Phone,
-                )
-                finish()
+                ).let {
+                    if (it) {
+                        finish()
+                    }
+                }
             }
         }
     }
@@ -68,5 +78,6 @@ class MainActivity : ComponentActivity() {
         const val MODE_WALK = "MODE_WALK"
         const val MODE_REST = "MODE_REST"
         const val MODE_OFF = "MODE_OFF"
+        const val SINGLE_LOCATION = "SINGLE_LOCATION"
     }
 }

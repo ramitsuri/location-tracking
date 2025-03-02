@@ -88,6 +88,13 @@
                     android:pathPattern="/phone/monitoring-mode/.*"
                     android:scheme="wear" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:host="*"
+                    android:pathPattern="/phone/single-location/.*"
+                    android:scheme="wear" />
+            </intent-filter>
         </service>
 
         <receiver

@@ -1,6 +1,8 @@
 package com.ramitsuri.locationtracking.services
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import androidx.core.content.ContextCompat
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
@@ -24,11 +26,15 @@ class PhoneDataLayerListenerService : WearableListenerService(), KoinComponent {
     override fun onDataChanged(dataEvents: DataEventBuffer) {
         logD(TAG) { "onDataChanged: $dataEvents" }
         val changeMonitoringModeEvents = mutableListOf<DataEvent>()
+        val singleLocationEvents = mutableListOf<DataEvent>()
         dataEvents.forEach { event ->
             val path = event.dataItem.uri.path ?: ""
             when {
                 path.startsWith(Constants.Route.MONITORING_MODE_PHONE) -> {
                     changeMonitoringModeEvents.add(event)
+                }
+                path.startsWith(Constants.Route.SINGLE_LOCATION_PHONE) -> {
+                    singleLocationEvents.add(event)
                 }
             }
         }
@@ -45,6 +51,18 @@ class PhoneDataLayerListenerService : WearableListenerService(), KoinComponent {
             scope.launch {
                 settings.setMonitoringMode(monitoringMode)
             }
+        }
+
+        singleLocationEvents.lastOrNull()?.let {
+            logD(TAG) { "Have a single location event" }
+            ContextCompat.startForegroundService(
+                this,
+                Intent()
+                    .setClass(this, BackgroundService::class.java)
+                    .apply {
+                        this.action = BackgroundService.INTENT_ACTION_SEND_LOCATION_USER
+                    },
+            )
         }
     }
 
