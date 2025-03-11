@@ -18,13 +18,8 @@ import com.ramitsuri.locationtracking.ui.label
 import com.ramitsuri.locationtracking.wear.Constants
 import com.ramitsuri.locationtracking.wear.complication.ComplicationDataSourceService
 import com.ramitsuri.locationtracking.wear.tile.TileService
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -32,7 +27,6 @@ class WearDataLayerListenerService : WearableListenerService(), KoinComponent {
     private val settings: Settings by inject()
     private val scope: CoroutineScope by inject()
     private lateinit var vibrator: Vibrator
-    private var changeMonitoringModeJob: Job? = null
 
     @SuppressLint("VisibleForTests")
     override fun onDataChanged(dataEvents: DataEventBuffer) {
@@ -63,20 +57,15 @@ class WearDataLayerListenerService : WearableListenerService(), KoinComponent {
 
     private fun changeMonitoringModeAndNotify(monitoringMode: MonitoringMode) {
         logD(TAG) { "onMonitoringModeChanged: $monitoringMode" }
-        changeMonitoringModeJob?.cancel()
-        changeMonitoringModeJob = scope.launch {
-            // Change if more certain that it's not a temporary change in monitoring mode
-            delay(3.seconds)
+        scope.launch {
+            Toast.makeText(
+                applicationContext,
+                monitoringMode.label(applicationContext),
+                Toast.LENGTH_SHORT,
+            ).show()
             settings.setMonitoringMode(monitoringMode)
             TileService.update(applicationContext)
             ComplicationDataSourceService.update(applicationContext)
-            withContext(Dispatchers.Main) {
-                Toast.makeText(
-                    applicationContext,
-                    monitoringMode.label(applicationContext),
-                    Toast.LENGTH_SHORT,
-                ).show()
-            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val vibrateTimes = when (monitoringMode) {
                     MonitoringMode.Move,
