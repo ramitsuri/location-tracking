@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Process
+import androidx.annotation.DrawableRes
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.ramitsuri.locationtracking.R
@@ -247,7 +248,18 @@ class BackgroundService : LifecycleService(), KoinComponent {
             modeLabel = mode.label(context = this),
             nextModeLabel = nextMode.label(this),
             nextNextModeLabel = nextNextMode.label(this),
+            icon = mode.getIcon(),
         )
+    }
+
+    @DrawableRes
+    private fun MonitoringMode.getIcon(): Int {
+        return when (this) {
+            MonitoringMode.Move -> R.drawable.ic_move
+            MonitoringMode.Walk -> R.drawable.ic_walk
+            MonitoringMode.Rest -> R.drawable.ic_rest
+            MonitoringMode.Off -> R.drawable.ic_off
+        }
     }
 
     companion object {
