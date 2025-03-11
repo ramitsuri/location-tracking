@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
+import androidx.annotation.DrawableRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.ramitsuri.locationtracking.MainActivity
@@ -109,6 +110,7 @@ class NotificationManager(
         nextModeLabel: String,
         nextNextModeLabel: String,
         modeLabel: String,
+        @DrawableRes icon: Int,
     ): Notification {
         return NotificationCompat.Builder(
             appContext,
@@ -154,7 +156,7 @@ class NotificationManager(
                     UPDATE_CURRENT_INTENT_FLAGS,
                 ),
             )
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(icon)
             .setSound(null, AudioManager.STREAM_NOTIFICATION)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
