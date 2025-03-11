@@ -31,6 +31,8 @@ import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import com.ramitsuri.locationtracking.ui.label
 import com.ramitsuri.locationtracking.wear.WearDataSharingClient
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -40,6 +42,7 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import kotlin.time.Duration.Companion.seconds
 
 class BackgroundService : LifecycleService(), KoinComponent {
     private val permissionChecker: PermissionChecker by inject()
@@ -72,6 +75,8 @@ class BackgroundService : LifecycleService(), KoinComponent {
     }
 
     private var hasBeenStartedExplicitly = false
+
+    private var postToWearOsJob: Job? = null
 
     override fun onCreate() {
         logD(TAG) { "onCreate" }
@@ -210,10 +215,14 @@ class BackgroundService : LifecycleService(), KoinComponent {
             }
             launch {
                 settings.getMonitoringMode().collect {
-                    wearDataSharingClient.postMonitoringMode(
-                        mode = it,
-                        to = WearDataSharingClient.To.Wear,
-                    )
+                    postToWearOsJob?.cancel()
+                    postToWearOsJob = launch {
+                        delay(3.seconds)
+                        wearDataSharingClient.postMonitoringMode(
+                            mode = it,
+                            to = WearDataSharingClient.To.Wear,
+                        )
+                    }
                 }
             }
         }

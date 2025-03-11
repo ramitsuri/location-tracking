@@ -56,7 +56,7 @@ private val coreModule = module {
     }
 
     single<CoroutineScope> {
-        CoroutineScope(SupervisorJob())
+        CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
     }
 
     single<CoroutineDispatcher>(qualifier = KoinQualifier.IO_DISPATCHER) {
