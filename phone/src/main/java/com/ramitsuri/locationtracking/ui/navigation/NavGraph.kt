@@ -65,6 +65,7 @@ fun NavGraph(
                         onClearDate = viewModel::clearDateForLocations,
                         onLocationSelected = viewModel::selectLocation,
                         onClearSelectedLocation = viewModel::clearSelectedLocation,
+                        onSetLocationsViewMode = viewModel::setLocationsViewMode,
                         modifier = Modifier,
                     )
                 }

@@ -2,6 +2,7 @@ package com.ramitsuri.locationtracking.settings
 
 import com.ramitsuri.locationtracking.data.toEnum
 import com.ramitsuri.locationtracking.model.Location
+import com.ramitsuri.locationtracking.model.LocationsViewMode
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -71,5 +72,20 @@ class Settings internal constructor(
 
     suspend fun setMinAccuracyForDisplay(minAccuracyForDisplay: Int) {
         keyValueStore.putInt(Key.MIN_ACCURACY_FOR_DISPLAY, minAccuracyForDisplay)
+    }
+
+    fun getLocationsViewMode(): Flow<LocationsViewMode> {
+        return keyValueStore
+            .getStringFlow(Key.LOCATIONS_VIEW_MODE, null).map {
+                if (it == null) {
+                    LocationsViewMode.Lines
+                } else {
+                    json.decodeFromString(LocationsViewMode.serializer(), it)
+                }
+            }
+    }
+
+    suspend fun setLocationsViewMode(mode: LocationsViewMode) {
+        keyValueStore.putString(Key.LOCATIONS_VIEW_MODE, json.encodeToString(mode))
     }
 }
