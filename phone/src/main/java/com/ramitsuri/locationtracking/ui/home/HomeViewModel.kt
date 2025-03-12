@@ -3,6 +3,7 @@ package com.ramitsuri.locationtracking.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ramitsuri.locationtracking.model.Location
+import com.ramitsuri.locationtracking.model.LocationsViewMode
 import com.ramitsuri.locationtracking.permissions.PermissionResult
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.Settings
@@ -86,6 +87,7 @@ class HomeViewModel(
                     HomeViewState.ViewMode.LocationsForDate(
                         date = date,
                         locations = locations,
+                        mode = settings.getLocationsViewMode().first(),
                     )
                 }
             }
@@ -106,5 +108,17 @@ class HomeViewModel(
 
     fun clearSelectedLocation() {
         selectedLocation.value = null
+    }
+
+    fun setLocationsViewMode(mode: LocationsViewMode) {
+        viewModelScope.launch {
+            settings.setLocationsViewMode(mode)
+        }
+        viewMode.update {
+            when (it) {
+                is HomeViewState.ViewMode.LocationsForDate -> it.copy(mode = mode)
+                else -> it
+            }
+        }
     }
 }

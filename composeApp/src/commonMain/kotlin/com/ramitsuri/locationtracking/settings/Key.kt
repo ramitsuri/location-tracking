@@ -6,4 +6,5 @@ enum class Key(val value: String) {
     DEVICE_NAME("device_name"),
     LAST_KNOWN_LOCATION("last_known_location"),
     MIN_ACCURACY_FOR_DISPLAY("min_accuracy_for_display"),
+    LOCATIONS_VIEW_MODE("locations_view_mode"),
 }

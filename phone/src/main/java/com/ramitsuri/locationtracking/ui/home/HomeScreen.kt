@@ -89,6 +89,7 @@ import com.google.maps.android.compose.rememberMarkerState
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.model.BatteryStatus
 import com.ramitsuri.locationtracking.model.Location
+import com.ramitsuri.locationtracking.model.LocationsViewMode
 import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.asAndroidPermission
 import com.ramitsuri.locationtracking.ui.components.Date
@@ -109,6 +110,7 @@ fun HomeScreen(
     onClearDate: () -> Unit,
     onLocationSelected: (Location) -> Unit,
     onClearSelectedLocation: () -> Unit,
+    onSetLocationsViewMode: (LocationsViewMode) -> Unit,
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     when (viewState.viewMode) {
@@ -137,19 +139,13 @@ fun HomeScreen(
         }
 
         is HomeViewState.ViewMode.LocationsForDate -> {
-            var locationsViewMode by remember {
-                mutableStateOf<LocationsViewMode>(
-                    LocationsViewMode.Points,
-                )
-            }
-            val mode = locationsViewMode
             ScreenContent(
                 modifier = modifier,
                 timeZone = viewState.timeZone,
                 selectedLocation = viewState.selectedLocation,
                 mapContent = {
                     LocationsForDateMap(
-                        mode = mode,
+                        mode = viewState.viewMode.mode,
                         locations = viewState.viewMode.locations,
                         onLocationClick = onLocationSelected,
                     )
@@ -169,24 +165,24 @@ fun HomeScreen(
                             )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
-                        when (mode) {
-                            is LocationsViewMode.Lines -> {
+                        when (viewState.viewMode.mode) {
+                             LocationsViewMode.Lines -> {
                                 TintedIconButton(
-                                    onClick = { locationsViewMode = LocationsViewMode.Motion },
+                                    onClick = { onSetLocationsViewMode(LocationsViewMode.Motion) },
                                     icon = Icons.Outlined.SlowMotionVideo,
                                 )
                             }
 
-                            is LocationsViewMode.Motion -> {
+                             LocationsViewMode.Motion -> {
                                 TintedIconButton(
-                                    onClick = { locationsViewMode = LocationsViewMode.Points },
+                                    onClick = { onSetLocationsViewMode(LocationsViewMode.Points) },
                                     icon = Icons.Outlined.TripOrigin,
                                 )
                             }
 
-                            is LocationsViewMode.Points -> {
+                             LocationsViewMode.Points -> {
                                 TintedIconButton(
-                                    onClick = { locationsViewMode = LocationsViewMode.Lines },
+                                    onClick = { onSetLocationsViewMode( LocationsViewMode.Lines) },
                                     icon = Icons.Outlined.Timeline,
                                 )
                             }
@@ -391,16 +387,16 @@ private fun LocationsForDateMap(
     ) {
         val (drawLines, drawPoints, useSecondaryColor) =
             when (mode) {
-                is LocationsViewMode.Motion -> {
+                LocationsViewMode.Motion -> {
                     MotionMap(latLngs, cameraPositionState)
                     Triple(false, false, false)
                 }
 
-                is LocationsViewMode.Lines -> {
+                 LocationsViewMode.Lines -> {
                     Triple(true, true, true)
                 }
 
-                is LocationsViewMode.Points -> {
+                 LocationsViewMode.Points -> {
                     Triple(false, true, false)
                 }
             }
