@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.google.services)
     alias(libs.plugins.kotlinSerialization)
 }
 
@@ -66,6 +68,8 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.service)
     implementation(libs.play.services.location)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
     implementation(libs.koin.android)
     implementation(libs.koin.compose.viewmodel)
     implementation(libs.koin.workmanager)

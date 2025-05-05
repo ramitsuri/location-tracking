@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "774606159409",
+    "project_id": "location-history-c65d7",
+    "storage_bucket": "location-history-c65d7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:774606159409:android:f6af9516b4a236a3711f10",
+        "android_client_info": {
+          "package_name": "com.ramitsuri.locationtracking"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-rDwYVaHsKw_37xmadkWlovp5gONDcy8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:774606159409:android:54e2d62ea815befe711f10",
+        "android_client_info": {
+          "package_name": "com.ramitsuri.locationtracking.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-rDwYVaHsKw_37xmadkWlovp5gONDcy8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
