@@ -117,7 +117,7 @@ private val coreModule = module {
     }
 
     factory<String>(qualifier = KoinQualifier.DATASTORE_FILE_NAME) {
-        "location_tracking.preferences_pb"
+        "location_tracking-2.preferences_pb"
     }
 
     factory<LocationDao> {
