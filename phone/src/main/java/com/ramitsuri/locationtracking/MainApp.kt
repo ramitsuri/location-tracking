@@ -117,7 +117,10 @@ class MainApp : Application(), KoinComponent {
                 }
 
                 factory<HttpClientEngine> {
-                    Android.create()
+                    Android.create {
+                        connectTimeout = 30_000
+                        socketTimeout = 30_000
+                    }
                 }
 
                 factory<Boolean>(qualifier = KoinQualifier.IS_DEBUG) {
