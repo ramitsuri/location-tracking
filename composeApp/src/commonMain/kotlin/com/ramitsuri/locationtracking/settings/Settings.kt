@@ -5,6 +5,7 @@ import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LocationsViewMode
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
@@ -37,7 +38,32 @@ class Settings internal constructor(
     }
 
     suspend fun setBaseUrl(baseUrl: String) {
+        val currentBaseUrl = getBaseUrl()
         keyValueStore.putString(Key.BASE_URL, baseUrl)
+        val previousBaseUrls = getPreviousBaseUrlsFlow().first()
+        val newPreviousBaseUrls = previousBaseUrls + currentBaseUrl - baseUrl
+        updatePreviousBaseUrls(newPreviousBaseUrls)
+    }
+
+    fun getPreviousBaseUrlsFlow(): Flow<Set<String>> {
+        return keyValueStore.getStringFlow(Key.PREVIOUS_BASE_URLS, null).map {
+            if (it.isNullOrBlank()) {
+                emptySet()
+            } else {
+                it.split(";;;").toSet()
+            }
+        }
+    }
+
+    private suspend fun updatePreviousBaseUrls(baseUrls: Set<String>) {
+        baseUrls.filter {
+            it.isNotBlank() &&
+                (it.startsWith("http://") || it.startsWith("https://")) &&
+                it.replace("http://", "").isNotEmpty() &&
+                it.replace("https://", "").isNotEmpty()
+        }.let {
+            keyValueStore.putString(Key.PREVIOUS_BASE_URLS, it.joinToString(";;;"))
+        }
     }
 
     suspend fun getDeviceName(): String {

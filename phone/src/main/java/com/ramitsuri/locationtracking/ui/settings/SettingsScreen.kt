@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -65,6 +67,7 @@ fun SettingsScreen(
             text = viewState.baseUrl,
             label = stringResource(id = R.string.url_hint),
             enabled = !viewState.isUploadWorkerRunning,
+            suggestions = viewState.previousBaseUrls,
             onTextSet = onBaseUrlChange,
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -124,7 +127,13 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun TextField(text: String, label: String, enabled: Boolean, onTextSet: (String) -> Unit) {
+private fun TextField(
+    text: String,
+    label: String,
+    enabled: Boolean,
+    suggestions: Set<String> = emptySet(),
+    onTextSet: (String) -> Unit,
+) {
     var showDialog by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
@@ -153,7 +162,8 @@ private fun TextField(text: String, label: String, enabled: Boolean, onTextSet: 
             Card {
                 Column(
                     modifier = Modifier
-                        .padding(16.dp),
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
                 ) {
                     var inputValue by remember {
                         mutableStateOf(
@@ -172,6 +182,21 @@ private fun TextField(text: String, label: String, enabled: Boolean, onTextSet: 
                         },
                     )
                     Spacer(modifier = Modifier.height(16.dp))
+                    if (suggestions.isNotEmpty()) {
+                        suggestions.forEach { suggestion ->
+                            Text(
+                                text = suggestion,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onTextSet(suggestion)
+                                        showDialog = false
+                                    }
+                                    .padding(horizontal = 4.dp, vertical = 8.dp),
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
