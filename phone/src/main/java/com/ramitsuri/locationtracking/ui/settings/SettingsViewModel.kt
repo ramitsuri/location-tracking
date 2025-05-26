@@ -2,10 +2,12 @@ package com.ramitsuri.locationtracking.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ramitsuri.locationtracking.log.logD
 import com.ramitsuri.locationtracking.settings.Settings
+import com.ramitsuri.locationtracking.utils.combine
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -20,14 +22,21 @@ class SettingsViewModel(
         isUploadWorkerRunning(),
         isServiceRunning(),
         settings.getMinAccuracyForDisplay(),
-    ) { url, deviceName, isUploadWorkerRunning, isServiceRunning, minAccuracyForDisplay ->
+        settings.getPreviousBaseUrlsFlow(),
+    ) {
+            url, deviceName, isUploadWorkerRunning, isServiceRunning, minAccuracyForDisplay,
+            previousBaseUrls,
+        ->
         SettingsViewState(
             baseUrl = url,
             deviceName = deviceName,
             isUploadWorkerRunning = isUploadWorkerRunning,
             isServiceRunning = isServiceRunning,
             minAccuracyForDisplay = minAccuracyForDisplay,
+            previousBaseUrls = previousBaseUrls,
         )
+    }.onEach {
+        logD(TAG) { "ViewState: $it" }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -50,5 +59,9 @@ class SettingsViewModel(
         viewModelScope.launch {
             settings.setMinAccuracyForDisplay(minAccuracyForDisplay)
         }
+    }
+
+    companion object {
+        private const val TAG = "SettingsViewModel"
     }
 }

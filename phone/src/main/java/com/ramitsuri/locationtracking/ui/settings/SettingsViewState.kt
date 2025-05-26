@@ -6,4 +6,5 @@ data class SettingsViewState(
     val baseUrl: String = "",
     val isServiceRunning: Boolean = false,
     val minAccuracyForDisplay: Int = 0,
+    val previousBaseUrls: Set<String> = emptySet(),
 )
