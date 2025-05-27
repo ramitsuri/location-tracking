@@ -4,6 +4,7 @@ import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LocationsViewMode
 import com.ramitsuri.locationtracking.permissions.PermissionResult
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 
 data class HomeViewState(
@@ -17,7 +18,10 @@ data class HomeViewState(
 ) {
     sealed interface ViewMode {
         data class LocationsForDate(
-            val date: LocalDate,
+            val fromDate: LocalDate,
+            val fromTime: LocalTime,
+            val toDate: LocalDate,
+            val toTime: LocalTime,
             val locations: List<Location>,
             val mode: LocationsViewMode,
         ) : ViewMode

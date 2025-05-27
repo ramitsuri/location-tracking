@@ -61,7 +61,7 @@ fun NavGraph(
                         onUpload = viewModel::onUpload,
                         onSingleLocation = onSingleLocation,
                         onNavToSystemSettings = onNavToSystemSettings,
-                        onSelectDateForLocations = viewModel::dateSelectedForLocations,
+                        onSelectDateTimeForLocations = viewModel::dateTimeSelectedForLocations,
                         onClearDate = viewModel::clearDateForLocations,
                         onLocationSelected = viewModel::selectLocation,
                         onClearSelectedLocation = viewModel::clearSelectedLocation,
