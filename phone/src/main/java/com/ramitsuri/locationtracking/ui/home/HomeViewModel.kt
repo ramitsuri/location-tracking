@@ -8,20 +8,20 @@ import com.ramitsuri.locationtracking.permissions.PermissionResult
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.utils.combine
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.nanoseconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.nanoseconds
 
 class HomeViewModel(
     private val locationRepository: LocationRepository,
@@ -44,8 +44,9 @@ class HomeViewModel(
         viewMode,
         isLoading,
         selectedLocation,
-    ) { count, permissions, isUploadWorkerRunning, lastKnownLocation, viewMode, isLoading,
-        selectedLocation,
+    ) {
+            count, permissions, isUploadWorkerRunning, lastKnownLocation, viewMode, isLoading,
+            selectedLocation,
         ->
         val newViewMode = when (viewMode) {
             is HomeViewState.ViewMode.LocationsForDate -> viewMode
@@ -72,9 +73,12 @@ class HomeViewModel(
         upload()
     }
 
-    fun dateSelectedForLocations(date: LocalDate) {
-        val from = date.atStartOfDayIn(timeZone)
-        val to = from.plus(1.days).minus(1.nanoseconds)
+    fun dateTimeSelectedForLocations(
+        fromDateTime: LocalDateTime,
+        toDateTime: LocalDateTime?,
+    ) {
+        val from = fromDateTime.toInstant(timeZone)
+        val to = toDateTime?.toInstant(timeZone) ?: from.plus(1.days).minus(1.nanoseconds)
         clearSelectedLocation()
         isLoading.value = true
         viewModelScope.launch {
@@ -84,8 +88,13 @@ class HomeViewModel(
                 minAccuracyMeters = settings.getMinAccuracyForDisplay().first(),
             ).let { locations ->
                 viewMode.update {
+                    val fromLocal = from.toLocalDateTime(timeZone)
+                    val toLocal = to.toLocalDateTime(timeZone)
                     HomeViewState.ViewMode.LocationsForDate(
-                        date = date,
+                        fromDate = fromLocal.date,
+                        fromTime = fromLocal.time,
+                        toDate = toLocal.date,
+                        toTime = toLocal.time,
                         locations = locations,
                         mode = settings.getLocationsViewMode().first(),
                     )

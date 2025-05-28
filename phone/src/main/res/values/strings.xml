@@ -7,6 +7,7 @@
     <string name="notification_publish">"Report"</string>
     <string name="notification_uploading_locations">"Uploading locations"</string>
     <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
     <string name="add">Add</string>
     <string name="am">AM</string>
     <string name="pm">PM</string>
@@ -48,5 +49,7 @@
     <string name="permission_dialog_message">"To be able to see your location history throughout the day, we need to access your location in the background.\n\n\u2022 The location data is not shared with anyone.\n\n\u2022 It leaves your device only with your permission, to a server of your choice."</string>
     <string name="permission_location">Location</string>
     <string name="permission_background_location">Background location</string>
-    <string name="permission_notification">Notifications</string>"
+    <string name="permission_notification">Notifications</string>
+    <string name="select_from_date">Select from date</string>
+    <string name="select_to_date">Select to date</string>
 </resources>

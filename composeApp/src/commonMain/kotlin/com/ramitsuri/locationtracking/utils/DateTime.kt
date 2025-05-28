@@ -3,6 +3,7 @@ package com.ramitsuri.locationtracking.utils
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
 import kotlinx.datetime.format.Padding
@@ -16,6 +17,14 @@ fun LocalDate.format(): String {
         dayOfMonth(padding = Padding.ZERO)
         char('/')
         year(padding = Padding.ZERO)
+    }.format(this)
+}
+
+fun LocalTime.format(): String {
+    return LocalTime.Format {
+        hour(padding = Padding.ZERO)
+        char(':')
+        minute(padding = Padding.ZERO)
     }.format(this)
 }
 

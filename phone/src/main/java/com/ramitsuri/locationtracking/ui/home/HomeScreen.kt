@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -94,10 +95,14 @@ import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.asAndroidPermission
 import com.ramitsuri.locationtracking.ui.components.Date
 import com.ramitsuri.locationtracking.ui.components.Loading
+import com.ramitsuri.locationtracking.ui.components.Time
 import com.ramitsuri.locationtracking.utils.format
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewState: HomeViewState,
@@ -106,13 +111,14 @@ fun HomeScreen(
     onNavToSystemSettings: () -> Unit,
     onSingleLocation: () -> Unit,
     onUpload: () -> Unit,
-    onSelectDateForLocations: (LocalDate) -> Unit,
+    onSelectDateTimeForLocations: (LocalDateTime, LocalDateTime?) -> Unit,
     onClearDate: () -> Unit,
     onLocationSelected: (Location) -> Unit,
     onClearSelectedLocation: () -> Unit,
     onSetLocationsViewMode: (LocationsViewMode) -> Unit,
 ) {
-    var showDatePicker by remember { mutableStateOf(false) }
+    var showDateTimePicker by remember { mutableStateOf(false) }
+    var dateTimePickerState = rememberModalBottomSheetState()
     when (viewState.viewMode) {
         is HomeViewState.ViewMode.LastKnownLocation -> {
             ScreenContent(
@@ -131,7 +137,7 @@ fun HomeScreen(
                         onNavToSystemSettings = onNavToSystemSettings,
                         onSingleLocation = onSingleLocation,
                         onUpload = onUpload,
-                        onDatePickerClick = { showDatePicker = true },
+                        onDatePickerClick = { showDateTimePicker = true },
                     )
                 },
                 onClearSelectedLocation = onClearSelectedLocation,
@@ -158,31 +164,31 @@ fun HomeScreen(
                             .background(MaterialTheme.colorScheme.primary),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        TextButton(onClick = { showDatePicker = true }) {
+                        TextButton(onClick = { showDateTimePicker = true }) {
                             Text(
-                                text = viewState.viewMode.date.format(),
+                                text = viewState.viewMode.fromDate.format(),
                                 color = MaterialTheme.colorScheme.onPrimary,
                             )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         when (viewState.viewMode.mode) {
-                             LocationsViewMode.Lines -> {
+                            LocationsViewMode.Lines -> {
                                 TintedIconButton(
                                     onClick = { onSetLocationsViewMode(LocationsViewMode.Motion) },
                                     icon = Icons.Outlined.SlowMotionVideo,
                                 )
                             }
 
-                             LocationsViewMode.Motion -> {
+                            LocationsViewMode.Motion -> {
                                 TintedIconButton(
                                     onClick = { onSetLocationsViewMode(LocationsViewMode.Points) },
                                     icon = Icons.Outlined.TripOrigin,
                                 )
                             }
 
-                             LocationsViewMode.Points -> {
+                            LocationsViewMode.Points -> {
                                 TintedIconButton(
-                                    onClick = { onSetLocationsViewMode( LocationsViewMode.Lines) },
+                                    onClick = { onSetLocationsViewMode(LocationsViewMode.Lines) },
                                     icon = Icons.Outlined.Timeline,
                                 )
                             }
@@ -198,17 +204,151 @@ fun HomeScreen(
             )
         }
     }
-    if (showDatePicker) {
-        Date(
-            onDismiss = { showDatePicker = false },
-            onDateSelected = {
-                onSelectDateForLocations(it)
-                showDatePicker = false
+    if (showDateTimePicker) {
+        DateTimePicker(
+            sheetState = dateTimePickerState,
+            onDismiss = { showDateTimePicker = false },
+            onDateTimeSelected = { fromDateTime, toDateTime ->
+                onSelectDateTimeForLocations(fromDateTime, toDateTime)
+                showDateTimePicker = false
             },
         )
     }
     if (viewState.isLoading) {
         Loading()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DateTimePicker(
+    sheetState: SheetState,
+    onDateTimeSelected: (LocalDateTime, LocalDateTime?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var selectedFromDate by remember { mutableStateOf<LocalDate?>(null) }
+    var selectedFromTime by remember { mutableStateOf(LocalTime(hour = 0, minute = 0)) }
+    var selectedToDate by remember { mutableStateOf<LocalDate?>(null) }
+    var selectedToTime by remember { mutableStateOf(LocalTime(hour = 23, minute = 59)) }
+
+    var showFromDatePicker by remember { mutableStateOf(false) }
+    var showFromTimePicker by remember { mutableStateOf(false) }
+    var showToDatePicker by remember { mutableStateOf(false) }
+    var showToTimePicker by remember { mutableStateOf(false) }
+
+    ModalBottomSheet(
+        containerColor = MaterialTheme.colorScheme.background,
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .padding(horizontal = 8.dp),
+        ) {
+            DateTimeRow(
+                date = selectedFromDate?.format() ?: stringResource(R.string.select_from_date),
+                time = selectedFromTime.format(),
+                onDateClicked = {
+                    showFromDatePicker = true
+                },
+                onTimeClicked = {
+                    showFromTimePicker = true
+                },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            DateTimeRow(
+                date = selectedToDate?.format() ?: stringResource(R.string.select_to_date),
+                time = selectedToTime.format(),
+                onDateClicked = {
+                    showToDatePicker = true
+                },
+                onTimeClicked = {
+                    showToTimePicker = true
+                },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.cancel))
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                TextButton(
+                    onClick = {
+                        selectedFromDate?.let { fromDate ->
+                            val fromDateTime = LocalDateTime(fromDate, selectedFromTime)
+                            val toDateTime = selectedToDate?.let { toDate ->
+                                LocalDateTime(toDate, selectedToTime)
+                            }
+                            onDateTimeSelected(fromDateTime, toDateTime)
+                        }
+                    },
+                ) {
+                    Text(stringResource(R.string.ok))
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+    if (showFromDatePicker) {
+        Date(
+            onDismiss = { showFromDatePicker = false },
+            onDateSelected = {
+                selectedFromDate = it
+                if (selectedToDate == null) {
+                    selectedToDate = it
+                }
+                showFromDatePicker = false
+            },
+        )
+    }
+    if (showFromTimePicker) {
+        Time(
+            selectedTime = selectedFromTime,
+            onTimeSelected = { selectedFromTime = it },
+            onDismiss = { showFromTimePicker = false },
+        )
+    }
+    if (showToDatePicker) {
+        Date(
+            onDismiss = { showToDatePicker = false },
+            onDateSelected = {
+                selectedToDate = it
+                showToDatePicker = false
+            },
+        )
+    }
+    if (showToTimePicker) {
+        Time(
+            selectedTime = selectedToTime,
+            onTimeSelected = { selectedToTime = it },
+            onDismiss = { showToTimePicker = false },
+        )
+    }
+}
+
+@Composable
+private fun DateTimeRow(
+    date: String,
+    time: String,
+    onDateClicked: () -> Unit,
+    onTimeClicked: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+    ) {
+        TextButton(onDateClicked) {
+            Text(date)
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        TextButton(onTimeClicked) {
+            Text(time)
+        }
     }
 }
 
@@ -392,11 +532,11 @@ private fun LocationsForDateMap(
                     Triple(false, false, false)
                 }
 
-                 LocationsViewMode.Lines -> {
+                LocationsViewMode.Lines -> {
                     Triple(true, true, true)
                 }
 
-                 LocationsViewMode.Points -> {
+                LocationsViewMode.Points -> {
                     Triple(false, true, false)
                 }
             }
