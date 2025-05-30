@@ -14,6 +14,9 @@
     <string name="logs">Logs</string>
     <string name="select_all">Select all</string>
     <string name="unselect_all">Unselect all</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="regions">Regions</string>
 
     <string name="notification_channel_ongoing">"Ongoing"</string>
     <string name="notification_channel_ongoing_description">"Required to receive location updates in the background"</string>
@@ -52,4 +55,7 @@
     <string name="permission_notification">Notifications</string>
     <string name="select_from_date">Select from date</string>
     <string name="select_to_date">Select to date</string>
+
+    <string name="region_name">Region Name</string>
+    <string name="delete_region">Delete region?</string>
 </resources>

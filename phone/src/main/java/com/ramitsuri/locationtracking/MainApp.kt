@@ -28,6 +28,7 @@ import com.ramitsuri.locationtracking.tracking.wifi.AndroidWifiInfoProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import com.ramitsuri.locationtracking.ui.home.HomeViewModel
 import com.ramitsuri.locationtracking.ui.logs.LogScreenViewModel
+import com.ramitsuri.locationtracking.ui.region.RegionsViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
 import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesViewModel
 import com.ramitsuri.locationtracking.upload.UploadWorker
@@ -174,6 +175,13 @@ class MainApp : Application(), KoinComponent {
                     LogScreenViewModel(
                         logItemDao = get<LogItemDao>(),
                         timeZone = get<TimeZone>(),
+                    )
+                }
+
+                viewModel<RegionsViewModel> {
+                    RegionsViewModel(
+                        regionDao = get<AppDatabase>().regionDao(),
+                        locationRepository = get<LocationRepository>(),
                     )
                 }
             }

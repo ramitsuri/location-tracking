@@ -65,6 +65,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(compose.preview)
     implementation(libs.maps.compose)
+    implementation(libs.maps.utils)
+    implementation(libs.maps.utils.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.service)
     implementation(libs.play.services.location)
