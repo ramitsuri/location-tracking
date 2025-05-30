@@ -5,6 +5,7 @@ import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.data.dao.GeocodeCacheDao
 import com.ramitsuri.locationtracking.data.dao.LocationDao
 import com.ramitsuri.locationtracking.data.dao.LogItemDao
+import com.ramitsuri.locationtracking.data.dao.RegionDao
 import com.ramitsuri.locationtracking.data.dao.SeenWifiDao
 import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.log.DbLogWriter
@@ -138,6 +139,10 @@ private val coreModule = module {
 
     factory<LogItemDao> {
         get<AppDatabase>().logItemDao()
+    }
+
+    factory<RegionDao> {
+        get<AppDatabase>().regionDao()
     }
 }
 

@@ -19,6 +19,8 @@ import com.ramitsuri.locationtracking.ui.logs.LogsScreen
 import com.ramitsuri.locationtracking.ui.home.HomeScreen
 import com.ramitsuri.locationtracking.ui.home.HomeViewModel
 import com.ramitsuri.locationtracking.ui.logs.LogScreenViewModel
+import com.ramitsuri.locationtracking.ui.region.RegionsScreen
+import com.ramitsuri.locationtracking.ui.region.RegionsViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsScreen
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
 import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesScreen
@@ -90,6 +92,9 @@ fun NavGraph(
                         onNavToLogs = {
                             navController.navigate(Destination.Logs)
                         },
+                        onNavToRegions = {
+                            navController.navigate(Destination.Regions)
+                        },
                         modifier = Modifier
                             .statusBarsPadding()
                             .displayCutoutPadding(),
@@ -129,6 +134,24 @@ fun NavGraph(
                         modifier = Modifier
                             .statusBarsPadding()
                             .displayCutoutPadding(),
+                    )
+                }
+
+                composable<Destination.Regions> {
+                    val viewModel = koinViewModel<RegionsViewModel>()
+                    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
+
+                    RegionsScreen(
+                        viewState = viewState,
+                        onBack = {
+                            navController.navigateUp()
+                        },
+                        onRegionLatLng = viewModel::onRegionLatLng,
+                        onRegionNameChanged = viewModel::onRegionNameChanged,
+                        onClearUnsavedRegion = viewModel::onClearUnsavedRegion,
+                        onSaveRegion = viewModel::onSaveRegion,
+                        onDeleteRegion = viewModel::onDeleteRegion,
+                        modifier = Modifier
                     )
                 }
             }

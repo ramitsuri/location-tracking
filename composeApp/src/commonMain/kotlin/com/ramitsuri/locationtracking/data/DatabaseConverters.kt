@@ -2,6 +2,7 @@ package com.ramitsuri.locationtracking.data
 
 import androidx.room.TypeConverter
 import com.ramitsuri.locationtracking.model.BatteryStatus
+import com.ramitsuri.locationtracking.model.LatLng
 import com.ramitsuri.locationtracking.model.LogLevel
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.model.WifiMonitoringModeRule
@@ -67,6 +68,20 @@ class DatabaseConverters {
     @TypeConverter
     fun fromBigDecimal(bigDecimal: BigDecimal): String {
         return bigDecimal.toString()
+    }
+
+    @TypeConverter
+    fun toListOfLatLng(string: String): List<LatLng> {
+        return toListOfString(string)
+            .map { it.split(";") }
+            .map { LatLng(toBigDecimal(it[0]), toBigDecimal(it[1])) }
+    }
+
+    @TypeConverter
+    fun fromListOfLatLng(list: List<LatLng>): String {
+        return list
+            .map { fromBigDecimal(it.latitude) + ";" + fromBigDecimal(it.longitude) }
+            .let { fromListOfString(it) }
     }
 
     @TypeConverter

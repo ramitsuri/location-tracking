@@ -52,6 +52,7 @@ fun SettingsScreen(
     onServiceStop: () -> Unit,
     onNavToWifiRules: () -> Unit,
     onNavToLogs: () -> Unit,
+    onNavToRegions: () -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -97,6 +98,13 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(stringResource(R.string.logs))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = onNavToRegions,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.regions))
         }
         Spacer(modifier = Modifier.weight(1f))
         Row(modifier = Modifier.fillMaxWidth()) {

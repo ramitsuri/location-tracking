@@ -14,8 +14,8 @@ import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.location.Request
 import com.ramitsuri.locationtracking.tracking.location.forMonitoringMode
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
+import com.ramitsuri.locationtracking.utils.toBd
 import java.math.BigDecimal
-import java.math.RoundingMode
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -175,19 +175,19 @@ class Tracker(
         val address: String? = null,
     ) {
         constructor(lat: Double, lon: Double) : this(
-            lat.asBd(),
-            lon.asBd(),
+            lat.toBd(),
+            lon.toBd(),
         )
 
         constructor(lat: Double, lon: Double, address: String) : this(
-            lat.asBd(),
-            lon.asBd(),
+            lat.toBd(),
+            lon.toBd(),
             address,
         )
 
         fun isSameLocation(location: Location): Boolean {
-            return lat.compareTo(location.latitude.asBd()) == 0 &&
-                lon.compareTo(location.longitude.asBd()) == 0
+            return lat.compareTo(location.latitude.toBd()) == 0 &&
+                lon.compareTo(location.longitude.toBd()) == 0
         }
 
         fun string(): String = address ?: "$lat, $lon"
@@ -198,5 +198,3 @@ class Tracker(
         private const val MIN_LOCATION_ACCURACY_METERS = 500
     }
 }
-
-private fun Double.asBd() = this.toBigDecimal().setScale(4, RoundingMode.HALF_EVEN)

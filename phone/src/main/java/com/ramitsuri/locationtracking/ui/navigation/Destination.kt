@@ -14,4 +14,7 @@ sealed interface Destination {
 
     @Serializable
     data object Logs : Destination
+
+    @Serializable
+    data object Regions : Destination
 }

@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -43,10 +42,8 @@ import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -75,19 +72,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.Circle
-import com.google.maps.android.compose.ComposeMapColorScheme
-import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.GoogleMapComposable
-import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import com.ramitsuri.locationtracking.R
+import com.ramitsuri.locationtracking.model.AndroidLatLng
 import com.ramitsuri.locationtracking.model.BatteryStatus
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LocationsViewMode
@@ -95,7 +88,11 @@ import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.asAndroidPermission
 import com.ramitsuri.locationtracking.ui.components.Date
 import com.ramitsuri.locationtracking.ui.components.Loading
+import com.ramitsuri.locationtracking.ui.components.Map
 import com.ramitsuri.locationtracking.ui.components.Time
+import com.ramitsuri.locationtracking.ui.components.TintedIconButton
+import com.ramitsuri.locationtracking.ui.components.TintedTextButton
+import com.ramitsuri.locationtracking.utils.center
 import com.ramitsuri.locationtracking.utils.format
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -118,7 +115,7 @@ fun HomeScreen(
     onSetLocationsViewMode: (LocationsViewMode) -> Unit,
 ) {
     var showDateTimePicker by remember { mutableStateOf(false) }
-    var dateTimePickerState = rememberModalBottomSheetState()
+    val dateTimePickerState = rememberModalBottomSheetState()
     when (viewState.viewMode) {
         is HomeViewState.ViewMode.LastKnownLocation -> {
             ScreenContent(
@@ -478,7 +475,7 @@ private fun SingleLocationMap(location: Location?, onLocationClick: (Location) -
     LaunchedEffect(location) {
         location?.let {
             markerState.position =
-                LatLng(it.latitude, it.longitude)
+                AndroidLatLng(it.latitude, it.longitude)
             cameraPositionState.position =
                 CameraPosition.fromLatLngZoom(markerState.position, zoom)
         }
@@ -507,16 +504,11 @@ private fun LocationsForDateMap(
     locations: List<Location>,
     onLocationClick: (Location) -> Unit,
 ) {
-    val latLngs = remember(locations) { locations.map { LatLng(it.latitude, it.longitude) } }
+    val latLngs = remember(locations) { locations.map { AndroidLatLng(it.latitude, it.longitude) } }
     val cameraPositionState = rememberCameraPositionState()
     var zoom by remember { mutableFloatStateOf(13f) }
     LaunchedEffect(latLngs) {
-        val center = LatLngBounds.Builder()
-            .takeIf { latLngs.isNotEmpty() }
-            ?.apply { latLngs.forEach { include(it) } }
-            ?.build()
-            ?.center
-            ?: LatLng(0.0, 0.0)
+        val center = latLngs.center()
         cameraPositionState.position = CameraPosition.fromLatLngZoom(center, zoom)
     }
     LaunchedEffect(cameraPositionState.position) {
@@ -546,7 +538,7 @@ private fun LocationsForDateMap(
         if (drawPoints) {
             locations.forEach {
                 Circle(
-                    center = LatLng(it.latitude, it.longitude),
+                    center = AndroidLatLng(it.latitude, it.longitude),
                     clickable = true,
                     fillColor = Color.Transparent,
                     strokeColor = if (useSecondaryColor) secondaryMapsColor else primaryMapsColor,
@@ -563,8 +555,8 @@ private fun LocationsForDateMap(
 
 @Composable
 @GoogleMapComposable
-private fun MotionMap(latLngs: List<LatLng>, cameraPositionState: CameraPositionState) {
-    val points = remember { mutableStateListOf<LatLng>() }
+private fun MotionMap(latLngs: List<AndroidLatLng>, cameraPositionState: CameraPositionState) {
+    val points = remember { mutableStateListOf<AndroidLatLng>() }
     LaunchedEffect(latLngs) {
         latLngs.forEach { latLng ->
             points.add(latLng)
@@ -578,7 +570,7 @@ private fun MotionMap(latLngs: List<LatLng>, cameraPositionState: CameraPosition
     }
     points.forEach {
         Circle(
-            center = LatLng(it.latitude, it.longitude),
+            center = AndroidLatLng(it.latitude, it.longitude),
             clickable = true,
             fillColor = Color.Transparent,
             strokeColor = primaryMapsColor,
@@ -586,23 +578,6 @@ private fun MotionMap(latLngs: List<LatLng>, cameraPositionState: CameraPosition
             strokeWidth = 20f,
             onClick = { },
         )
-    }
-}
-
-@Composable
-private fun Map(
-    cameraPositionState: CameraPositionState,
-    content:
-    @Composable @GoogleMapComposable
-        () -> Unit = {},
-) {
-    GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        mapColorScheme = ComposeMapColorScheme.FOLLOW_SYSTEM,
-        uiSettings = MapUiSettings(mapToolbarEnabled = false, zoomControlsEnabled = false),
-    ) {
-        content()
     }
 }
 
@@ -792,41 +767,6 @@ private fun ExpandingPill(
             },
             icon = Icons.Outlined.ChevronLeft,
             modifier = Modifier.rotate(buttonRotate),
-        )
-    }
-}
-
-@Composable
-private fun TintedIconButton(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    showProgress: Boolean = false,
-    onClick: () -> Unit,
-) {
-    IconButton(onClick = onClick, modifier = modifier) {
-        if (showProgress) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
-                color = MaterialTheme.colorScheme.onPrimary,
-            )
-        } else {
-            Icon(
-                imageVector = icon,
-                null,
-                modifier = modifier,
-                tint = MaterialTheme.colorScheme.onPrimary,
-            )
-        }
-    }
-}
-
-@Composable
-private fun TintedTextButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    IconButton(onClick = onClick, modifier = modifier) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onPrimary,
         )
     }
 }
