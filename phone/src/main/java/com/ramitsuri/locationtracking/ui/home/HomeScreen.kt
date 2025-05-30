@@ -18,13 +18,19 @@ import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ShowChart
+import androidx.compose.material.icons.filled.ArrowCircleLeft
+import androidx.compose.material.icons.filled.ArrowCircleRight
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.AddLocation
 import androidx.compose.material.icons.outlined.Battery4Bar
@@ -92,6 +98,7 @@ import com.ramitsuri.locationtracking.ui.components.Map
 import com.ramitsuri.locationtracking.ui.components.Time
 import com.ramitsuri.locationtracking.ui.components.TintedIconButton
 import com.ramitsuri.locationtracking.ui.components.TintedTextButton
+import com.ramitsuri.locationtracking.ui.home.HomeViewState.ViewMode.LocationsForDate.Event
 import com.ramitsuri.locationtracking.utils.center
 import com.ramitsuri.locationtracking.utils.format
 import kotlinx.datetime.LocalDate
@@ -116,6 +123,10 @@ fun HomeScreen(
 ) {
     var showDateTimePicker by remember { mutableStateOf(false) }
     val dateTimePickerState = rememberModalBottomSheetState()
+
+    var timeline by remember { mutableStateOf(emptyList<Event>()) }
+    val timelineState = rememberModalBottomSheetState()
+
     when (viewState.viewMode) {
         is HomeViewState.ViewMode.LastKnownLocation -> {
             ScreenContent(
@@ -154,48 +165,19 @@ fun HomeScreen(
                     )
                 },
                 pillContent = {
-                    Row(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        TextButton(onClick = { showDateTimePicker = true }) {
-                            Text(
-                                text = viewState.viewMode.fromDate.format(),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        when (viewState.viewMode.mode) {
-                            LocationsViewMode.Lines -> {
-                                TintedIconButton(
-                                    onClick = { onSetLocationsViewMode(LocationsViewMode.Motion) },
-                                    icon = Icons.Outlined.SlowMotionVideo,
-                                )
+                    PillForDateMap(
+                        viewMode = viewState.viewMode,
+                        onSetLocationsViewMode = onSetLocationsViewMode,
+                        onClearDate = onClearDate,
+                        onShowDateTimePicker = { showDateTimePicker = true },
+                        onToggleShowTimeline = {
+                            timeline = if (timeline.isEmpty()) {
+                                viewState.viewMode.timeline
+                            } else {
+                                emptyList()
                             }
-
-                            LocationsViewMode.Motion -> {
-                                TintedIconButton(
-                                    onClick = { onSetLocationsViewMode(LocationsViewMode.Points) },
-                                    icon = Icons.Outlined.TripOrigin,
-                                )
-                            }
-
-                            LocationsViewMode.Points -> {
-                                TintedIconButton(
-                                    onClick = { onSetLocationsViewMode(LocationsViewMode.Lines) },
-                                    icon = Icons.Outlined.Timeline,
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        TintedIconButton(
-                            onClick = onClearDate,
-                            icon = Icons.Outlined.Clear,
-                        )
-                    }
+                        },
+                    )
                 },
                 onClearSelectedLocation = onClearSelectedLocation,
             )
@@ -211,8 +193,75 @@ fun HomeScreen(
             },
         )
     }
+    if (timeline.isNotEmpty()) {
+        Timeline(
+            timeline = timeline,
+            sheetState = timelineState,
+            onDismiss = { timeline = emptyList() },
+        )
+    }
     if (viewState.isLoading) {
         Loading()
+    }
+}
+
+@Composable
+private fun PillForDateMap(
+    viewMode: HomeViewState.ViewMode.LocationsForDate,
+    onSetLocationsViewMode: (LocationsViewMode) -> Unit,
+    onClearDate: () -> Unit,
+    onShowDateTimePicker: () -> Unit,
+    onToggleShowTimeline: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .padding(4.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary)
+            .horizontalScroll(rememberScrollState()),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        TextButton(onClick = onShowDateTimePicker) {
+            Text(
+                text = viewMode.fromDate.format(),
+                color = MaterialTheme.colorScheme.onPrimary,
+            )
+        }
+        if (viewMode.timeline.isNotEmpty()) {
+            Spacer(modifier = Modifier.width(8.dp))
+            TintedIconButton(
+                onClick = onToggleShowTimeline,
+                icon = Icons.AutoMirrored.Outlined.ShowChart,
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        when (viewMode.mode) {
+            LocationsViewMode.Lines -> {
+                TintedIconButton(
+                    onClick = { onSetLocationsViewMode(LocationsViewMode.Motion) },
+                    icon = Icons.Outlined.SlowMotionVideo,
+                )
+            }
+
+            LocationsViewMode.Motion -> {
+                TintedIconButton(
+                    onClick = { onSetLocationsViewMode(LocationsViewMode.Points) },
+                    icon = Icons.Outlined.TripOrigin,
+                )
+            }
+
+            LocationsViewMode.Points -> {
+                TintedIconButton(
+                    onClick = { onSetLocationsViewMode(LocationsViewMode.Lines) },
+                    icon = Icons.Outlined.Timeline,
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        TintedIconButton(
+            onClick = onClearDate,
+            icon = Icons.Outlined.Clear,
+        )
     }
 }
 
@@ -345,6 +394,78 @@ private fun DateTimeRow(
         Spacer(modifier = Modifier.width(8.dp))
         TextButton(onTimeClicked) {
             Text(time)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun Timeline(
+    timeline: List<Event>,
+    sheetState: SheetState,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(
+        containerColor = MaterialTheme.colorScheme.background,
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            itemsIndexed(timeline) { index, event ->
+                TimelineEvent(
+                    event = event,
+                    showLine = index != timeline.lastIndex
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimelineEvent(event: Event, showLine: Boolean = true) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = if (event.type == Event.Type.ENTER) {
+                    Icons.Filled.ArrowCircleRight
+                } else {
+                    Icons.Filled.ArrowCircleLeft
+                },
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            if (showLine) {
+                Box(
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .width(4.dp)
+                        .background(MaterialTheme.colorScheme.primary)
+                )
+            }
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
+            Text(
+                text = stringResource(
+                    if (event.type == Event.Type.ENTER) {
+                        R.string.timeline_entered_at
+                    } else {
+                        R.string.timeline_exited_at
+                    },
+                    event.time.format(
+                        am = stringResource(R.string.am),
+                        pm = stringResource(R.string.pm)
+                    )
+                ),
+                color = MaterialTheme.colorScheme.onBackground
+            )
         }
     }
 }

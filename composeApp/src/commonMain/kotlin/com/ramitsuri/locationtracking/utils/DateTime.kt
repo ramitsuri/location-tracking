@@ -10,6 +10,23 @@ import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 
+fun LocalDateTime.format(am: String, pm: String): String {
+    return LocalDateTime.Format {
+        monthNumber(padding = Padding.NONE)
+        char('/')
+        dayOfMonth(padding = Padding.NONE)
+        char('/')
+        year(padding = Padding.ZERO)
+        char(',')
+        char(' ')
+        amPmHour(padding = Padding.NONE)
+        char(':')
+        minute(padding = Padding.ZERO)
+        char(' ')
+        amPmMarker(am = am, pm = pm)
+    }.format(this)
+}
+
 fun LocalDate.format(): String {
     return LocalDate.Format {
         monthNumber(padding = Padding.ZERO)
@@ -29,20 +46,7 @@ fun LocalTime.format(): String {
 }
 
 fun Instant.format(timeZone: TimeZone, am: String, pm: String): String {
-    return LocalDateTime.Format {
-        monthNumber(padding = Padding.NONE)
-        char('/')
-        dayOfMonth(padding = Padding.NONE)
-        char('/')
-        year(padding = Padding.ZERO)
-        char(',')
-        char(' ')
-        amPmHour(padding = Padding.NONE)
-        char(':')
-        minute(padding = Padding.ZERO)
-        char(' ')
-        amPmMarker(am = am, pm = pm)
-    }.format(this.toLocalDateTime(timeZone))
+    return this.toLocalDateTime(timeZone).format(am = am, pm = pm)
 }
 
 fun Instant.formatForLogs(timeZone: TimeZone, amString: String, pmString: String): String {

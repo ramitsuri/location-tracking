@@ -58,4 +58,7 @@
 
     <string name="region_name">Region Name</string>
     <string name="delete_region">Delete region?</string>
+
+    <string name="timeline_exited_at">Exited at %1$s</string>
+    <string name="timeline_entered_at">Entered at %1$s</string>
 </resources>

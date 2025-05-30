@@ -28,10 +28,12 @@ import com.ramitsuri.locationtracking.tracking.wifi.AndroidWifiInfoProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import com.ramitsuri.locationtracking.ui.home.HomeViewModel
 import com.ramitsuri.locationtracking.ui.logs.LogScreenViewModel
+import com.ramitsuri.locationtracking.ui.region.AndroidRegionUtil
 import com.ramitsuri.locationtracking.ui.region.RegionsViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
 import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesViewModel
 import com.ramitsuri.locationtracking.upload.UploadWorker
+import com.ramitsuri.locationtracking.utils.RegionUtil
 import com.ramitsuri.locationtracking.wear.WearDataSharingClient
 import com.ramitsuri.locationtracking.wear.WearDataSharingClientImpl
 import io.ktor.client.engine.HttpClientEngine
@@ -144,6 +146,10 @@ class MainApp : Application(), KoinComponent {
                     this@MainApp.filesDir.resolve(fileName).absolutePath.toPath()
                 }
 
+                factory<RegionUtil> {
+                    AndroidRegionUtil()
+                }
+
                 viewModel<SettingsViewModel> {
                     SettingsViewModel(
                         settings = get<Settings>(),
@@ -162,6 +168,9 @@ class MainApp : Application(), KoinComponent {
                         upload = { UploadWorker.enqueueImmediate(this@MainApp) },
                         timeZone = get<TimeZone>(),
                         settings = get<Settings>(),
+                        defaultDispatcher = get<CoroutineDispatcher>(qualifier = KoinQualifier.DEFAULT_DISPATCHER),
+                        regionDao = get<AppDatabase>().regionDao(),
+                        regionUtil = get<RegionUtil>(),
                     )
                 }
 
