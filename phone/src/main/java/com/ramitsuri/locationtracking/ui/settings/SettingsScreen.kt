@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +25,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +56,7 @@ fun SettingsScreen(
     onNavToWifiRules: () -> Unit,
     onNavToLogs: () -> Unit,
     onNavToRegions: () -> Unit,
+    onUpdateButtonClick: () -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -105,6 +109,28 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(stringResource(R.string.regions))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = onUpdateButtonClick,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            when (viewState.updateAvailable) {
+                null -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                }
+
+                true -> {
+                    Text(stringResource(R.string.install))
+                }
+
+                false -> {
+                    Text(stringResource(R.string.check_for_update))
+                }
+            }
         }
         Spacer(modifier = Modifier.weight(1f))
         Row(modifier = Modifier.fillMaxWidth()) {

@@ -10,7 +10,9 @@ import com.ramitsuri.locationtracking.data.dao.SeenWifiDao
 import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.log.DbLogWriter
 import com.ramitsuri.locationtracking.network.GeocoderApi
+import com.ramitsuri.locationtracking.network.GithubApi
 import com.ramitsuri.locationtracking.network.LocationApi
+import com.ramitsuri.locationtracking.network.impl.GithubApiImpl
 import com.ramitsuri.locationtracking.network.impl.LocationApiImpl
 import com.ramitsuri.locationtracking.repository.GeocoderRepository
 import com.ramitsuri.locationtracking.repository.LocationRepository
@@ -97,6 +99,13 @@ private val coreModule = module {
 
     single<LocationApi> {
         LocationApiImpl(
+            httpClient = get<HttpClient>(),
+            ioDispatcher = get<CoroutineDispatcher>(qualifier = KoinQualifier.IO_DISPATCHER),
+        )
+    }
+
+    single<GithubApi> {
+        GithubApiImpl(
             httpClient = get<HttpClient>(),
             ioDispatcher = get<CoroutineDispatcher>(qualifier = KoinQualifier.IO_DISPATCHER),
         )

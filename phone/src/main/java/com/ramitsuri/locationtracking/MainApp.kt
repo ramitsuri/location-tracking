@@ -12,6 +12,7 @@ import com.ramitsuri.locationtracking.di.initKoin
 import com.ramitsuri.locationtracking.log.DbLogWriter
 import com.ramitsuri.locationtracking.network.AndroidGeocoderApi
 import com.ramitsuri.locationtracking.network.GeocoderApi
+import com.ramitsuri.locationtracking.network.GithubApi
 import com.ramitsuri.locationtracking.notification.NotificationManager
 import com.ramitsuri.locationtracking.permissions.AndroidPermissionChecker
 import com.ramitsuri.locationtracking.permissions.AndroidPermissionMonitor
@@ -32,6 +33,7 @@ import com.ramitsuri.locationtracking.ui.region.RegionsViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
 import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesViewModel
 import com.ramitsuri.locationtracking.upload.UploadWorker
+import com.ramitsuri.locationtracking.util.AppUpdateManager
 import com.ramitsuri.locationtracking.wear.WearDataSharingClient
 import com.ramitsuri.locationtracking.wear.WearDataSharingClientImpl
 import io.ktor.client.engine.HttpClientEngine
@@ -73,6 +75,7 @@ class MainApp : Application(), KoinComponent {
                         workerParams = get(),
                     )
                 }
+
                 single<LocationProvider> {
                     AndroidLocationProvider(this@MainApp)
                 }
@@ -107,6 +110,13 @@ class MainApp : Application(), KoinComponent {
 
                 single<WearDataSharingClient> {
                     WearDataSharingClientImpl(this@MainApp)
+                }
+
+                single<AppUpdateManager> {
+                    AppUpdateManager(
+                        api = get<GithubApi>(),
+                        context = this@MainApp,
+                    )
                 }
 
                 factory<PermissionChecker> {
@@ -147,6 +157,7 @@ class MainApp : Application(), KoinComponent {
                 viewModel<SettingsViewModel> {
                     SettingsViewModel(
                         settings = get<Settings>(),
+                        updateManager = get<AppUpdateManager>(),
                         isUploadWorkerRunning = { UploadWorker.isRunning(this@MainApp) },
                         isServiceRunning = { BackgroundService.isRunning },
                     )

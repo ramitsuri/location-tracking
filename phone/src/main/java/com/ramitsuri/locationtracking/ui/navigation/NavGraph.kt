@@ -95,6 +95,7 @@ fun NavGraph(
                         onNavToRegions = {
                             navController.navigate(Destination.Regions)
                         },
+                        onUpdateButtonClick = viewModel::onUpdateButtonClick,
                         modifier = Modifier
                             .statusBarsPadding()
                             .displayCutoutPadding(),

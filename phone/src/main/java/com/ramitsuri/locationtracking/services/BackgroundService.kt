@@ -10,12 +10,14 @@ import android.os.Process
 import androidx.annotation.DrawableRes
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import com.ramitsuri.locationtracking.MainActivity
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.data.dao.SeenWifiDao
 import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.log.logD
 import com.ramitsuri.locationtracking.log.logE
 import com.ramitsuri.locationtracking.log.logI
+import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.notification.NotificationConstants
 import com.ramitsuri.locationtracking.notification.NotificationManager

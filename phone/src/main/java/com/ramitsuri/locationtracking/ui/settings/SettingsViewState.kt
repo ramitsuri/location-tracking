@@ -7,4 +7,6 @@ data class SettingsViewState(
     val isServiceRunning: Boolean = false,
     val minAccuracyForDisplay: Int = 0,
     val previousBaseUrls: Set<String> = emptySet(),
+    // null means checking/installing
+    val updateAvailable: Boolean? = false,
 )
