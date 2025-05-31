@@ -1,8 +1,6 @@
 package com.ramitsuri.locationtracking.services
 
 import android.annotation.SuppressLint
-import android.content.Intent
-import androidx.core.content.ContextCompat
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
@@ -11,6 +9,9 @@ import com.ramitsuri.locationtracking.data.toEnum
 import com.ramitsuri.locationtracking.log.logD
 import com.ramitsuri.locationtracking.log.logE
 import com.ramitsuri.locationtracking.model.MonitoringMode
+import com.ramitsuri.locationtracking.notification.NotificationManager
+import com.ramitsuri.locationtracking.permissions.PermissionChecker
+import com.ramitsuri.locationtracking.services.BackgroundService.Companion.startBackgroundService
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.wear.Constants
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +22,8 @@ import org.koin.core.component.KoinComponent
 class PhoneDataLayerListenerService : WearableListenerService(), KoinComponent {
     private val settings: Settings by inject()
     private val scope: CoroutineScope by inject()
+    private val permissionChecker by inject<PermissionChecker>()
+    private val notificationManager by inject<NotificationManager>()
 
     @SuppressLint("VisibleForTests")
     override fun onDataChanged(dataEvents: DataEventBuffer) {
@@ -55,13 +58,10 @@ class PhoneDataLayerListenerService : WearableListenerService(), KoinComponent {
 
         singleLocationEvents.lastOrNull()?.let {
             logD(TAG) { "Have a single location event" }
-            ContextCompat.startForegroundService(
-                this,
-                Intent()
-                    .setClass(this, BackgroundService::class.java)
-                    .apply {
-                        this.action = BackgroundService.INTENT_ACTION_SEND_LOCATION_USER
-                    },
+            startBackgroundService(
+                action = BackgroundService.INTENT_ACTION_SEND_LOCATION_USER,
+                permissionChecker = permissionChecker,
+                notificationManager = notificationManager,
             )
         }
     }

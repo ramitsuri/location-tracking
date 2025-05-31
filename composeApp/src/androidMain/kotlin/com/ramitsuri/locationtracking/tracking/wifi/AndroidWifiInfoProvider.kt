@@ -42,6 +42,9 @@ class AndroidWifiInfoProvider(
     }
 
     override fun unrequestUpdates() {
+        if (!updatesRequested) {
+            return
+        }
         updatesRequested = false
         _wifiInfo.update { WifiInfo() }
         callback?.let { manager.unregisterNetworkCallback(it) }
