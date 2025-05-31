@@ -50,53 +50,6 @@ jobs:
         env:
           BUILD_TOOLS_VERSION: "34.0.0"
 
-      - name: Generate Release bundles
-        run: ./gradlew bundleRelease
-
-      - name: Sign phone bundle
-        uses: r0adkll/sign-android-release@v1
-        id: sign_phone_bundle
-        with:
-          releaseDirectory: phone/build/outputs/bundle/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: "34.0.0"
-
-      - name: Sign wear bundle
-        uses: r0adkll/sign-android-release@v1
-        id: sign_wear_bundle
-        with:
-          releaseDirectory: wear/build/outputs/bundle/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: "34.0.0"
-
-      - name: Publish phone app to Play Console
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.PLAY_CONSOLE_SERVICE_ACCOUNT_JSON }}
-          packageName: com.ramitsuri.locationtracking
-          releaseFiles: phone/build/outputs/bundle/release/phone-release.aab
-          track: internal
-          status: completed
-          changesNotSentForReview: true
-
-      - name: Publish wear app to Play Console
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.PLAY_CONSOLE_SERVICE_ACCOUNT_JSON }}
-          packageName: com.ramitsuri.locationtracking
-          releaseFiles: wear/build/outputs/bundle/release/wear-release.aab
-          track: wear:internal
-          status: completed
-          changesNotSentForReview: true
-
       - name: Create github release
         uses: marvinpinto/action-automatic-releases@latest
         with:
@@ -106,5 +59,3 @@ jobs:
           files: |
             ${{steps.sign_phone_apk.outputs.signedReleaseFile}}
             ${{steps.sign_wear_apk.outputs.signedReleaseFile}}
-            ${{steps.sign_phone_bundle.outputs.signedReleaseFile}}
-            ${{steps.sign_wear_bundle.outputs.signedReleaseFile}}
