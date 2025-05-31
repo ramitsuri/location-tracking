@@ -3,14 +3,15 @@ package com.ramitsuri.locationtracking.services
 import android.app.ActivityManager
 import android.app.ForegroundServiceStartNotAllowedException
 import android.app.Notification
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Process
 import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import com.ramitsuri.locationtracking.MainActivity
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.data.dao.SeenWifiDao
 import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
@@ -176,7 +177,7 @@ class BackgroundService : LifecycleService(), KoinComponent {
             } catch (e: ForegroundServiceStartNotAllowedException) {
                 logE(TAG, e) {
                     "Foreground service start not allowed. " +
-                        "backgroundRestricted=${activityManager.isBackgroundRestricted}"
+                            "backgroundRestricted=${activityManager.isBackgroundRestricted}"
                 }
                 notifyBackgroundLocationRestriction()
                 return false
@@ -290,5 +291,43 @@ class BackgroundService : LifecycleService(), KoinComponent {
         private const val INTENT_ACTION_BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED"
         private const val INTENT_ACTION_PACKAGE_REPLACED =
             "android.intent.action.MY_PACKAGE_REPLACED"
+
+        fun Context.startBackgroundService(
+            action: String? = null,
+            permissionChecker: PermissionChecker,
+            notificationManager: NotificationManager
+        ) {
+            logD(TAG) { "requesting service start with action=$action" }
+            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+                        !permissionChecker.hasPermission(Permission.ACCESS_BACKGROUND_LOCATION)) ||
+                !permissionChecker.hasPermissions(
+                    listOf(
+                        Permission.FINE_LOCATION,
+                        Permission.COARSE_LOCATION,
+                    ),
+                ).any { it.granted }
+            ) {
+                notificationManager.notifyBackgroundLocationRestriction(
+                    title = getString(R.string.fg_service_restriction_title),
+                    text = getString(R.string.fg_service_restriction_text),
+                )
+                logW(TAG) { "can't start location fg service without bg location permission" }
+                return
+            }
+            ContextCompat.startForegroundService(
+                this,
+                Intent()
+                    .setClass(this, BackgroundService::class.java)
+                    .apply {
+                        action?.also { this.action = it }
+                    },
+            )
+        }
+
+        fun Context.stopBackgroundService() {
+            logD(TAG) { "requesting service stop" }
+            val intent = Intent(this, BackgroundService::class.java)
+            stopService(intent)
+        }
     }
 }

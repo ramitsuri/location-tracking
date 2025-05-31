@@ -2,8 +2,6 @@ package com.ramitsuri.locationtracking
 
 import android.content.Intent
 import android.graphics.Color
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Process
 import androidx.activity.ComponentActivity
@@ -12,15 +10,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.DisposableEffect
-import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.ramitsuri.locationtracking.log.logD
-import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.notification.NotificationManager
 import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
 import com.ramitsuri.locationtracking.permissions.PermissionMonitor
 import com.ramitsuri.locationtracking.services.BackgroundService
+import com.ramitsuri.locationtracking.services.BackgroundService.Companion.startBackgroundService
+import com.ramitsuri.locationtracking.services.BackgroundService.Companion.stopBackgroundService
 import com.ramitsuri.locationtracking.ui.navigation.NavGraph
 import org.koin.android.ext.android.inject
 
@@ -41,15 +39,15 @@ class MainActivity : ComponentActivity() {
             DisposableEffect(darkTheme) {
                 enableEdgeToEdge(
                     statusBarStyle =
-                    SystemBarStyle.auto(
-                        Color.TRANSPARENT,
-                        Color.TRANSPARENT,
-                    ) { darkTheme },
+                        SystemBarStyle.auto(
+                            Color.TRANSPARENT,
+                            Color.TRANSPARENT,
+                        ) { darkTheme },
                     navigationBarStyle =
-                    SystemBarStyle.auto(
-                        lightScrim,
-                        darkScrim,
-                    ) { darkTheme },
+                        SystemBarStyle.auto(
+                            lightScrim,
+                            darkScrim,
+                        ) { darkTheme },
                 )
                 onDispose {}
             }
@@ -62,7 +60,7 @@ class MainActivity : ComponentActivity() {
                 },
                 onNavToSystemSettings = ::navToSystemSettings,
                 onServiceStart = ::startService,
-                onServiceStop = ::stopService,
+                onServiceStop = { stopBackgroundService() },
             )
         }
     }
@@ -70,52 +68,23 @@ class MainActivity : ComponentActivity() {
     private fun navToSystemSettings() {
         startActivity(
             Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.parse("package:$packageName")
+                data = "package:$packageName".toUri()
             },
         )
     }
 
     private fun startService(action: String? = null) {
-        logD(TAG) { "requesting service start with action=$action" }
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
-                !permissionChecker.hasPermission(Permission.ACCESS_BACKGROUND_LOCATION)) ||
-            !permissionChecker.hasPermissions(
-                listOf(
-                    Permission.FINE_LOCATION,
-                    Permission.COARSE_LOCATION,
-                ),
-            ).any { it.granted }
-        ) {
-            notificationManager.notifyBackgroundLocationRestriction(
-                title = getString(R.string.fg_service_restriction_title),
-                text = getString(R.string.fg_service_restriction_text),
-            )
-            logW(TAG) { "can't start location fg service without bg location permission" }
-            return
-        }
-        ContextCompat.startForegroundService(
-            this,
-            Intent()
-                .setClass(this, BackgroundService::class.java)
-                .apply {
-                    action?.also { this.action = it }
-                },
+        startBackgroundService(
+            action = action,
+            permissionChecker = permissionChecker,
+            notificationManager = notificationManager,
         )
     }
 
-    private fun stopService() {
-        logD(TAG) { "requesting service stop" }
-        stopService(Intent(this, BackgroundService::class.java))
-    }
-
     private fun killApp() {
-        stopService(Intent(this, BackgroundService::class.java))
+        stopBackgroundService()
         finishAffinity()
         Process.killProcess(Process.myPid())
-    }
-
-    companion object {
-        private const val TAG = "MainActivity"
     }
 }
 
