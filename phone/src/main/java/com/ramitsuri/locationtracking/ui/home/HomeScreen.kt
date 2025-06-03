@@ -202,7 +202,12 @@ fun HomeScreen(
         }
     }
     if (showDateTimePicker) {
+        val locationsForDateViewMode = viewState.viewMode as? HomeViewState.ViewMode.LocationsForDate
         DateTimePicker(
+            initialFromDate = locationsForDateViewMode?.fromDate,
+            initialFromTime = locationsForDateViewMode?.fromTime ?: LocalTime(hour = 0, minute = 0),
+            initialToDate = locationsForDateViewMode?.toDate,
+            initialToTime = locationsForDateViewMode?.toTime ?: LocalTime(hour = 23, minute = 59),
             sheetState = dateTimePickerState,
             onDismiss = { showDateTimePicker = false },
             onDateTimeSelected = { fromDateTime, toDateTime ->
@@ -219,19 +224,29 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DateTimePicker(
+    initialFromDate: LocalDate?,
+    initialFromTime: LocalTime,
+    initialToDate: LocalDate?,
+    initialToTime: LocalTime,
     sheetState: SheetState,
     onDateTimeSelected: (LocalDateTime, LocalDateTime?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var selectedFromDate by remember { mutableStateOf<LocalDate?>(null) }
-    var selectedFromTime by remember { mutableStateOf(LocalTime(hour = 0, minute = 0)) }
-    var selectedToDate by remember { mutableStateOf<LocalDate?>(null) }
-    var selectedToTime by remember { mutableStateOf(LocalTime(hour = 23, minute = 59)) }
+    var selectedFromDate by remember { mutableStateOf(initialFromDate) }
+    var selectedFromTime by remember { mutableStateOf(initialFromTime) }
+    var selectedToDate by remember { mutableStateOf(initialToDate) }
+    var selectedToTime by remember { mutableStateOf(initialToTime) }
 
     var showFromDatePicker by remember { mutableStateOf(false) }
     var showFromTimePicker by remember { mutableStateOf(false) }
     var showToDatePicker by remember { mutableStateOf(false) }
     var showToTimePicker by remember { mutableStateOf(false) }
+
+    LaunchedEffect(selectedFromDate) {
+        if (selectedFromDate == null) {
+            showFromDatePicker = true
+        }
+    }
 
     ModalBottomSheet(
         containerColor = MaterialTheme.colorScheme.background,
