@@ -66,6 +66,10 @@ private val coreModule = module {
         Dispatchers.IO
     }
 
+    single<CoroutineDispatcher>(qualifier = KoinQualifier.DEFAULT_DISPATCHER) {
+        Dispatchers.Default
+    }
+
     single<HttpClient> {
         provideHttpClient(
             clientEngine = get<HttpClientEngine>(),
@@ -157,6 +161,7 @@ private val coreModule = module {
 
 object KoinQualifier {
     val IO_DISPATCHER = named("io_dispatcher")
+    val DEFAULT_DISPATCHER = named("default_dispatcher")
     val IS_DEBUG = named("is_debug")
     val DATASTORE_FILE_NAME = named("datastore_file_name")
     val DATABASE_NAME = named("database_name")

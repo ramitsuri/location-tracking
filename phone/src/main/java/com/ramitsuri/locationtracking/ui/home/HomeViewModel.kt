@@ -2,11 +2,14 @@ package com.ramitsuri.locationtracking.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ramitsuri.locationtracking.data.dao.RegionDao
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LocationsViewMode
 import com.ramitsuri.locationtracking.permissions.PermissionResult
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.Settings
+import com.ramitsuri.locationtracking.ui.home.HomeViewState.ViewMode.LocationsForDate
+import com.ramitsuri.locationtracking.utils.RegionUtil
 import com.ramitsuri.locationtracking.utils.combine
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +33,7 @@ class HomeViewModel(
     private val upload: () -> Unit,
     private val timeZone: TimeZone,
     private val settings: Settings,
+    regionDao: RegionDao,
 ) : ViewModel() {
     private val viewMode =
         MutableStateFlow<HomeViewState.ViewMode>(HomeViewState.ViewMode.LastKnownLocation())
@@ -44,12 +48,13 @@ class HomeViewModel(
         viewMode,
         isLoading,
         selectedLocation,
+        regionDao.getAllFlow(),
     ) {
             count, permissions, isUploadWorkerRunning, lastKnownLocation, viewMode, isLoading,
-            selectedLocation,
+            selectedLocation, regions,
         ->
         val newViewMode = when (viewMode) {
-            is HomeViewState.ViewMode.LocationsForDate -> viewMode
+            is LocationsForDate -> viewMode
             is HomeViewState.ViewMode.LastKnownLocation -> {
                 viewMode.copy(lastKnownLocation)
             }
@@ -61,6 +66,7 @@ class HomeViewModel(
             viewMode = newViewMode,
             isLoading = isLoading,
             selectedLocation = selectedLocation,
+            regions = regions,
             timeZone = timeZone,
         )
     }.stateIn(
@@ -87,18 +93,17 @@ class HomeViewModel(
                 to = to,
                 minAccuracyMeters = settings.getMinAccuracyForDisplay().first(),
             ).let { locations ->
-                viewMode.update {
-                    val fromLocal = from.toLocalDateTime(timeZone)
-                    val toLocal = to.toLocalDateTime(timeZone)
-                    HomeViewState.ViewMode.LocationsForDate(
-                        fromDate = fromLocal.date,
-                        fromTime = fromLocal.time,
-                        toDate = toLocal.date,
-                        toTime = toLocal.time,
-                        locations = locations,
-                        mode = settings.getLocationsViewMode().first(),
-                    )
-                }
+                val fromLocal = from.toLocalDateTime(timeZone)
+                val toLocal = to.toLocalDateTime(timeZone)
+                viewMode.value = LocationsForDate(
+                    fromDate = fromLocal.date,
+                    fromTime = fromLocal.time,
+                    toDate = toLocal.date,
+                    toTime = toLocal.time,
+                    locations = locations,
+                    mode = settings.getLocationsViewMode().first(),
+                    timeline = createWifiTimeline(locations)
+                )
             }
             isLoading.value = false
         }
@@ -125,9 +130,46 @@ class HomeViewModel(
         }
         viewMode.update {
             when (it) {
-                is HomeViewState.ViewMode.LocationsForDate -> it.copy(mode = mode)
+                is LocationsForDate -> it.copy(mode = mode)
                 else -> it
             }
+        }
+    }
+
+    private fun createWifiTimeline(locations: List<Location>): List<LocationsForDate.Event> {
+        var previousLocation: Location? = null
+        return locations.mapIndexedNotNull { index, location ->
+            val event = if (index == 0) {
+                LocationsForDate.Event(
+                    type = LocationsForDate.Event.Type.START,
+                    time = location.locationTimestamp.toLocalDateTime(timeZone),
+                    wifiName = location.ssid ?: ""
+                )
+            } else {
+                when (location.ssid) {
+                    previousLocation?.ssid -> {
+                        null
+                    }
+
+                    null -> {
+                        LocationsForDate.Event(
+                            type = LocationsForDate.Event.Type.DISCONNECTED,
+                            time = location.locationTimestamp.toLocalDateTime(timeZone),
+                            wifiName = previousLocation?.ssid ?: "",
+                        )
+                    }
+
+                    else -> {
+                        LocationsForDate.Event(
+                            type = LocationsForDate.Event.Type.CONNECTED,
+                            time = location.locationTimestamp.toLocalDateTime(timeZone),
+                            wifiName = location.ssid ?: "",
+                        )
+                    }
+                }
+            }
+            previousLocation = location
+            event
         }
     }
 }

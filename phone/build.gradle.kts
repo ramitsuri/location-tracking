@@ -88,4 +88,9 @@ dependencies {
     implementation(libs.playservices.wearable)
 
     debugImplementation(compose.uiTooling)
+
+    testImplementation(libs.koin.test.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
 }

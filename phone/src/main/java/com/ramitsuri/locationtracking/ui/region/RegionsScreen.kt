@@ -46,15 +46,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.JointType
 import com.google.maps.android.compose.Circle
-import com.google.maps.android.compose.GoogleMapComposable
-import com.google.maps.android.compose.Polygon
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.model.AndroidLatLng
 import com.ramitsuri.locationtracking.model.Region
 import com.ramitsuri.locationtracking.ui.components.Map
+import com.ramitsuri.locationtracking.ui.components.Polygon
 import com.ramitsuri.locationtracking.ui.components.TintedIconButton
 import com.ramitsuri.locationtracking.utils.center
 
@@ -243,7 +241,10 @@ private fun MapContent(
     ) {
         if (viewState.isUnsavedRegionEmpty) {
             viewState.regions.forEach { region ->
-                Polygon(region = region, onRegionClick = onRegionClick)
+                Polygon(
+                    region = region,
+                    onRegionClick = onRegionClick
+                )
             }
         } else if (viewState.unsavedRegion.latLngs.size == 1) {
             Circle(
@@ -258,23 +259,6 @@ private fun MapContent(
             Polygon(region = viewState.unsavedRegion)
         }
     }
-}
-
-@GoogleMapComposable
-@Composable
-private fun Polygon(
-    region: Region,
-    onRegionClick: ((Region) -> Unit)? = null,
-) {
-    Polygon(
-        points = region.latLngs.map { it.toAndroidLatLng() },
-        fillColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f),
-        strokeColor = MaterialTheme.colorScheme.secondary,
-        strokeJointType = JointType.ROUND,
-        strokeWidth = 20f,
-        clickable = onRegionClick != null,
-        onClick = { onRegionClick?.invoke(region) },
-    )
 }
 
 @Composable
