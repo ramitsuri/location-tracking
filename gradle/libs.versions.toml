@@ -16,6 +16,7 @@ google-services = "4.4.2"
 horologist = "0.6.22"
 kermit = "2.0.4"
 koin = "4.0.1"
+mockk = "1.13.10"
 kotlin = "2.1.0"
 kotlin-datetime = "0.6.1"
 kotlinxSerializationJson = "1.8.0"
@@ -72,7 +73,8 @@ koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin"
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koin" }
 koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koin" }
-koin-test-junit = { group = "io.insert-koin", name = "koin-test-junit4", version.ref = "koin" }
+koin-test-junit = { group = "io.insert-koin", name = "koin-test-junit4", version.ref = "koin" } # Includes JUnit4
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 koin-workmanager = { group = "io.insert-koin", name = "koin-androidx-workmanager", version.ref = "koin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }

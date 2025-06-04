@@ -60,4 +60,8 @@
 
     <string name="region_name">Region Name</string>
     <string name="delete_region">Delete region?</string>
+
+    <string name="timeline_disconnected">Disconnected</string>
+    <string name="timeline_connected">Connected</string>
+    <string name="timeline_started">Start</string>
 </resources>
