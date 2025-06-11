@@ -33,6 +33,7 @@ import com.ramitsuri.locationtracking.tracking.battery.BatteryInfoProvider
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import com.ramitsuri.locationtracking.ui.label
+import com.ramitsuri.locationtracking.util.getIcon
 import com.ramitsuri.locationtracking.wear.WearDataSharingClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -262,16 +263,6 @@ class BackgroundService : LifecycleService(), KoinComponent {
             nextNextModeLabel = nextNextMode.label(this),
             icon = mode.getIcon(),
         )
-    }
-
-    @DrawableRes
-    private fun MonitoringMode.getIcon(): Int {
-        return when (this) {
-            MonitoringMode.Move -> R.drawable.ic_move
-            MonitoringMode.Walk -> R.drawable.ic_walk
-            MonitoringMode.Rest -> R.drawable.ic_rest
-            MonitoringMode.Off -> R.drawable.ic_off
-        }
     }
 
     companion object {

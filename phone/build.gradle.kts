@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.maps.utils)
     implementation(libs.maps.utils.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.ktx)
     implementation(libs.androidx.lifecycle.service)
     implementation(libs.play.services.location)
     implementation(platform(libs.firebase.bom))
