@@ -4,11 +4,13 @@ import android.graphics.drawable.Icon
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import com.ramitsuri.locationtracking.model.MonitoringMode
+import com.ramitsuri.locationtracking.services.BackgroundService
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.tracking.battery.BatteryInfoProvider
 import com.ramitsuri.locationtracking.util.getIcon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -41,16 +43,27 @@ class MonitoringModeTileService : TileService(), KoinComponent {
         val tile = qsTile ?: return
         job?.cancel()
         job = coroutineScope.launch {
-            settings.getMonitoringMode().collect { monitoringMode ->
-                tile.state = if (monitoringMode == MonitoringMode.Off) {
-                    Tile.STATE_INACTIVE
+            combine(
+                BackgroundService.isRunning,
+                settings.getMonitoringMode(),
+            ) { isServiceRunning, monitoringMode ->
+                isServiceRunning to monitoringMode
+            }.collect { (isServiceRunning, monitoringMode) ->
+                val actualMonitoringMode = if (isServiceRunning) {
+                    monitoringMode
                 } else {
-                    Tile.STATE_ACTIVE
+                    MonitoringMode.Off
                 }
+                tile.state =
+                    if (actualMonitoringMode == MonitoringMode.Off) {
+                        Tile.STATE_INACTIVE
+                    } else {
+                        Tile.STATE_ACTIVE
+                    }
                 tile.label = "${batteryInfoProvider.getLevel()}%"
                 tile.icon = Icon.createWithResource(
                     this@MonitoringModeTileService,
-                    monitoringMode.getIcon(),
+                    actualMonitoringMode.getIcon(),
                 )
                 tile.updateTile()
             }
