@@ -2,6 +2,7 @@ package com.ramitsuri.locationtracking.wear.tile
 
 import android.content.Context
 import androidx.wear.protolayout.ResourceBuilders.Resources
+import androidx.wear.protolayout.TimelineBuilders
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.RequestBuilders.ResourcesRequest
 import androidx.wear.tiles.TileBuilders.Tile
@@ -14,21 +15,21 @@ import org.koin.core.component.inject
 
 @OptIn(ExperimentalHorologistApi::class)
 class TileService : SuspendingTileService(), KoinComponent {
-    private lateinit var renderer: TileRenderer
     private val settings by inject<Settings>()
-
-    override fun onCreate() {
-        super.onCreate()
-        renderer = TileRenderer(this)
-    }
 
     override suspend fun tileRequest(requestParams: RequestBuilders.TileRequest): Tile {
         val tileState = TileState(settings.getMonitoringMode().first())
-        return renderer.renderTimeline(tileState, requestParams)
+        val layoutElement = tileLayout(this, requestParams.deviceConfiguration, tileState)
+        return Tile.Builder()
+            .setResourcesVersion("")
+            .setTileTimeline(TimelineBuilders.Timeline.fromLayoutElement(layoutElement))
+            .build()
     }
 
     override suspend fun resourcesRequest(requestParams: ResourcesRequest): Resources {
-        return renderer.produceRequestedResources(Unit, requestParams)
+        return Resources.Builder()
+            .setVersion(requestParams.version)
+            .build()
     }
 
     companion object {

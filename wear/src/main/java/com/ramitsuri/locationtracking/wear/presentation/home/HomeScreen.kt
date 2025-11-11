@@ -3,7 +3,6 @@ package com.ramitsuri.locationtracking.wear.presentation.home
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -17,21 +16,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
-import androidx.wear.compose.foundation.lazy.AutoCenteringParams
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
+import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
-import androidx.wear.compose.material.PositionIndicator
-import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
-import androidx.wear.compose.material.Vignette
-import androidx.wear.compose.material.VignettePosition
-import androidx.wear.compose.material.scrollAway
+import androidx.wear.compose.material3.AppScaffold
+import androidx.wear.compose.material3.EdgeButton
+import androidx.wear.compose.material3.EdgeButtonSize
+import androidx.wear.compose.material3.ScreenScaffold
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.ui.label
@@ -60,71 +58,65 @@ fun HomeScreen(
         }
     }
     AppTheme {
-        val listState = rememberScalingLazyListState()
-        Scaffold(
+        AppScaffold(
             timeText = {
-                TimeText(modifier = Modifier.scrollAway(listState))
-            },
-            vignette = {
-                Vignette(vignettePosition = VignettePosition.TopAndBottom)
-            },
-            positionIndicator = {
-                PositionIndicator(
-                    scalingLazyListState = listState,
-                )
+                TimeText()
             },
         ) {
-            ScalingLazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                autoCentering = AutoCenteringParams(itemIndex = 0),
-                state = listState,
-            ) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            val listState = rememberTransformingLazyColumnState()
+            ScreenScaffold(
+                scrollState = listState,
+                edgeButton = {
+                    EdgeButton(
+                        onClick = { },
+                        buttonSize = EdgeButtonSize.Medium,
                     ) {
-                        MonitoringMode.Move.let { mode ->
+                        Text(state.monitoringMode.label(context))
+                    }
+                },
+            ) { contentPadding ->
+                TransformingLazyColumn(
+                    contentPadding = contentPadding,
+                    state = listState,
+                ) {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
                             LargeButton(
                                 modifier = Modifier.weight(1f),
-                                onClick = { onMonitoringModeChanged(mode) },
+                                onClick = { onMonitoringModeChanged(MonitoringMode.Move) },
                                 icon = Icons.Outlined.Motorcycle,
-                                contentDescription = mode.label(context),
+                                contentDescription = MonitoringMode.Move.label(context),
                             )
-                        }
-                        MonitoringMode.Walk.let { mode ->
                             LargeButton(
                                 modifier = Modifier.weight(1f),
-                                onClick = { onMonitoringModeChanged(mode) },
+                                onClick = { onMonitoringModeChanged(MonitoringMode.Walk) },
                                 icon = Icons.AutoMirrored.Outlined.DirectionsWalk,
-                                contentDescription = mode.label(context),
+                                contentDescription = MonitoringMode.Move.label(context),
                             )
                         }
                     }
-                }
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        MonitoringMode.Rest.let { mode ->
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
                             LargeButton(
                                 modifier = Modifier.weight(1f),
-                                onClick = { onMonitoringModeChanged(mode) },
+                                onClick = { onMonitoringModeChanged(MonitoringMode.Rest) },
                                 icon = Icons.Outlined.NightShelter,
-                                contentDescription = mode.label(context),
+                                contentDescription = MonitoringMode.Move.label(context),
+                            )
+                            LargeButton(
+                                modifier = Modifier.weight(1f),
+                                onClick = onSingleLocation,
+                                icon = Icons.Outlined.AddLocation,
+                                contentDescription = stringResource(R.string.single_location),
                             )
                         }
-                        LargeButton(
-                            modifier = Modifier.weight(1f),
-                            onClick = onSingleLocation,
-                            icon = Icons.Outlined.AddLocation,
-                            contentDescription = context.getString(R.string.single_location),
-                        )
                     }
-                }
-                item {
-                    Text(text = state.monitoringMode.label(context))
                 }
             }
         }

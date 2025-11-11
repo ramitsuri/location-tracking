@@ -765,8 +765,8 @@ private fun OptionsPill(
     onUpload: () -> Unit,
     onDatePickerClick: () -> Unit,
 ) {
-    var isPillExpanded by remember(missingPermissions) {
-        mutableStateOf(missingPermissions.isNotEmpty())
+    var isPillExpanded by remember {
+        mutableStateOf(true)
     }
     var showPermissionDisclosure by remember(missingPermissions) {
         mutableStateOf((missingPermissions).isNotEmpty())

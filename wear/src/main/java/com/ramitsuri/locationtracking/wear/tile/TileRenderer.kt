@@ -4,93 +4,102 @@ import android.content.Context
 import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.ActionBuilders.AndroidActivity
 import androidx.wear.protolayout.DeviceParametersBuilders
+import androidx.wear.protolayout.DimensionBuilders.expand
 import androidx.wear.protolayout.LayoutElementBuilders
+import androidx.wear.protolayout.LayoutElementBuilders.LayoutElement
 import androidx.wear.protolayout.ModifiersBuilders
-import androidx.wear.protolayout.ResourceBuilders
-import androidx.wear.protolayout.material.Button
-import androidx.wear.protolayout.material.ButtonColors
-import androidx.wear.protolayout.material.ButtonDefaults
-import androidx.wear.protolayout.material.ChipColors
-import androidx.wear.protolayout.material.CompactChip
-import androidx.wear.protolayout.material.layouts.MultiButtonLayout
-import androidx.wear.protolayout.material.layouts.PrimaryLayout
-import com.google.android.horologist.annotations.ExperimentalHorologistApi
-import com.google.android.horologist.tiles.images.drawableResToImageResource
-import com.google.android.horologist.tiles.render.SingleTileLayoutRenderer
+import androidx.wear.protolayout.material3.ButtonDefaults.filledTonalButtonColors
+import androidx.wear.protolayout.material3.ButtonGroupDefaults
+import androidx.wear.protolayout.material3.MaterialScope
+import androidx.wear.protolayout.material3.buttonGroup
+import androidx.wear.protolayout.material3.materialScope
+import androidx.wear.protolayout.material3.primaryLayout
+import androidx.wear.protolayout.material3.text
+import androidx.wear.protolayout.material3.textButton
+import androidx.wear.protolayout.material3.textEdgeButton
+import androidx.wear.protolayout.modifiers.padding
+import androidx.wear.protolayout.types.layoutString
 import com.ramitsuri.locationtracking.R
+import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.ui.label
 import com.ramitsuri.locationtracking.wear.presentation.MainActivity
 
-@OptIn(ExperimentalHorologistApi::class)
-class TileRenderer(context: Context) :
-    SingleTileLayoutRenderer<TileState, Unit>(context) {
-    override fun renderTile(
-        state: TileState,
-        deviceParameters: DeviceParametersBuilders.DeviceParameters,
-    ): LayoutElementBuilders.LayoutElement {
-        return PrimaryLayout.Builder(deviceParameters)
-            .setResponsiveContentInsetEnabled(true)
-            .setContent(
-                MultiButtonLayout.Builder()
-                    .apply {
-                        addButton(
-                            Icon.MOVE,
-                            launchActivityAction(MainActivity.MODE_MOVE),
-                        )
-                        addButton(
-                            Icon.WALK,
-                            launchActivityAction(MainActivity.MODE_WALK),
-                        )
-                        addButton(
-                            Icon.REST,
-                            launchActivityAction(MainActivity.MODE_REST),
-                        )
-                        addButton(
-                            Icon.SINGLE_LOCATION,
-                            launchActivityAction(MainActivity.SINGLE_LOCATION),
-                        )
-                        addButton(
-                            Icon.APP,
-                            launchActivityAction(null),
-                        )
-                    }
-                    .build(),
-            )
-            .setPrimaryChipContent(
-                CompactChip.Builder(
-                    context,
-                    state.monitoringMode.label(context),
-                    launchActivityClickable(launchActivityAction(null)),
-                    deviceParameters,
-                )
-                    .setChipColors(ChipColors.secondaryChipColors(theme))
-                    .build(),
-            )
-            .build()
-    }
-
-    override fun ResourceBuilders.Resources.Builder.produceRequestedResources(
-        resourceState: Unit,
-        deviceParameters: DeviceParametersBuilders.DeviceParameters,
-        resourceIds: List<String>,
+fun tileLayout(
+    context: Context,
+    deviceParameters: DeviceParametersBuilders.DeviceParameters,
+    state: TileState,
+): LayoutElement {
+    return materialScope(
+        context = context,
+        deviceConfiguration = deviceParameters,
+        allowDynamicTheme = true,
     ) {
-        for (icon in Icon.entries) {
-            addIdToImageMapping(icon.id, drawableResToImageResource(icon.resId))
-        }
-    }
-
-    private fun MultiButtonLayout.Builder.addButton(icon: Icon, activity: AndroidActivity) {
-        val clickable = launchActivityClickable(activity)
-        addButtonContent(
-            Button.Builder(context, clickable)
-                .setIconContent(icon.id)
-                .setSize(ButtonDefaults.LARGE_SIZE)
-                .setButtonColors(ButtonColors.secondaryButtonColors(theme))
-                .build(),
+        primaryLayout(
+            mainSlot = {
+                column {
+                    setWidth(expand())
+                    setHeight(expand())
+                    addContent(
+                        buttonGroup {
+                            buttonGroupItem {
+                                button(
+                                    action = launchActivityAction(context, MainActivity.MODE_MOVE),
+                                    text = MonitoringMode.Move.label(context),
+                                )
+                            }
+                            buttonGroupItem {
+                                button(
+                                    action = launchActivityAction(context, MainActivity.MODE_WALK),
+                                    text = MonitoringMode.Walk.label(context),
+                                )
+                            }
+                        },
+                    )
+                    addContent(ButtonGroupDefaults.DEFAULT_SPACER_BETWEEN_BUTTON_GROUPS)
+                    addContent(
+                        buttonGroup {
+                            buttonGroupItem {
+                                button(
+                                    action = launchActivityAction(context, MainActivity.MODE_REST),
+                                    text = MonitoringMode.Rest.label(context),
+                                )
+                            }
+                            buttonGroupItem {
+                                button(
+                                    action = launchActivityAction(
+                                        context,
+                                        MainActivity.SINGLE_LOCATION,
+                                    ),
+                                    text = context.getString(R.string.once),
+                                )
+                            }
+                        },
+                    )
+                }
+            },
+            bottomSlot = {
+                textEdgeButton(
+                    onClick = launchActivityClickable(launchActivityAction(context)),
+                    labelContent = { text(state.monitoringMode.label(context).layoutString) },
+                    colors = filledTonalButtonColors(),
+                )
+            },
         )
     }
+}
 
-    private fun launchActivityAction(action: String?): AndroidActivity = AndroidActivity.Builder()
+private fun MaterialScope.button(action: AndroidActivity, text: String): LayoutElement {
+    return textButton(
+        labelContent = { text(text.layoutString) },
+        height = expand(),
+        width = expand(),
+        onClick = launchActivityClickable(action),
+        contentPadding = padding(0f),
+    )
+}
+
+private fun launchActivityAction(context: Context, action: String? = null): AndroidActivity =
+    AndroidActivity.Builder()
         .setPackageName(context.packageName)
         .setClassName(ACTIVITY)
         .apply {
@@ -103,44 +112,17 @@ class TileRenderer(context: Context) :
         }
         .build()
 
-    private fun launchActivityClickable(activity: AndroidActivity): ModifiersBuilders.Clickable =
-        ModifiersBuilders.Clickable.Builder()
-            .setOnClick(
-                ActionBuilders.LaunchAction.Builder()
-                    .setAndroidActivity(activity)
-                    .build(),
-            )
-            .build()
+private fun launchActivityClickable(activity: AndroidActivity): ModifiersBuilders.Clickable =
+    ModifiersBuilders.Clickable.Builder()
+        .setOnClick(
+            ActionBuilders.LaunchAction.Builder()
+                .setAndroidActivity(activity)
+                .build(),
+        )
+        .build()
 
-    companion object {
-        private const val ACTIVITY =
-            "com.ramitsuri.locationtracking.wear.presentation.MainActivity"
-    }
-}
+private fun column(builder: LayoutElementBuilders.Column.Builder.() -> Unit) =
+    LayoutElementBuilders.Column.Builder().apply(builder).build()
 
-enum class Icon(val id: String, val resId: Int) {
-    APP(
-        id = "icon_app",
-        resId = R.drawable.ic_open_app,
-    ),
-    MOVE(
-        id = "icon_move",
-        resId = R.drawable.ic_move,
-    ),
-    WALK(
-        id = "icon_walk",
-        resId = R.drawable.ic_walk,
-    ),
-    REST(
-        id = "icon_rest",
-        resId = R.drawable.ic_rest,
-    ),
-    OFF(
-        id = "icon_off",
-        resId = R.drawable.ic_off,
-    ),
-    SINGLE_LOCATION(
-        id = "icon_single_location",
-        resId = R.drawable.ic_single_location,
-    ),
-}
+private const val ACTIVITY =
+    "com.ramitsuri.locationtracking.wear.presentation.MainActivity"
