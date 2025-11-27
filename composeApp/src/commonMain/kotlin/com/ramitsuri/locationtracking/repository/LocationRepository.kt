@@ -6,6 +6,8 @@ import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.network.LocationApi
 import com.ramitsuri.locationtracking.settings.Settings
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -56,19 +58,31 @@ class LocationRepository(
         }
     }
 
-    suspend fun get(from: Instant, to: Instant, minAccuracyMeters: Int): List<Location> {
-        val baseUrl = settings.getBaseUrl()
-        val deviceName = settings.getDeviceName()
-        locationApi.getLocations(
-            deviceName = deviceName,
-            baseUrl = baseUrl,
-            fromDate = from,
-            toDate = to,
-        ).onSuccess { locations ->
-            return locations.filter { it.accuracy <= minAccuracyMeters }
+    suspend fun get(from: Instant, to: Instant, minAccuracyMeters: Int): List<Location> =
+        coroutineScope {
+            val baseUrl = settings.getBaseUrl()
+            val deviceName = settings.getDeviceName()
+            val fromDb = async {
+                locationDao
+                    .getAll()
+                    .filter {
+                        it.locationTimestamp in from..to
+                    }
+            }
+            val fromApi = async {
+                locationApi.getLocations(
+                    deviceName = deviceName,
+                    baseUrl = baseUrl,
+                    fromDate = from,
+                    toDate = to,
+                ).map { locations ->
+                    locations.filter { it.accuracy <= minAccuracyMeters }
+                }.getOrNull() ?: emptyList()
+            }
+            // Assumption is that db only has items that haven't been uploaded + are newer than api
+            // items
+            return@coroutineScope fromApi.await() + fromDb.await()
         }
-        return emptyList()
-    }
 
     fun getCount(): Flow<Int> {
         return locationDao

@@ -3,8 +3,8 @@ package com.ramitsuri.locationtracking.tracking
 import app.cash.turbine.test
 import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.model.MonitoringMode
+import com.ramitsuri.locationtracking.model.SeenWifi
 import com.ramitsuri.locationtracking.model.WifiInfo
-import com.ramitsuri.locationtracking.model.WifiMonitoringModeRule
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.testutils.BaseTest
 import com.ramitsuri.locationtracking.testutils.TestWifiInfoProvider
@@ -29,20 +29,6 @@ class WifiMonitorTest : BaseTest() {
         assertEquals(1, db.seenWifiDao().getFlow().first().size)
     }
 
-    // For some reason not able to get this test to work with coroutine behavior
-    /*@Test
-    fun `inserts seen wifi if wifi changed`() = runTest {
-        setup()
-        db.seenWifiDao().getFlow().test {
-            wifiInfoProvider.wifiInfo.update { wifiInfo().copy(ssid = "1") }
-            assertEquals(1, awaitItem().size)
-
-            wifiInfoProvider.wifiInfo.update { wifiInfo().copy(ssid = "2") }
-            assertEquals(2, awaitItem().size)
-            cancelAndIgnoreRemainingEvents()
-        }
-    }*/
-
     @Test
     fun `updates seen wifi if wifi reconnected`() = runTest {
         setup()
@@ -64,67 +50,43 @@ class WifiMonitorTest : BaseTest() {
     @Test
     fun `switches monitor mode for connected rule if wifi connected`() = runTest {
         setup()
-        insertRule(
-            WifiMonitoringModeRule(
-                ssid = "1",
-                mode = MonitoringMode.Move,
-                status = WifiMonitoringModeRule.Status.CONNECTED,
-            ),
+        insertFavorite(
+            ssid = "1",
         )
         settings.getMonitoringMode().test {
             assertEquals(MonitoringMode.Off, awaitItem())
             wifiInfoProvider.wifiInfo.value = wifiInfo().copy(ssid = "1")
-            assertEquals(MonitoringMode.Move, awaitItem())
+            assertEquals(MonitoringMode.Rest, awaitItem())
         }
     }
-
-    // For some reason not able to get this test to work with coroutine behavior
-    /*@Test
-    fun `switches monitor mode for disconnected rule if wifi disconnected`() = runTest {
-        setup()
-        insertRule(
-            WifiMonitoringModeRule(
-                ssid = "1",
-                mode = MonitoringMode.Moving,
-                status = WifiMonitoringModeRule.Status.DISCONNECTED,
-            ),
-        )
-        wifiInfoProvider.wifiInfo.value = wifiInfo().copy(ssid = "1")
-        settings.getMonitoringMode().test {
-            wifiInfoProvider.wifiInfo.value = wifiInfo()
-            assertEquals(MonitoringMode.Moving, awaitItem())
-        }
-    }*/
 
     @Test
     fun `switches monitor mode for last connected rule if wifi disconnected + connected`() =
         runTest {
             setup()
-            insertRule(
-                WifiMonitoringModeRule(
-                    ssid = "1",
-                    mode = MonitoringMode.Move,
-                    status = WifiMonitoringModeRule.Status.CONNECTED,
-                ),
+            insertFavorite(
+                ssid = "1",
             )
-            insertRule(
-                WifiMonitoringModeRule(
-                    ssid = "2",
-                    mode = MonitoringMode.Walk,
-                    status = WifiMonitoringModeRule.Status.DISCONNECTED,
-                ),
+            insertFavorite(
+                ssid = "2",
             )
             settings.getMonitoringMode().test {
                 assertEquals(MonitoringMode.Off, awaitItem())
                 wifiInfoProvider.wifiInfo.update { wifiInfo().copy(ssid = "2") }
                 wifiInfoProvider.wifiInfo.update { wifiInfo().copy(ssid = "1") }
-                assertEquals(MonitoringMode.Move, awaitItem())
+                assertEquals(MonitoringMode.Rest, awaitItem())
                 cancelAndConsumeRemainingEvents()
             }
         }
 
-    private suspend fun insertRule(rule: WifiMonitoringModeRule) =
-        db.wifiMonitoringModeRuleDao().insert(rule)
+    private suspend fun insertFavorite(ssid: String) {
+        db.seenWifiDao().insert(
+            SeenWifi(
+                ssid = ssid,
+                isFavorite = true,
+            ),
+        )
+    }
 
     private fun TestScope.setup() {
         settings = get<Settings>()
@@ -133,7 +95,6 @@ class WifiMonitorTest : BaseTest() {
         wifiMonitor = WifiMonitor(
             wifiInfoProvider = wifiInfoProvider,
             seenWifiDao = db.seenWifiDao(),
-            wifiMonitoringModeRuleDao = db.wifiMonitoringModeRuleDao(),
             scope = backgroundScope,
             settings = settings,
         )

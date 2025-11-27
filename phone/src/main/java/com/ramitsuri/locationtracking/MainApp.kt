@@ -31,6 +31,7 @@ import com.ramitsuri.locationtracking.ui.home.HomeViewModel
 import com.ramitsuri.locationtracking.ui.logs.LogScreenViewModel
 import com.ramitsuri.locationtracking.ui.region.AndroidRegionUtil
 import com.ramitsuri.locationtracking.ui.region.RegionsViewModel
+import com.ramitsuri.locationtracking.ui.seenwifi.SeenWifiViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
 import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesViewModel
 import com.ramitsuri.locationtracking.upload.UploadWorker
@@ -200,6 +201,12 @@ class MainApp : Application(), KoinComponent {
                     RegionsViewModel(
                         regionDao = get<AppDatabase>().regionDao(),
                         locationRepository = get<LocationRepository>(),
+                    )
+                }
+
+                viewModel<SeenWifiViewModel> {
+                    SeenWifiViewModel(
+                        seenWifiDao = get<AppDatabase>().seenWifiDao()
                     )
                 }
             }

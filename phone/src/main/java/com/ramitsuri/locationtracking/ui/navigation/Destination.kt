@@ -17,4 +17,7 @@ sealed interface Destination {
 
     @Serializable
     data object Regions : Destination
+
+    @Serializable
+    data object SeenWifi : Destination
 }

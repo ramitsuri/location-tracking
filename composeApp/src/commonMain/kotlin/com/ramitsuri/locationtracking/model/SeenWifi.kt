@@ -19,4 +19,7 @@ data class SeenWifi(
 
     @ColumnInfo(name = "seen_count")
     val seenCount: Int = 1,
+
+    @ColumnInfo(name = "is_favorite")
+    val isFavorite: Boolean = false,
 )

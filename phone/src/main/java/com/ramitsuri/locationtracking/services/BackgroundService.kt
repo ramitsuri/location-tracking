@@ -71,7 +71,6 @@ class BackgroundService : LifecycleService(), KoinComponent {
             settings = settings,
             scope = lifecycleScope,
             seenWifiDao = get<SeenWifiDao>(),
-            wifiMonitoringModeRuleDao = get<WifiMonitoringModeRuleDao>(),
         )
     }
     private val activityManager by lazy {
