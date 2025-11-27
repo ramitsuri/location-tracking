@@ -10,9 +10,6 @@ sealed interface Destination {
     data object Settings : Destination
 
     @Serializable
-    data object WifiRules : Destination
-
-    @Serializable
     data object Logs : Destination
 
     @Serializable

@@ -15,18 +15,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.ramitsuri.locationtracking.ui.AppTheme
-import com.ramitsuri.locationtracking.ui.logs.LogsScreen
 import com.ramitsuri.locationtracking.ui.home.HomeScreen
 import com.ramitsuri.locationtracking.ui.home.HomeViewModel
 import com.ramitsuri.locationtracking.ui.logs.LogScreenViewModel
+import com.ramitsuri.locationtracking.ui.logs.LogsScreen
 import com.ramitsuri.locationtracking.ui.region.RegionsScreen
 import com.ramitsuri.locationtracking.ui.region.RegionsViewModel
 import com.ramitsuri.locationtracking.ui.seenwifi.SeenWifiScreen
 import com.ramitsuri.locationtracking.ui.seenwifi.SeenWifiViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsScreen
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
-import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesScreen
-import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -88,7 +86,7 @@ fun NavGraph(
                         },
                         onServiceStart = onServiceStart,
                         onServiceStop = onServiceStop,
-                        onNavToWifiRules = {
+                        onNavToSeenWifi = {
                             navController.navigate(Destination.SeenWifi)
                         },
                         onNavToLogs = {
@@ -98,23 +96,6 @@ fun NavGraph(
                             navController.navigate(Destination.Regions)
                         },
                         onUpdateButtonClick = viewModel::onUpdateButtonClick,
-                        modifier = Modifier
-                            .statusBarsPadding()
-                            .displayCutoutPadding(),
-                    )
-                }
-
-                composable<Destination.WifiRules> {
-                    val viewModel = koinViewModel<WifiRulesViewModel>()
-                    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
-                    WifiRulesScreen(
-                        viewState = viewState,
-                        onNavBack = {
-                            navController.navigateUp()
-                        },
-                        onDelete = viewModel::delete,
-                        onEdit = viewModel::edit,
-                        onAdd = viewModel::add,
                         modifier = Modifier
                             .statusBarsPadding()
                             .displayCutoutPadding(),

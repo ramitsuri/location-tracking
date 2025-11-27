@@ -25,7 +25,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,7 +52,7 @@ fun SettingsScreen(
     onKillApp: () -> Unit,
     onServiceStart: () -> Unit,
     onServiceStop: () -> Unit,
-    onNavToWifiRules: () -> Unit,
+    onNavToSeenWifi: () -> Unit,
     onNavToLogs: () -> Unit,
     onNavToRegions: () -> Unit,
     onUpdateButtonClick: () -> Unit,
@@ -91,10 +90,10 @@ fun SettingsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Button(
-            onClick = onNavToWifiRules,
+            onClick = onNavToSeenWifi,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(stringResource(R.string.wifi_rules))
+            Text(stringResource(R.string.seen_wifi))
         }
         Spacer(modifier = Modifier.height(8.dp))
         Button(

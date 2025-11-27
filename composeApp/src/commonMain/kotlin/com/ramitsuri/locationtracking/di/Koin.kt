@@ -7,7 +7,6 @@ import com.ramitsuri.locationtracking.data.dao.LocationDao
 import com.ramitsuri.locationtracking.data.dao.LogItemDao
 import com.ramitsuri.locationtracking.data.dao.RegionDao
 import com.ramitsuri.locationtracking.data.dao.SeenWifiDao
-import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.log.DbLogWriter
 import com.ramitsuri.locationtracking.network.GeocoderApi
 import com.ramitsuri.locationtracking.network.GithubApi
@@ -140,10 +139,6 @@ private val coreModule = module {
 
     factory<GeocodeCacheDao> {
         get<AppDatabase>().geocodeCacheDao()
-    }
-
-    factory<WifiMonitoringModeRuleDao> {
-        get<AppDatabase>().wifiMonitoringModeRuleDao()
     }
 
     factory<SeenWifiDao> {

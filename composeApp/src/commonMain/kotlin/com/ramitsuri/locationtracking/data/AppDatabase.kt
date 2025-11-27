@@ -9,7 +9,6 @@ import com.ramitsuri.locationtracking.data.dao.LocationDao
 import com.ramitsuri.locationtracking.data.dao.LogItemDao
 import com.ramitsuri.locationtracking.data.dao.RegionDao
 import com.ramitsuri.locationtracking.data.dao.SeenWifiDao
-import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.data.migration.Migration2To3
 import com.ramitsuri.locationtracking.data.migration.Migration3To4
 import com.ramitsuri.locationtracking.data.migration.Migration4To5
@@ -20,7 +19,6 @@ import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LogItem
 import com.ramitsuri.locationtracking.model.Region
 import com.ramitsuri.locationtracking.model.SeenWifi
-import com.ramitsuri.locationtracking.model.WifiMonitoringModeRule
 import kotlinx.coroutines.CoroutineDispatcher
 
 @Database(
@@ -28,7 +26,6 @@ import kotlinx.coroutines.CoroutineDispatcher
         Location::class,
         GeocodeCache::class,
         SeenWifi::class,
-        WifiMonitoringModeRule::class,
         LogItem::class,
         Region::class,
     ],
@@ -40,8 +37,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun locationDao(): LocationDao
 
     abstract fun geocodeCacheDao(): GeocodeCacheDao
-
-    abstract fun wifiMonitoringModeRuleDao(): WifiMonitoringModeRuleDao
 
     abstract fun seenWifiDao(): SeenWifiDao
 
