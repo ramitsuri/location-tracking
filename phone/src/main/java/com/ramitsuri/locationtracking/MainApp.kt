@@ -6,7 +6,6 @@ import androidx.room.RoomDatabase
 import co.touchlab.kermit.Logger
 import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.data.dao.LogItemDao
-import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.di.KoinQualifier
 import com.ramitsuri.locationtracking.di.initKoin
 import com.ramitsuri.locationtracking.log.DbLogWriter
@@ -33,7 +32,6 @@ import com.ramitsuri.locationtracking.ui.region.AndroidRegionUtil
 import com.ramitsuri.locationtracking.ui.region.RegionsViewModel
 import com.ramitsuri.locationtracking.ui.seenwifi.SeenWifiViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
-import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesViewModel
 import com.ramitsuri.locationtracking.upload.UploadWorker
 import com.ramitsuri.locationtracking.utils.RegionUtil
 import com.ramitsuri.locationtracking.util.AppUpdateManager
@@ -181,12 +179,6 @@ class MainApp : Application(), KoinComponent {
                         timeZone = get<TimeZone>(),
                         settings = get<Settings>(),
                         regionDao = get<AppDatabase>().regionDao(),
-                    )
-                }
-
-                viewModel<WifiRulesViewModel> {
-                    WifiRulesViewModel(
-                        wifiMonitoringModeRuleDao = get<WifiMonitoringModeRuleDao>(),
                     )
                 }
 
