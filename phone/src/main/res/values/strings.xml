@@ -19,6 +19,8 @@
     <string name="regions">Regions</string>
     <string name="check_for_update">Check for update</string>
     <string name="install">Install</string>
+    <string name="search">Search</string>
+    <string name="seen_wifi">Seen WiFi</string>
 
     <string name="notification_channel_ongoing">"Ongoing"</string>
     <string name="notification_channel_ongoing_description">"Required to receive location updates in the background"</string>
@@ -64,4 +66,8 @@
     <string name="timeline_disconnected">Disconnected</string>
     <string name="timeline_connected">Connected</string>
     <string name="timeline_started">Start</string>
+    <plurals name="seen_count_formatted">
+        <item quantity="one">Seen 1 time</item>
+        <item quantity="other">Seen %1$d times</item>
+    </plurals>
 </resources>

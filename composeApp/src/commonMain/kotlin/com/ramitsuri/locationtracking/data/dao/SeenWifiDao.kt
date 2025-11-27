@@ -16,19 +16,22 @@ abstract class SeenWifiDao {
         if (existing == null) {
             insert(SeenWifi(ssid = ssid))
         } else {
-            update(SeenWifi(ssid = ssid, seenCount = existing.seenCount + 1))
+            update(existing.copy(seenCount = existing.seenCount + 1))
         }
     }
 
-    @Query("SELECT * FROM seen_wifi ORDER BY seen_count DESC")
-    abstract fun getFlow(): Flow<List<SeenWifi>>
+    @Query("SELECT * FROM seen_wifi WHERE ssid LIKE '%' || :query || '%' ORDER BY seen_count DESC")
+    abstract fun getFlow(query: String = ""): Flow<List<SeenWifi>>
+
+    @Query("SELECT * FROM seen_wifi WHERE ssid IN (:ssids) AND is_favorite = true")
+    abstract suspend fun getFavorites(ssids: List<String>): List<SeenWifi>
 
     @Insert
-    protected abstract suspend fun insert(wifi: SeenWifi)
+    abstract suspend fun insert(wifi: SeenWifi)
 
     @Query("SELECT * FROM seen_wifi WHERE ssid = :ssid")
     protected abstract suspend fun get(ssid: String): SeenWifi?
 
     @Update
-    protected abstract suspend fun update(wifi: SeenWifi)
+    abstract suspend fun update(wifi: SeenWifi)
 }

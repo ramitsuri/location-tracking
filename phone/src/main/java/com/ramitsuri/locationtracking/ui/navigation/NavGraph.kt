@@ -21,6 +21,8 @@ import com.ramitsuri.locationtracking.ui.home.HomeViewModel
 import com.ramitsuri.locationtracking.ui.logs.LogScreenViewModel
 import com.ramitsuri.locationtracking.ui.region.RegionsScreen
 import com.ramitsuri.locationtracking.ui.region.RegionsViewModel
+import com.ramitsuri.locationtracking.ui.seenwifi.SeenWifiScreen
+import com.ramitsuri.locationtracking.ui.seenwifi.SeenWifiViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsScreen
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
 import com.ramitsuri.locationtracking.ui.wifirule.WifiRulesScreen
@@ -87,7 +89,7 @@ fun NavGraph(
                         onServiceStart = onServiceStart,
                         onServiceStop = onServiceStop,
                         onNavToWifiRules = {
-                            navController.navigate(Destination.WifiRules)
+                            navController.navigate(Destination.SeenWifi)
                         },
                         onNavToLogs = {
                             navController.navigate(Destination.Logs)
@@ -153,6 +155,22 @@ fun NavGraph(
                         onSaveRegion = viewModel::onSaveRegion,
                         onDeleteRegion = viewModel::onDeleteRegion,
                         modifier = Modifier
+                    )
+                }
+
+                composable<Destination.SeenWifi> {
+                    val viewModel = koinViewModel< SeenWifiViewModel>()
+                    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
+                    SeenWifiScreen(
+                        viewState = viewState,
+                        onNavBack = {
+                            navController.navigateUp()
+                        },
+                        onToggleIsFavorite = viewModel::toggleFavorite,
+                        onSearchTextChange = viewModel::onSearchTextChange,
+                        modifier = Modifier
+                            .statusBarsPadding()
+                            .displayCutoutPadding(),
                     )
                 }
             }

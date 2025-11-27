@@ -1,10 +1,8 @@
 package com.ramitsuri.locationtracking.tracking
 
 import com.ramitsuri.locationtracking.data.dao.SeenWifiDao
-import com.ramitsuri.locationtracking.data.dao.WifiMonitoringModeRuleDao
 import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.model.MonitoringMode
-import com.ramitsuri.locationtracking.model.WifiMonitoringModeRule
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import kotlin.time.Duration.Companion.seconds
@@ -17,7 +15,6 @@ import kotlinx.coroutines.launch
 class WifiMonitor(
     private val wifiInfoProvider: WifiInfoProvider,
     private val seenWifiDao: SeenWifiDao,
-    private val wifiMonitoringModeRuleDao: WifiMonitoringModeRuleDao,
     private val scope: CoroutineScope,
     private val settings: Settings,
 ) {
@@ -79,29 +76,24 @@ class WifiMonitor(
             wifiMonitoringModeRuleJob?.cancel()
             wifiMonitoringModeRuleJob = launch {
                 delay(1.seconds)
-                wifiMonitoringModeRuleDao
-                    .getAll(listOfNotNull(connectedTo, disconnectedFrom))
-                    .let { rules ->
-                        rules
-                            .filter { it.status != WifiMonitoringModeRule.Status.UNKNOWN }
-                            .partition { it.status == WifiMonitoringModeRule.Status.CONNECTED }
-                            .let { (connectedRules, disconnectedRules) ->
-                                var modeToSet: MonitoringMode? = null
-                                disconnectedFrom?.let {
-                                    disconnectedRules.lastOrNull()?.let {
-                                        modeToSet = it.mode
-                                    }
-                                }
-                                connectedTo?.let {
-                                    connectedRules.lastOrNull()?.let {
-                                        modeToSet = it.mode
-                                    }
-                                }
-                                modeToSet?.let {
-                                    logI(TAG) { "Setting mode to $modeToSet" }
-                                    settings.setMonitoringMode(it)
-                                }
+                seenWifiDao
+                    .getFavorites(listOfNotNull(connectedTo, disconnectedFrom))
+                    .let { seenWifis ->
+                        var modeToSet: MonitoringMode? = null
+                        disconnectedFrom?.let { disconnectedSsid ->
+                            if (seenWifis.any { it.ssid == disconnectedSsid }) {
+                                modeToSet = MonitoringMode.Move
                             }
+                        }
+                        connectedTo?.let { connectedSsid ->
+                            if (seenWifis.any { it.ssid == connectedSsid }) {
+                                modeToSet = MonitoringMode.Rest
+                            }
+                        }
+                        modeToSet?.let {
+                            logI(TAG) { "Setting mode to $modeToSet" }
+                            settings.setMonitoringMode(it)
+                        }
                     }
             }
         }
