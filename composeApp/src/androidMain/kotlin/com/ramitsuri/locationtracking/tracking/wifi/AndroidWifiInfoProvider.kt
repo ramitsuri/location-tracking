@@ -61,8 +61,14 @@ class AndroidWifiInfoProvider(
                     val ssid = info.getUnquotedSSID()
                     logI(TAG) { "onCapabilitiesChanged: Wifi network: $ssid" }
                     updateWifiInfo(WifiInfo(ssid, info.bssid))
+                } else if (networkCapabilities.isVpnAndWifi()) {
+                    logI(TAG) {
+                        "onCapabilitiesChanged: is VPN and Wifi, assuming staying on previous wifi"
+                    }
                 } else {
-                    logI(TAG) { "onCapabilitiesChanged: Non Wifi network" }
+                    logI(TAG) {
+                        "onCapabilitiesChanged: not VPN or not Wifi, reporting as wifi lost"
+                    }
                     updateWifiInfo()
                 }
                 super.onCapabilitiesChanged(network, networkCapabilities)
@@ -90,6 +96,10 @@ class AndroidWifiInfoProvider(
 
     private fun AndroidWifiInfo.getUnquotedSSID(): String =
         this.ssid.replace(Regex("^\"(.*)\"$"), "$1")
+
+    private fun NetworkCapabilities.isVpnAndWifi() =
+        !hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN) &&
+            hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
 
     companion object {
         private const val TAG = "AndroidWifiInfoProvider"
