@@ -30,6 +30,7 @@ class PhoneDataLayerListenerService : WearableListenerService(), KoinComponent {
         logD(TAG) { "onDataChanged: $dataEvents" }
         val changeMonitoringModeEvents = mutableListOf<DataEvent>()
         val singleLocationEvents = mutableListOf<DataEvent>()
+        val quickChangeModeEvents = mutableListOf<DataEvent>()
         dataEvents.forEach { event ->
             val path = event.dataItem.uri.path ?: ""
             when {
@@ -38,6 +39,9 @@ class PhoneDataLayerListenerService : WearableListenerService(), KoinComponent {
                 }
                 path.startsWith(Constants.Route.SINGLE_LOCATION_PHONE) -> {
                     singleLocationEvents.add(event)
+                }
+                path.startsWith(Constants.Route.QUICK_MODE_CHANGE_PHONE) -> {
+                    quickChangeModeEvents.add(event)
                 }
             }
         }
@@ -63,6 +67,13 @@ class PhoneDataLayerListenerService : WearableListenerService(), KoinComponent {
                 permissionChecker = permissionChecker,
                 notificationManager = notificationManager,
             )
+        }
+
+        quickChangeModeEvents.lastOrNull()?.let {
+            logD(TAG) { "Have a quick change mode event" }
+            scope.launch {
+                settings.quickChangeMode()
+            }
         }
     }
 

@@ -72,7 +72,9 @@ class ComplicationDataSourceService : SuspendingComplicationDataSourceService(),
         PendingIntent.getActivity(
             this,
             0,
-            Intent(this, MainActivity::class.java),
+            Intent(this, MainActivity::class.java).apply {
+                putExtra(MainActivity.QUICK_CHANGE_MODE_KEY, true)
+            },
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         ),
     ).build()

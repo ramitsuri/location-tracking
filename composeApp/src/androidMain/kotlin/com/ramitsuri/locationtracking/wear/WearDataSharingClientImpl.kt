@@ -52,7 +52,7 @@ class WearDataSharingClientImpl(
             val id = Uuid.random().toString()
             val path = when (to) {
                 WearDataSharingClient.To.Phone -> "${Constants.Route.SINGLE_LOCATION_PHONE}/$id"
-                WearDataSharingClient.To.Wear -> "${Constants.Route.SINGLE_LOCATION_WEAR}/$id"
+                WearDataSharingClient.To.Wear -> error("Not supported for sending to Wear")
             }
             val request =
                 PutDataMapRequest.create(path)
@@ -63,6 +63,27 @@ class WearDataSharingClientImpl(
             true
         } catch (exception: Exception) {
             logW(TAG) { "Failed to post single location: ${exception.message}" }
+            false
+        }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    override suspend fun postQuickChangeMode(to: WearDataSharingClient.To): Boolean {
+        return try {
+            val id = Uuid.random().toString()
+            val path = when (to) {
+                WearDataSharingClient.To.Phone -> "${Constants.Route.QUICK_MODE_CHANGE_PHONE}/$id"
+                WearDataSharingClient.To.Wear -> error("Not supported for sending to Wear")
+            }
+            val request =
+                PutDataMapRequest.create(path)
+                    .asPutDataRequest()
+                    .setUrgent()
+
+            dataClient.putDataItem(request).await()
+            true
+        } catch (exception: Exception) {
+            logW(TAG) { "Failed to post quick change mode: ${exception.message}" }
             false
         }
     }

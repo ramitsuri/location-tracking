@@ -25,6 +25,17 @@ class Settings internal constructor(
             }
     }
 
+    suspend fun quickChangeMode() {
+        val currentMode = getMonitoringMode().first()
+        val newMode = when (currentMode) {
+            MonitoringMode.Off -> MonitoringMode.Off
+            MonitoringMode.Rest -> MonitoringMode.Move
+            MonitoringMode.Walk -> MonitoringMode.Rest
+            MonitoringMode.Move -> MonitoringMode.Rest
+        }
+        setMonitoringMode(newMode)
+    }
+
     suspend fun setMonitoringMode(mode: MonitoringMode) {
         keyValueStore.putString(Key.MONITORING_MODE, mode.value)
     }

@@ -105,7 +105,7 @@ private fun launchActivityAction(context: Context, action: String? = null): Andr
         .apply {
             if (action != null) {
                 addKeyToExtraMapping(
-                    MainActivity.EXTRA_KEY,
+                    MainActivity.MODE_KEY,
                     ActionBuilders.stringExtra(action),
                 )
             }

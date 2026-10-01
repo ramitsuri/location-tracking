@@ -7,6 +7,8 @@ interface WearDataSharingClient {
 
     suspend fun postSingleLocation(to: To): Boolean
 
+    suspend fun postQuickChangeMode(to: To): Boolean
+
     enum class To {
         Phone,
         Wear,

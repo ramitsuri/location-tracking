@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
             )
         }
         // From tile
-        val monitoringMode = when (intent.extras?.getString(EXTRA_KEY)) {
+        val monitoringMode = when (intent.extras?.getString(MODE_KEY)) {
             MODE_MOVE -> {
                 MonitoringMode.Move
             }
@@ -52,8 +52,9 @@ class MainActivity : ComponentActivity() {
                 null
             }
         }
+        val quickChangeMode = intent.extras?.getBoolean(QUICK_CHANGE_MODE_KEY) ?: false
         lifecycleScope.launch {
-            if (intent.extras?.getString(EXTRA_KEY) == SINGLE_LOCATION) {
+            if (intent.extras?.getString(MODE_KEY) == SINGLE_LOCATION) {
                 dataSharingClient.postSingleLocation(to = WearDataSharingClient.To.Phone).let {
                     if (it) {
                         finish()
@@ -68,16 +69,25 @@ class MainActivity : ComponentActivity() {
                         finish()
                     }
                 }
+            } else if (quickChangeMode) {
+                dataSharingClient.postQuickChangeMode(
+                    to = WearDataSharingClient.To.Phone,
+                ).let {
+                    if (it) {
+                        finish()
+                    }
+                }
             }
         }
     }
 
     companion object {
-        const val EXTRA_KEY = "EXTRA_KEY"
+        const val MODE_KEY = "MODE_KEY"
         const val MODE_MOVE = "MODE_MOVE"
         const val MODE_WALK = "MODE_WALK"
         const val MODE_REST = "MODE_REST"
         const val MODE_OFF = "MODE_OFF"
         const val SINGLE_LOCATION = "SINGLE_LOCATION"
+        const val QUICK_CHANGE_MODE_KEY = "QUICK_CHANGE_MODE_KEY"
     }
 }

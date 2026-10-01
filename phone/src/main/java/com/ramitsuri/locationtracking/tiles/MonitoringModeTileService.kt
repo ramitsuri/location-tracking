@@ -11,7 +11,6 @@ import com.ramitsuri.locationtracking.util.getIcon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.core.component.KoinComponent
@@ -35,7 +34,7 @@ class MonitoringModeTileService : TileService(), KoinComponent {
     override fun onClick() {
         super.onClick()
         coroutineScope.launch {
-            settings.setMonitoringMode(settings.getMonitoringMode().first().getNextMode())
+            settings.quickChangeMode()
         }
     }
 
