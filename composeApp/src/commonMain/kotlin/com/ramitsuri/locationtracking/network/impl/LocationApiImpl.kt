@@ -10,7 +10,7 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 internal class LocationApiImpl(
     private val httpClient: HttpClient,

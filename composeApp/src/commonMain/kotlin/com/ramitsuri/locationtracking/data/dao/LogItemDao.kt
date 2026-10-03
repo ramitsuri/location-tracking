@@ -6,7 +6,7 @@ import androidx.room.Query
 import com.ramitsuri.locationtracking.model.LogItem
 import com.ramitsuri.locationtracking.model.LogLevel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 @Dao
 interface LogItemDao {

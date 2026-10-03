@@ -1,7 +1,7 @@
 package com.ramitsuri.locationtracking.network
 
 import com.ramitsuri.locationtracking.model.Location
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 interface LocationApi {
     suspend fun postLocation(location: Location, deviceName: String, baseUrl: String): Result<Unit>

@@ -4,11 +4,10 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.ramitsuri.locationtracking.network.InstantSerializer
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.serialization.Required
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -23,7 +22,6 @@ data class Location(
     val messageId: String = Uuid.random().toString(),
 
     @SerialName("created_at")
-    @Serializable(with = InstantSerializer::class)
     @ColumnInfo(name = "createdAt")
     val createdAt: Instant = Clock.System.now(),
 
@@ -52,7 +50,6 @@ data class Location(
     val bearing: Int,
 
     @SerialName("tst")
-    @Serializable(with = InstantSerializer::class)
     @ColumnInfo(name = "locationTimestamp")
     val locationTimestamp: Instant,
 

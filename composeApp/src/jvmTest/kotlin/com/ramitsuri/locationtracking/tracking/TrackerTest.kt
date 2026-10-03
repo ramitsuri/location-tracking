@@ -26,7 +26,7 @@ import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.junit.Test
 import org.koin.test.get
 import org.koin.test.inject

@@ -6,7 +6,7 @@ import com.ramitsuri.locationtracking.model.LatLng
 import com.ramitsuri.locationtracking.model.LogLevel
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import java.math.BigDecimal
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 class DatabaseConverters {
     @TypeConverter

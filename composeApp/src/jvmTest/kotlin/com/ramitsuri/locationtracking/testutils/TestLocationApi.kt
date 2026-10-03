@@ -2,7 +2,7 @@ package com.ramitsuri.locationtracking.testutils
 
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.network.LocationApi
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 class TestLocationApi : LocationApi {
     override suspend fun postLocation(
