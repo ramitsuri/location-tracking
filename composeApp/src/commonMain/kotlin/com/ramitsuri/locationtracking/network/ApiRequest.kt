@@ -33,7 +33,7 @@ internal suspend inline fun <reified T> apiRequest(
             }
         } catch (e: Exception) {
             if (e is java.io.IOException) {
-                Result.failure(NoInternetException)
+                Result.failure(NoInternetException(e.stackTraceToString()))
             } else {
                 Result.failure(UnknownErrorException(e))
             }
@@ -45,9 +45,7 @@ data object BadRequestException : RuntimeException("Bad request") {
     private fun readResolve(): Any = BadRequestException
 }
 
-data object NoInternetException : RuntimeException("No internet") {
-    private fun readResolve(): Any = NoInternetException
-}
+data class NoInternetException(override val message: String?) : RuntimeException(message)
 
 data class UnknownErrorException(val exception: Exception? = null) :
     RuntimeException("Unknown error")

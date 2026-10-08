@@ -49,7 +49,7 @@ class LocationRepository(
                         )
                         .onSuccess { uploaded.add(location) }
                         .onFailure { exception ->
-                            logW(TAG) { "failed to upload: $exception" }
+                            logW(TAG) { "failed to upload: ${exception.message}" }
                             uploaded.let { locationDao.delete(it) }
                             return Result.failure(exception)
                         }
@@ -75,7 +75,9 @@ class LocationRepository(
                     baseUrl = baseUrl,
                     fromDate = from,
                     toDate = to,
-                ).map { locations ->
+                ).onFailure { exception ->
+                    logW(TAG) { "failed to get: ${exception.message}" }
+                }.map { locations ->
                     locations.filter { it.accuracy <= minAccuracyMeters }
                 }.getOrNull() ?: emptyList()
             }
