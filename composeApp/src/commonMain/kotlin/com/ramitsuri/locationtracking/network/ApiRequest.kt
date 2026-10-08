@@ -33,7 +33,7 @@ internal suspend inline fun <reified T> apiRequest(
             }
         } catch (e: Exception) {
             if (e is java.io.IOException) {
-                Result.failure(NoInternetException(e.stackTraceToString()))
+                Result.failure(NoInternetException(e.message))
             } else {
                 Result.failure(UnknownErrorException(e))
             }
