@@ -97,6 +97,7 @@ private val coreModule = module {
         GeocoderRepository(
             geocoderApi = get<GeocoderApi>(),
             geocodeCacheDao = get<GeocodeCacheDao>(),
+            isEnabled = false,
         )
     }
 

@@ -8,8 +8,12 @@ import com.ramitsuri.locationtracking.utils.toBd
 class GeocoderRepository(
     private val geocoderApi: GeocoderApi,
     private val geocodeCacheDao: GeocodeCacheDao,
+    private val isEnabled: Boolean = true,
 ) {
     suspend fun reverseGeocode(latitude: Double, longitude: Double): String? {
+        if (!isEnabled) {
+            return null
+        }
         val latitudeAsBd = latitude.toBd()
         val longitudeAsBd = longitude.toBd()
         return geocodeCacheDao.get(
