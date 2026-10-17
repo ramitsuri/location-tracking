@@ -137,39 +137,65 @@ class HomeViewModel(
     }
 
     private fun createWifiTimeline(locations: List<Location>): List<LocationsForDate.Event> {
-        var previousLocation: Location? = null
-        return locations.mapIndexedNotNull { index, location ->
-            val event = if (index == 0) {
-                LocationsForDate.Event(
-                    type = LocationsForDate.Event.Type.START,
-                    time = location.locationTimestamp.toLocalDateTime(timeZone),
-                    wifiName = location.ssid ?: ""
-                )
-            } else {
-                when (location.ssid) {
-                    previousLocation?.ssid -> {
-                        null
-                    }
+        if (locations.isEmpty()) return emptyList()
 
-                    null -> {
+        val events = mutableListOf<LocationsForDate.Event>()
+        var currentConnectedWifi: String? = null
+
+        locations.forEachIndexed { index, location ->
+            val ssid = location.ssid
+            val time = location.locationTimestamp.toLocalDateTime(timeZone)
+
+            if (index == 0) {
+                if (ssid != null) {
+                    events.add(
+                        LocationsForDate.Event(
+                            type = LocationsForDate.Event.Type.START,
+                            time = time,
+                            wifiName = ssid,
+                        )
+                    )
+                    currentConnectedWifi = ssid
+                }
+            } else {
+                if (currentConnectedWifi != null && ssid == null) {
+                    events.add(
                         LocationsForDate.Event(
                             type = LocationsForDate.Event.Type.DISCONNECTED,
-                            time = location.locationTimestamp.toLocalDateTime(timeZone),
-                            wifiName = previousLocation?.ssid ?: "",
+                            time = time,
+                            wifiName = currentConnectedWifi,
                         )
-                    }
-
-                    else -> {
+                    )
+                    currentConnectedWifi = null
+                } else if (currentConnectedWifi == null && ssid != null) {
+                    events.add(
                         LocationsForDate.Event(
                             type = LocationsForDate.Event.Type.CONNECTED,
-                            time = location.locationTimestamp.toLocalDateTime(timeZone),
-                            wifiName = location.ssid ?: "",
+                            time = time,
+                            wifiName = ssid,
                         )
-                    }
+                    )
+                    currentConnectedWifi = ssid
+                } else if (currentConnectedWifi != null && ssid != null && currentConnectedWifi != ssid) {
+                    events.add(
+                        LocationsForDate.Event(
+                            type = LocationsForDate.Event.Type.DISCONNECTED,
+                            time = time,
+                            wifiName = currentConnectedWifi,
+                        )
+                    )
+                    events.add(
+                        LocationsForDate.Event(
+                            type = LocationsForDate.Event.Type.CONNECTED,
+                            time = time,
+                            wifiName = ssid,
+                        )
+                    )
+                    currentConnectedWifi = ssid
                 }
             }
-            previousLocation = location
-            event
         }
+
+        return events
     }
 }
