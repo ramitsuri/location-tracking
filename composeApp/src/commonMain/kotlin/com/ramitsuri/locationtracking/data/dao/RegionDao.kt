@@ -18,4 +18,7 @@ interface RegionDao {
 
     @Query("SELECT * FROM region")
     fun getAllFlow(): Flow<List<Region>>
+
+    @Query("SELECT * FROM region")
+    suspend fun getAll(): List<Region>
 }

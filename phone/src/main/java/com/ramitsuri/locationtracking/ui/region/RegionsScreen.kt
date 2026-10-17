@@ -17,12 +17,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Done
+import androidx.compose.material.icons.outlined.History
+import com.ramitsuri.locationtracking.model.LogItem
+import com.ramitsuri.locationtracking.utils.format
+import kotlinx.datetime.TimeZone
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -97,6 +102,9 @@ private fun ScreenContent(
     val regionsSheetState = rememberModalBottomSheetState()
     var showRegionsSheet by remember { mutableStateOf(false) }
 
+    val geofenceLogsSheetState = rememberModalBottomSheetState()
+    var showGeofenceLogsSheet by remember { mutableStateOf(false) }
+
     val clickedRegionInfoSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var clickedRegionForInfo by remember { mutableStateOf<Region?>(null) }
     var clickedRegionForMapCentering by remember { mutableStateOf<Region?>(null) }
@@ -129,6 +137,7 @@ private fun ScreenContent(
                 showRequestUnsavedRegionNameButton = viewState.unsavedRegionNeedsName,
                 onRequestUnsavedRegionName = { showRegionNameSheet = true },
                 onSavedRegionsButtonClick = { showRegionsSheet = true },
+                onGeofenceLogsButtonClick = { showGeofenceLogsSheet = true },
                 onSaveRegion = onSaveRegion,
                 onClearRegion = onClearUnsavedRegion,
                 onBack = onBack,
@@ -171,6 +180,18 @@ private fun ScreenContent(
                         deleteRegion = it
                         showRegionsSheet = false
                     },
+                )
+            }
+        }
+
+        if (showGeofenceLogsSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showGeofenceLogsSheet = false },
+                sheetState = geofenceLogsSheetState,
+            ) {
+                GeofenceLogsSheetContent(
+                    logs = viewState.geofenceLogs,
+                    timeZone = viewState.timeZone,
                 )
             }
         }
@@ -323,6 +344,7 @@ private fun TopRow(
     onBack: () -> Unit,
     onRequestUnsavedRegionName: () -> Unit,
     onSavedRegionsButtonClick: () -> Unit,
+    onGeofenceLogsButtonClick: () -> Unit,
     onSaveRegion: () -> Unit,
     onClearRegion: () -> Unit,
 ) {
@@ -358,6 +380,7 @@ private fun TopRow(
                 showRequestUnsavedRegionNameButton = showRequestUnsavedRegionNameButton,
                 onRequestUnsavedRegionName = onRequestUnsavedRegionName,
                 onSavedRegionsButtonClick = onSavedRegionsButtonClick,
+                onGeofenceLogsButtonClick = onGeofenceLogsButtonClick,
                 onSaveRegion = onSaveRegion,
                 onClearRegion = onClearRegion,
             )
@@ -373,6 +396,7 @@ private fun PillContent(
     showRequestUnsavedRegionNameButton: Boolean,
     onRequestUnsavedRegionName: () -> Unit,
     onSavedRegionsButtonClick: () -> Unit,
+    onGeofenceLogsButtonClick: () -> Unit,
     onSaveRegion: () -> Unit,
     onClearRegion: () -> Unit,
     modifier: Modifier = Modifier,
@@ -414,6 +438,67 @@ private fun PillContent(
                     onClick = onSavedRegionsButtonClick,
                     icon = Icons.AutoMirrored.Filled.List,
                 )
+                TintedIconButton(
+                    onClick = onGeofenceLogsButtonClick,
+                    icon = Icons.Outlined.History,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun GeofenceLogsSheetContent(
+    logs: List<LogItem>,
+    timeZone: TimeZone,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.geofence_logs),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 12.dp),
+        )
+        if (logs.isEmpty()) {
+            Text(
+                text = stringResource(R.string.no_geofence_logs),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 16.dp),
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(logs, key = { it.id }) { logItem ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .padding(12.dp),
+                    ) {
+                        Text(
+                            text = logItem.time.format(
+                                timeZone = timeZone,
+                                am = stringResource(R.string.am),
+                                pm = stringResource(R.string.pm),
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = logItem.message,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
             }
         }
     }

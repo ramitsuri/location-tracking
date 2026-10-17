@@ -8,6 +8,7 @@ import com.ramitsuri.locationtracking.repository.GeocoderRepository
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.DataStoreKeyValueStore
 import com.ramitsuri.locationtracking.settings.Settings
+import com.ramitsuri.locationtracking.utils.RegionUtil
 import java.nio.file.Paths
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -88,5 +89,13 @@ val testModule = module {
 
     factory<TestBatteryInfoProvider> {
         TestBatteryInfoProvider()
+    }
+
+    factory<TestRegionUtil> {
+        TestRegionUtil()
+    }
+
+    factory<RegionUtil> {
+        get<TestRegionUtil>()
     }
 }

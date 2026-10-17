@@ -25,4 +25,7 @@ interface LogItemDao {
 
     @Query("SELECT DISTINCT tag FROM logs ORDER BY tag")
     fun getTags(): Flow<List<String>>
+
+    @Query("SELECT * FROM logs WHERE tag = 'GeofenceReceiver' AND time >= :since ORDER BY time DESC")
+    fun getGeofenceLogsFlow(since: Instant): Flow<List<LogItem>>
 }
