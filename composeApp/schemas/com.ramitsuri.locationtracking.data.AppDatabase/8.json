@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 8,
-    "identityHash": "df8b71fc22eb909d1a280f4b5d83db34",
+    "identityHash": "87d26bf57d45715845ec357394aa135e",
     "entities": [
       {
         "tableName": "location",
@@ -255,7 +255,7 @@
       },
       {
         "tableName": "region",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `radius_meters` REAL NOT NULL, `center_latitude` TEXT NOT NULL, `center_longitude` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `radius_meters` REAL NOT NULL, `type` TEXT NOT NULL, `center_latitude` TEXT NOT NULL, `center_longitude` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -273,6 +273,12 @@
             "fieldPath": "radiusMeters",
             "columnName": "radius_meters",
             "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -298,7 +304,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'df8b71fc22eb909d1a280f4b5d83db34')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '87d26bf57d45715845ec357394aa135e')"
     ]
   }
 }

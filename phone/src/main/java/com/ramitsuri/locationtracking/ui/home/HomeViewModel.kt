@@ -3,14 +3,26 @@ package com.ramitsuri.locationtracking.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ramitsuri.locationtracking.data.dao.RegionDao
+import com.ramitsuri.locationtracking.geofence.AndroidGeofenceManager
+import com.ramitsuri.locationtracking.log.logI
+import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LocationsViewMode
+import com.ramitsuri.locationtracking.model.Region
+import com.ramitsuri.locationtracking.notification.NotificationManager
 import com.ramitsuri.locationtracking.permissions.PermissionResult
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.Settings
+import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.ui.home.HomeViewState.ViewMode.LocationsForDate
+import com.ramitsuri.locationtracking.ui.region.toLatLng
 import com.ramitsuri.locationtracking.utils.RegionUtil
 import com.ramitsuri.locationtracking.utils.combine
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.nanoseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,8 +35,6 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.nanoseconds
 
 class HomeViewModel(
     private val locationRepository: LocationRepository,
@@ -33,7 +43,10 @@ class HomeViewModel(
     private val upload: () -> Unit,
     private val timeZone: TimeZone,
     private val settings: Settings,
-    regionDao: RegionDao,
+    private val regionDao: RegionDao,
+    private val locationProvider: LocationProvider,
+    private val geofenceManager: AndroidGeofenceManager,
+    private val notificationManager: NotificationManager,
 ) : ViewModel() {
     private val viewMode =
         MutableStateFlow<HomeViewState.ViewMode>(HomeViewState.ViewMode.LastKnownLocation())
@@ -134,6 +147,78 @@ class HomeViewModel(
                 else -> it
             }
         }
+    }
+
+    fun onAddTempGeofence() {
+        viewModelScope.launch {
+            isLoading.value = true
+            val freshLocation = getAccurateLocationFix(maxAttempts = 3, targetAccuracyMeters = 50)
+            if (freshLocation == null) {
+                logW(TAG) { "Failed to get accurate location fix for temporary geofence" }
+                isLoading.value = false
+                return@launch
+            }
+
+            val tempName = generateTempRegionName()
+
+            val tempRegion = Region(
+                name = tempName,
+                center = freshLocation.toLatLng(),
+                radiusMeters = Region.DEFAULT_RADIUS_METERS,
+                type = Region.Type.TEMP,
+            )
+
+            regionDao.insert(tempRegion)
+            geofenceManager.syncGeofences()
+            logI(TAG) { "Created temporary geofence '$tempName' at ($freshLocation)" }
+
+            notificationManager.notifyGeofenceTrigger(
+                transitionName = "TEMP GEOFENCE CREATED",
+                latitude = freshLocation.latitude,
+                longitude = freshLocation.longitude,
+                regionName = tempName,
+            )
+
+            isLoading.value = false
+        }
+    }
+
+    private suspend fun getAccurateLocationFix(
+        maxAttempts: Int = 3,
+        targetAccuracyMeters: Int = 50,
+    ): Location? {
+        var bestFix: Location? = null
+        for (attempt in 1..maxAttempts) {
+            val fix = locationProvider.requestSingle()
+            if (fix != null) {
+                if (bestFix == null || fix.accuracy < bestFix.accuracy) {
+                    bestFix = fix
+                }
+                if (fix.accuracy <= targetAccuracyMeters) {
+                    return fix
+                }
+            }
+            if (attempt < maxAttempts) {
+                delay(1.seconds)
+            }
+        }
+        return bestFix
+    }
+
+    @Suppress("DEPRECATION")
+    private fun generateTempRegionName(): String {
+        val now = Clock.System.now().toLocalDateTime(timeZone)
+        val year = now.year.toString().padStart(4, '0')
+        val month = now.monthNumber.toString().padStart(2, '0')
+        val day = now.dayOfMonth.toString().padStart(2, '0')
+        val hour = now.hour.toString().padStart(2, '0')
+        val minute = now.minute.toString().padStart(2, '0')
+        val second = now.second.toString().padStart(2, '0')
+        return "temp_${year}${month}${day}_${hour}${minute}${second}"
+    }
+
+    companion object {
+        private const val TAG = "HomeViewModel"
     }
 
     private fun createWifiTimeline(locations: List<Location>): List<LocationsForDate.Event> {

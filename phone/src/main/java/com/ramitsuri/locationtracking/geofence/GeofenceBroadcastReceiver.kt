@@ -29,6 +29,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
     private val scope: CoroutineScope by inject()
     private val locationProvider: LocationProvider by inject()
     private val notificationManager: NotificationManager by inject()
+    private val geofenceManager: AndroidGeofenceManager by inject()
 
     override fun onReceive(context: Context, intent: Intent) {
         val event = GeofencingEvent.fromIntent(intent) ?: return
@@ -126,6 +127,11 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
                         longitude = notifyLng,
                         regionName = regionName,
                     )
+                }
+                if (region != null && region.type == Region.Type.TEMP) {
+                    regionDao.delete(region)
+                    geofenceManager.syncGeofences()
+                    logI(TAG) { "Removed temporary geofence '${region.name}' (id=${region.id}) on exit" }
                 }
             }
 

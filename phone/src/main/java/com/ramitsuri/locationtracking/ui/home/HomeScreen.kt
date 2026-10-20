@@ -41,6 +41,7 @@ import androidx.compose.material.icons.outlined.BatteryFull
 import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.PinDrop
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SlowMotionVideo
 import androidx.compose.material.icons.outlined.Timeline
@@ -119,6 +120,7 @@ fun HomeScreen(
     onNavToSettings: () -> Unit,
     onNavToSystemSettings: () -> Unit,
     onSingleLocation: () -> Unit,
+    onAddTempGeofence: () -> Unit,
     onUpload: () -> Unit,
     onSelectDateTimeForLocations: (LocalDateTime, LocalDateTime?) -> Unit,
     onClearDate: () -> Unit,
@@ -149,6 +151,7 @@ fun HomeScreen(
                         onNavToSettings = onNavToSettings,
                         onNavToSystemSettings = onNavToSystemSettings,
                         onSingleLocation = onSingleLocation,
+                        onAddTempGeofence = onAddTempGeofence,
                         onUpload = onUpload,
                         onDatePickerClick = { showDateTimePicker = true },
                     )
@@ -762,6 +765,7 @@ private fun OptionsPill(
     onNavToSettings: () -> Unit,
     onNavToSystemSettings: () -> Unit,
     onSingleLocation: () -> Unit,
+    onAddTempGeofence: () -> Unit,
     onUpload: () -> Unit,
     onDatePickerClick: () -> Unit,
 ) {
@@ -792,6 +796,10 @@ private fun OptionsPill(
             TintedIconButton(
                 onClick = onSingleLocation,
                 icon = Icons.Outlined.AddLocation,
+            )
+            TintedIconButton(
+                onClick = onAddTempGeofence,
+                icon = Icons.Outlined.PinDrop,
             )
             TintedIconButton(
                 onClick = onDatePickerClick,

@@ -14,6 +14,7 @@ class Migration7To8 : Migration(7, 8) {
                 "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
                 "`name` TEXT NOT NULL, " +
                 "`radius_meters` REAL NOT NULL, " +
+                "`type` TEXT NOT NULL, " +
                 "`center_latitude` TEXT NOT NULL, " +
                 "`center_longitude` TEXT NOT NULL" +
                 ")",

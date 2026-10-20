@@ -4,6 +4,7 @@ import androidx.room.TypeConverter
 import com.ramitsuri.locationtracking.model.BatteryStatus
 import com.ramitsuri.locationtracking.model.LogLevel
 import com.ramitsuri.locationtracking.model.MonitoringMode
+import com.ramitsuri.locationtracking.model.Region
 import java.math.BigDecimal
 import kotlin.time.Instant
 
@@ -66,5 +67,15 @@ class DatabaseConverters {
     @TypeConverter
     fun fromLogLevel(logLevel: LogLevel): String {
         return logLevel.value
+    }
+
+    @TypeConverter
+    fun toRegionType(string: String): Region.Type {
+        return toEnum(string, Region.Type.default())
+    }
+
+    @TypeConverter
+    fun fromRegionType(type: Region.Type): String {
+        return type.value
     }
 }

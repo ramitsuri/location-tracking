@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.ramitsuri.locationtracking.data.DbEnum
 
 @Entity(tableName = "region")
 data class Region(
@@ -19,11 +20,24 @@ data class Region(
 
     @ColumnInfo(name = "radius_meters")
     val radiusMeters: Float,
+
+    @ColumnInfo(name = "type")
+    val type: Type = Type.HOME,
 ) {
+    enum class Type(override val value: String) : DbEnum {
+        HOME("home"),
+        TEMP("temp"),
+        ;
+
+        companion object {
+            fun default(): Type = HOME
+        }
+    }
+
     companion object {
         // Google recommends a minimum geofence radius of 100-150m for reliable triggering
         const val MIN_RADIUS_METERS = 100f
         const val MAX_RADIUS_METERS = 2000f
-        const val DEFAULT_RADIUS_METERS = 150f
+        const val DEFAULT_RADIUS_METERS = 100f
     }
 }
