@@ -131,7 +131,8 @@ fun NavGraph(
                             navController.navigateUp()
                         },
                         onRegionLatLng = viewModel::onRegionLatLng,
-                        onRegionNameChanged = viewModel::onRegionNameChanged,
+                        onRegionRadiusChanged = viewModel::onRegionRadiusChanged,
+                onRegionNameChanged = viewModel::onRegionNameChanged,
                         onClearUnsavedRegion = viewModel::onClearUnsavedRegion,
                         onSaveRegion = viewModel::onSaveRegion,
                         onDeleteRegion = viewModel::onDeleteRegion,

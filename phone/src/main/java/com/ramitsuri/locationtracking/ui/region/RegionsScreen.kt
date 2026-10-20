@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -35,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -51,15 +53,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.CameraPosition
-import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.model.AndroidLatLng
 import com.ramitsuri.locationtracking.model.Region
 import com.ramitsuri.locationtracking.ui.components.Map
-import com.ramitsuri.locationtracking.ui.components.Polygon
+import com.ramitsuri.locationtracking.ui.components.RegionCircle
 import com.ramitsuri.locationtracking.ui.components.TintedIconButton
-import com.ramitsuri.locationtracking.utils.center
+import kotlin.math.roundToInt
 
 @Composable
 fun RegionsScreen(
@@ -67,6 +68,7 @@ fun RegionsScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
     onRegionLatLng: (AndroidLatLng) -> Unit,
+    onRegionRadiusChanged: (Float) -> Unit,
     onRegionNameChanged: (String) -> Unit,
     onClearUnsavedRegion: () -> Unit,
     onSaveRegion: () -> Unit,
@@ -76,6 +78,7 @@ fun RegionsScreen(
         viewState = viewState,
         modifier = modifier,
         onLatLngReceived = onRegionLatLng,
+        onRadiusChanged = onRegionRadiusChanged,
         onSaveRegion = onSaveRegion,
         onClearUnsavedRegion = onClearUnsavedRegion,
         onBack = onBack,
@@ -90,6 +93,7 @@ private fun ScreenContent(
     viewState: RegionsViewState,
     modifier: Modifier = Modifier,
     onLatLngReceived: (AndroidLatLng) -> Unit,
+    onRadiusChanged: (Float) -> Unit,
     onSaveRegion: () -> Unit,
     onClearUnsavedRegion: () -> Unit,
     onBack: () -> Unit,
@@ -144,13 +148,24 @@ private fun ScreenContent(
             )
         }
 
+        viewState.unsavedRegion?.let { unsavedRegion ->
+            RadiusControl(
+                radiusMeters = unsavedRegion.radiusMeters,
+                onRadiusChanged = onRadiusChanged,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(16.dp),
+            )
+        }
+
         if (showRegionNameSheet) {
             ModalBottomSheet(
                 onDismissRequest = { showRegionNameSheet = false },
                 sheetState = regionNameSheetState,
             ) {
                 RegionNameSheetContent(
-                    name = viewState.unsavedRegion.name,
+                    name = viewState.unsavedRegion?.name.orEmpty(),
                     onNameChanged = onRegionNameChanged,
                     onSave = {
                         onSaveRegion()
@@ -250,8 +265,10 @@ private fun MapContent(
     }
     LaunchedEffect(regionForCentering) {
         if (regionForCentering != null) {
-            val center = regionForCentering.latLngs.center()
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(center, zoom)
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                regionForCentering.center.toAndroidLatLng(),
+                zoom,
+            )
             onResetRegionForCentering()
         }
     }
@@ -260,24 +277,19 @@ private fun MapContent(
         cameraPositionState = cameraPositionState,
         onMapClick = onMapClick,
     ) {
-        if (viewState.isUnsavedRegionEmpty) {
+        val unsavedRegion = viewState.unsavedRegion
+        if (unsavedRegion == null) {
             viewState.regions.forEach { region ->
-                Polygon(
+                RegionCircle(
                     region = region,
-                    onRegionClick = onRegionClick
+                    onRegionClick = onRegionClick,
                 )
             }
-        } else if (viewState.unsavedRegion.latLngs.size == 1) {
-            Circle(
-                center = viewState.unsavedRegion.latLngs.first().toAndroidLatLng(),
-                clickable = false,
-                fillColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f),
-                strokeColor = MaterialTheme.colorScheme.secondary,
-                radius = 0.5,
-                strokeWidth = 20f,
-            )
         } else {
-            Polygon(region = viewState.unsavedRegion)
+            RegionCircle(
+                center = unsavedRegion.center,
+                radiusMeters = unsavedRegion.radiusMeters,
+            )
         }
     }
 }
@@ -292,7 +304,37 @@ private fun RegionInfoSheetContent(
             .fillMaxWidth()
             .padding(16.dp),
     ) {
-        Text(region.name)
+        Text(region.name, style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = stringResource(R.string.region_radius, region.radiusMeters.roundToInt()),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun RadiusControl(
+    radiusMeters: Float,
+    onRadiusChanged: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.region_radius, radiusMeters.roundToInt()),
+            style = MaterialTheme.typography.labelLarge,
+        )
+        Slider(
+            value = radiusMeters,
+            onValueChange = onRadiusChanged,
+            valueRange = Region.MIN_RADIUS_METERS..Region.MAX_RADIUS_METERS,
+        )
     }
 }
 

@@ -14,6 +14,7 @@ import com.ramitsuri.locationtracking.data.migration.Migration3To4
 import com.ramitsuri.locationtracking.data.migration.Migration4To5
 import com.ramitsuri.locationtracking.data.migration.Migration5To6
 import com.ramitsuri.locationtracking.data.migration.Migration6To7
+import com.ramitsuri.locationtracking.data.migration.Migration7To8
 import com.ramitsuri.locationtracking.model.GeocodeCache
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LogItem
@@ -29,7 +30,7 @@ import kotlinx.coroutines.CoroutineDispatcher
         LogItem::class,
         Region::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 @TypeConverters(DatabaseConverters::class)
@@ -55,6 +56,7 @@ abstract class AppDatabase : RoomDatabase() {
                     Migration4To5(),
                     Migration5To6(),
                     Migration6To7(),
+                    Migration7To8(),
                 )
                 .build()
         }

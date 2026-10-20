@@ -27,7 +27,7 @@ class RegionsViewModel(
     timeZone: TimeZone,
     private val geofenceManager: AndroidGeofenceManager? = null,
 ) : ViewModel() {
-    private val unsavedRegion = MutableStateFlow(Region.EMPTY)
+    private val unsavedRegion = MutableStateFlow<UnsavedRegion?>(null)
 
     val viewState = combine(
         regionDao.getAllFlow(),
@@ -49,18 +49,26 @@ class RegionsViewModel(
     )
 
     fun onRegionLatLng(latLng: AndroidLatLng) {
-        val newPoint = latLng.toLatLng()
-        unsavedRegion.value = unsavedRegion.value.copy(
-            latLngs = unsavedRegion.value.latLngs + newPoint,
+        val center = latLng.toLatLng()
+        unsavedRegion.value = unsavedRegion.value?.copy(center = center)
+            ?: UnsavedRegion(center = center)
+    }
+
+    fun onRegionRadiusChanged(radiusMeters: Float) {
+        unsavedRegion.value = unsavedRegion.value?.copy(
+            radiusMeters = radiusMeters.coerceIn(
+                Region.MIN_RADIUS_METERS,
+                Region.MAX_RADIUS_METERS,
+            ),
         )
     }
 
     fun onRegionNameChanged(name: String) {
-        unsavedRegion.value = unsavedRegion.value.copy(name = name)
+        unsavedRegion.value = unsavedRegion.value?.copy(name = name)
     }
 
     fun onClearUnsavedRegion() {
-        unsavedRegion.value = Region.EMPTY
+        unsavedRegion.value = null
     }
 
     fun onSaveRegion() {
@@ -70,8 +78,15 @@ class RegionsViewModel(
                 logI(TAG) { "Cannot save region" }
                 return@launch
             }
-            regionDao.insert(state.unsavedRegion)
-            unsavedRegion.value = Region.EMPTY
+            val unsaved = state.unsavedRegion ?: return@launch
+            regionDao.insert(
+                Region(
+                    name = unsaved.name.trim(),
+                    center = unsaved.center,
+                    radiusMeters = unsaved.radiusMeters,
+                ),
+            )
+            unsavedRegion.value = null
             geofenceManager?.syncGeofences()
         }
     }

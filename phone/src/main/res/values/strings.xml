@@ -60,6 +60,7 @@
     <string name="select_to_date">Select to date</string>
 
     <string name="region_name">Region Name</string>
+    <string name="region_radius">Radius: %1$d m</string>
     <string name="delete_region">Delete region?</string>
     <string name="geofence_logs">Geofence Logs</string>
     <string name="no_geofence_logs">No geofence events in the last 3 days</string>

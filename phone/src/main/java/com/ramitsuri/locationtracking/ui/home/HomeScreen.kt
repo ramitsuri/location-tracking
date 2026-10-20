@@ -99,7 +99,7 @@ import com.ramitsuri.locationtracking.permissions.asAndroidPermission
 import com.ramitsuri.locationtracking.ui.components.Date
 import com.ramitsuri.locationtracking.ui.components.Loading
 import com.ramitsuri.locationtracking.ui.components.Map
-import com.ramitsuri.locationtracking.ui.components.Polygon
+import com.ramitsuri.locationtracking.ui.components.RegionCircle
 import com.ramitsuri.locationtracking.ui.components.Time
 import com.ramitsuri.locationtracking.ui.components.TintedIconButton
 import com.ramitsuri.locationtracking.ui.components.TintedTextButton
@@ -721,7 +721,7 @@ private fun LocationsForDateMap(
             }
         }
         regions.forEach {
-            Polygon(region = it)
+            RegionCircle(region = it)
         }
     }
 }

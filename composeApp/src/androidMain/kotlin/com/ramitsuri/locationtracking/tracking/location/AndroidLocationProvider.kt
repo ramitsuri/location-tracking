@@ -17,13 +17,14 @@ import com.ramitsuri.locationtracking.log.logE
 import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.time.Instant
 
 class AndroidLocationProvider(context: Context) : LocationProvider {
@@ -78,7 +79,13 @@ class AndroidLocationProvider(context: Context) : LocationProvider {
             "android.permission.ACCESS_COARSE_LOCATION",
         ],
     )
-    override suspend fun requestSingle() = suspendCoroutine { continuation ->
+    override suspend fun requestSingle(): Location? = suspendCancellableCoroutine { continuation ->
+        val cancellationTokenSource = CancellationTokenSource()
+        continuation.invokeOnCancellation {
+            logI(TAG) { "Single location request cancelled" }
+            cancellationTokenSource.cancel()
+        }
+
         fusedLocationProviderClient
             .getCurrentLocation(
                 CurrentLocationRequest.Builder()
@@ -86,7 +93,7 @@ class AndroidLocationProvider(context: Context) : LocationProvider {
                     .setGranularity(GRANULARITY_PERMISSION_LEVEL)
                     .setPriority(com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY)
                     .build(),
-                null,
+                cancellationTokenSource.token,
             )
             .addOnSuccessListener { location: AndroidLocation? ->
                 // Turns out location can be null! Especially if there's no location available or if
@@ -97,10 +104,14 @@ class AndroidLocationProvider(context: Context) : LocationProvider {
                             "disabled?"
                     }
                 }
-                continuation.resume(location?.asLocation())
+                if (continuation.isActive) {
+                    continuation.resume(location?.asLocation())
+                }
             }
             .addOnFailureListener {
-                continuation.resume(null)
+                if (continuation.isActive) {
+                    continuation.resume(null)
+                }
             }
     }
 

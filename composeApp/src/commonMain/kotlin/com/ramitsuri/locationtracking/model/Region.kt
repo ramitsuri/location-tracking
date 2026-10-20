@@ -1,6 +1,7 @@
 package com.ramitsuri.locationtracking.model
 
 import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -13,10 +14,16 @@ data class Region(
     @ColumnInfo(name = "name")
     val name: String,
 
-    @ColumnInfo(name = "latLngs")
-    val latLngs: List<LatLng>,
+    @Embedded(prefix = "center_")
+    val center: LatLng,
+
+    @ColumnInfo(name = "radius_meters")
+    val radiusMeters: Float,
 ) {
     companion object {
-        val EMPTY = Region(name = "", latLngs = listOf())
+        // Google recommends a minimum geofence radius of 100-150m for reliable triggering
+        const val MIN_RADIUS_METERS = 100f
+        const val MAX_RADIUS_METERS = 2000f
+        const val DEFAULT_RADIUS_METERS = 150f
     }
 }
