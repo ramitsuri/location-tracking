@@ -25,6 +25,9 @@
     <string name="notification_channel_ongoing">"Ongoing"</string>
     <string name="notification_channel_ongoing_description">"Required to receive location updates in the background"</string>
     <string name="notification_channel_errors">"Errors"</string>
+    <string name="notification_channel_geofences">"Geofences"</string>
+    <string name="notification_channel_geofences_description">"Notifications for geofence enter/exit events"</string>
+    <string name="view_on_map">"View on Map"</string>
 
     <string name="kill_app">"Kill App"</string>
     <string name="start_service">Start Service</string>

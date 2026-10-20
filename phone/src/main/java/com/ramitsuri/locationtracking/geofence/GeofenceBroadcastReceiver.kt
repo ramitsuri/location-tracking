@@ -13,6 +13,7 @@ import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.Region
+import com.ramitsuri.locationtracking.notification.NotificationManager
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +28,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
     private val regionDao: RegionDao by inject()
     private val scope: CoroutineScope by inject()
     private val locationProvider: LocationProvider by inject()
+    private val notificationManager: NotificationManager by inject()
 
     override fun onReceive(context: Context, intent: Intent) {
         val event = GeofencingEvent.fromIntent(intent) ?: return
@@ -44,7 +46,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
         }
 
         val triggeringGeofences = event.triggeringGeofences ?: emptyList()
-        val location = event.triggeringLocation
+        val systemLocation = event.triggeringLocation
 
         val pendingResult = goAsync()
         scope.launch {
@@ -58,14 +60,27 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
                 regions.forEach { (requestId, region) ->
                     val regionName = region?.name ?: "Region ID $requestId"
                     val baseMessage =
-                        "Geofence $transitionName for region '$regionName' at ($location)"
+                        "Geofence $transitionName for region '$regionName' at ($systemLocation)"
 
                     if (transitionType != Geofence.GEOFENCE_TRANSITION_EXIT) {
                         logI(TAG) { baseMessage }
+                        if (systemLocation != null) {
+                            notificationManager.notifyGeofenceTrigger(
+                                transitionName = transitionName,
+                                latitude = systemLocation.latitude,
+                                longitude = systemLocation.longitude,
+                                regionName = regionName,
+                            )
+                        }
                         return@forEach
                     }
 
-                    processExitVerification(region, baseMessage)
+                    processExitVerification(
+                        region = region,
+                        regionName = regionName,
+                        systemLocation = systemLocation,
+                        baseMessage = baseMessage,
+                    )
                 }
             } finally {
                 pendingResult.finish()
@@ -75,6 +90,8 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
 
     private suspend fun processExitVerification(
         region: Region?,
+        regionName: String,
+        systemLocation: AndroidLocation?,
         baseMessage: String,
     ) {
         var freshLocation = requestFreshLocation()
@@ -93,24 +110,67 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
 
         val finalVerdict = verdict
         val finalLocation = freshLocation
+        val notifyLat = finalLocation?.latitude ?: systemLocation?.latitude
+        val notifyLng = finalLocation?.longitude ?: systemLocation?.longitude
+
         when (finalVerdict) {
-            is ExitVerdict.Confirmed -> logI(TAG) {
-                "$baseMessage - confirmed by fresh fix ${finalLocation.describe()} " +
-                    "(dist=${finalVerdict.distance.toInt()}m - acc=${finalVerdict.accuracy}m > radius=${finalVerdict.radius.toInt()}m)"
+            is ExitVerdict.Confirmed -> {
+                logI(TAG) {
+                    "$baseMessage - confirmed by fresh fix ${finalLocation.describe()} " +
+                        "(dist=${finalVerdict.distance.toInt()}m - acc=${finalVerdict.accuracy}m > radius=${finalVerdict.radius.toInt()}m)"
+                }
+                if (notifyLat != null && notifyLng != null) {
+                    notificationManager.notifyGeofenceTrigger(
+                        transitionName = "EXIT (Confirmed)",
+                        latitude = notifyLat,
+                        longitude = notifyLng,
+                        regionName = regionName,
+                    )
+                }
             }
 
-            is ExitVerdict.FalseExit -> logW(TAG) {
-                "$baseMessage - ignored, fresh fix ${finalLocation.describe()} is inside region " +
-                    "(dist=${finalVerdict.distance.toInt()}m + acc=${finalVerdict.accuracy}m <= radius=${finalVerdict.radius.toInt()}m)"
+            is ExitVerdict.FalseExit -> {
+                logW(TAG) {
+                    "$baseMessage - ignored, fresh fix ${finalLocation.describe()} is inside region " +
+                        "(dist=${finalVerdict.distance.toInt()}m + acc=${finalVerdict.accuracy}m <= radius=${finalVerdict.radius.toInt()}m)"
+                }
+                if (notifyLat != null && notifyLng != null) {
+                    notificationManager.notifyGeofenceTrigger(
+                        transitionName = "EXIT (Ignored - Inside)",
+                        latitude = notifyLat,
+                        longitude = notifyLng,
+                        regionName = regionName,
+                    )
+                }
             }
 
-            is ExitVerdict.Inconclusive -> logW(TAG) {
-                "$baseMessage - inconclusive after retry: fresh fix ${finalLocation.describe()} " +
-                    "(dist=${finalVerdict.distance.toInt()}m, acc=${finalVerdict.accuracy}m, radius=${finalVerdict.radius.toInt()}m)"
+            is ExitVerdict.Inconclusive -> {
+                logW(TAG) {
+                    "$baseMessage - inconclusive after retry: fresh fix ${finalLocation.describe()} " +
+                        "(dist=${finalVerdict.distance.toInt()}m, acc=${finalVerdict.accuracy}m, radius=${finalVerdict.radius.toInt()}m)"
+                }
+                if (notifyLat != null && notifyLng != null) {
+                    notificationManager.notifyGeofenceTrigger(
+                        transitionName = "EXIT (Inconclusive)",
+                        latitude = notifyLat,
+                        longitude = notifyLng,
+                        regionName = regionName,
+                    )
+                }
             }
 
-            is ExitVerdict.Unverified -> logW(TAG) {
-                "$baseMessage - unverified: ${finalVerdict.reason}"
+            is ExitVerdict.Unverified -> {
+                logW(TAG) {
+                    "$baseMessage - unverified: ${finalVerdict.reason}"
+                }
+                if (notifyLat != null && notifyLng != null) {
+                    notificationManager.notifyGeofenceTrigger(
+                        transitionName = "EXIT (Unverified)",
+                        latitude = notifyLat,
+                        longitude = notifyLng,
+                        regionName = regionName,
+                    )
+                }
             }
         }
     }

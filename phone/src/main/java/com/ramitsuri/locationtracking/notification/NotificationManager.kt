@@ -11,6 +11,7 @@ import android.media.AudioManager
 import androidx.annotation.DrawableRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.net.toUri
 import com.ramitsuri.locationtracking.MainActivity
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.permissions.Permission
@@ -54,6 +55,18 @@ class NotificationManager(
         }.run {
             notificationManager.createNotificationChannel(this)
         }
+
+        NotificationChannel(
+            NotificationConstants.CHANNEL_GEOFENCE_ID,
+            appContext.getString(R.string.notification_channel_geofences),
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply {
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            description =
+                appContext.getString(R.string.notification_channel_geofences_description)
+        }.run {
+            notificationManager.createNotificationChannel(this)
+        }
     }
 
     fun cancelBackgroundRestrictionNotification() {
@@ -89,6 +102,57 @@ class NotificationManager(
         notificationManager.notify(
             BACKGROUND_LOCATION_RESTRICTION_NOTIFICATION_TAG,
             0,
+            notification,
+        )
+    }
+
+    @SuppressLint("MissingPermission")
+    fun notifyGeofenceTrigger(
+        transitionName: String,
+        latitude: Double,
+        longitude: Double,
+        regionName: String? = null,
+    ) {
+        if (!permissionChecker.hasPermission(Permission.NOTIFICATION)) {
+            return
+        }
+
+        val mapUri = "geo:$latitude,$longitude?q=$latitude,$longitude".toUri()
+        val mapIntent = Intent(Intent.ACTION_VIEW, mapUri).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        val mapPendingIntent = PendingIntent.getActivity(
+            appContext,
+            (System.currentTimeMillis() % 100000).toInt(),
+            mapIntent,
+            UPDATE_CURRENT_INTENT_FLAGS,
+        )
+
+        val title = if (!regionName.isNullOrBlank()) {
+            "$transitionName: $regionName"
+        } else {
+            "Geofence $transitionName"
+        }
+        val text = "Location: $latitude, $longitude"
+
+        val notification =
+            NotificationCompat.Builder(appContext, NotificationConstants.CHANNEL_GEOFENCE_ID)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setAutoCancel(true)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentIntent(mapPendingIntent)
+                .addAction(
+                    0,
+                    appContext.getString(R.string.view_on_map),
+                    mapPendingIntent,
+                )
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .build()
+
+        notificationManager.notify(
+            GEOFENCE_TRIGGER_NOTIFICATION_TAG,
+            (System.currentTimeMillis() % 100000).toInt(),
             notification,
         )
     }
@@ -180,5 +244,7 @@ class NotificationManager(
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         private const val BACKGROUND_LOCATION_RESTRICTION_NOTIFICATION_TAG =
             "backgroundRestrictionNotification"
+        private const val GEOFENCE_TRIGGER_NOTIFICATION_TAG =
+            "geofenceTriggerNotification"
     }
 }
