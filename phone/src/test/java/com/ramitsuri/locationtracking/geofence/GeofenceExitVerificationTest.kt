@@ -54,34 +54,33 @@ class GeofenceExitVerificationTest {
     }
 
     @Test
-    fun `evaluateExit - confirmed when distance minus accuracy exceeds radius`() {
-        // Distance ~200m away (lat 37.7767, lng -122.4194 is ~200m north). Accuracy = 20m.
-        // 200m - 20m = 180m > 100m -> Confirmed.
-        val location = location(lat = 37.7767, lon = -122.4194, accuracy = 20)
+    fun `evaluateExit - confirmed when at boundary`() {
+        // Distance ~110m away (lat 37.77589). Accuracy = 30m.
+        // 110m - 30m = 80m <= 100m AND 110m + 30m = 140m > 100m -> Confirmed (boundary overlap).
+        val location = location(lat = 37.77589, lon = -122.4194, accuracy = 30)
 
         val verdict = receiver.evaluateExit(region, location)
         assertTrue(verdict is GeofenceBroadcastReceiver.ExitVerdict.Confirmed)
     }
 
     @Test
-    fun `evaluateExit - rejected when distance plus accuracy is within radius`() {
-        // Distance ~30m away (lat 37.77517, lng -122.4194 is ~30m north). Accuracy = 20m.
-        // 30m + 20m = 50m <= 100m -> FalseExit.
+    fun `evaluateExit - inside region when distance plus accuracy is within radius`() {
+        // Distance ~30m away (lat 37.77517). Accuracy = 20m.
+        // 30m + 20m = 50m <= 100m -> InsideRegion.
         val location = location(lat = 37.77517, lon = -122.4194, accuracy = 20)
 
         val verdict = receiver.evaluateExit(region, location)
-        assertTrue(verdict is GeofenceBroadcastReceiver.ExitVerdict.FalseExit)
+        assertTrue(verdict is GeofenceBroadcastReceiver.ExitVerdict.InsideRegion)
     }
 
     @Test
-    fun `evaluateExit - inconclusive when accuracy straddles boundary`() {
-        // Distance ~110m away. Accuracy = 30m.
-        // 110 - 30 = 80 <= 100 (not confirmed)
-        // 110 + 30 = 140 > 100 (not rejected) -> Inconclusive.
-        val location = location(lat = 37.77589, lon = -122.4194, accuracy = 30)
+    fun `evaluateExit - too far away when distance minus accuracy exceeds radius`() {
+        // Distance ~9000m away. Accuracy = 20m.
+        // 9000m - 20m = 8980m > 100m -> TooFarAway (spurious exit).
+        val location = location(lat = 37.8559, lon = -122.4194, accuracy = 20)
 
         val verdict = receiver.evaluateExit(region, location)
-        assertTrue(verdict is GeofenceBroadcastReceiver.ExitVerdict.Inconclusive)
+        assertTrue(verdict is GeofenceBroadcastReceiver.ExitVerdict.TooFarAway)
     }
 
     @Test
@@ -94,7 +93,7 @@ class GeofenceExitVerificationTest {
 
     @Test
     fun `evaluateExit - unverified when location is null`() {
-        val verdict = receiver.evaluateExit(region, null)
+        val verdict = receiver.evaluateExit(region, null as Location?)
         assertTrue(verdict is GeofenceBroadcastReceiver.ExitVerdict.Unverified)
         assertEquals("no fresh location available", verdict.reason)
     }

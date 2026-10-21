@@ -95,14 +95,32 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
         systemLocation: AndroidLocation?,
         baseMessage: String,
     ) {
+        // First verify triggering system location if available
+        if (systemLocation != null && region != null) {
+            val systemVerdict = evaluateExit(region, systemLocation)
+            if (systemVerdict is ExitVerdict.TooFarAway) {
+                logW(TAG) {
+                    "$baseMessage - ignored, triggering system location ${systemLocation.describe()} is too far away " +
+                        "(dist=${systemVerdict.distance.toInt()}m > radius=${systemVerdict.radius.toInt()}m + acc=${systemVerdict.accuracy}m)"
+                }
+                notificationManager.notifyGeofenceTrigger(
+                    transitionName = "EXIT (Ignored - Too Far)",
+                    latitude = systemLocation.latitude,
+                    longitude = systemLocation.longitude,
+                    regionName = regionName,
+                )
+                return
+            }
+        }
+
         var freshLocation = requestFreshLocation()
         var verdict = evaluateExit(region, freshLocation)
 
-        if (verdict is ExitVerdict.Inconclusive) {
-            val inc = verdict
+        if (verdict is ExitVerdict.InsideRegion) {
+            val insideVerdict = verdict
             logI(TAG) {
-                "$baseMessage - 1st fix inconclusive ${freshLocation.describe()} " +
-                    "(dist=${inc.distance.toInt()}m, acc=${inc.accuracy}m, radius=${inc.radius.toInt()}m), retrying in 3s..."
+                "$baseMessage - 1st fix inside region ${freshLocation.describe()} " +
+                    "(dist=${insideVerdict.distance.toInt()}m + acc=${insideVerdict.accuracy}m <= radius=${insideVerdict.radius.toInt()}m), retrying in 3s..."
             }
             delay(RETRY_DELAY)
             freshLocation = requestFreshLocation()
@@ -118,7 +136,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
             is ExitVerdict.Confirmed -> {
                 logI(TAG) {
                     "$baseMessage - confirmed by fresh fix ${finalLocation.describe()} " +
-                        "(dist=${finalVerdict.distance.toInt()}m - acc=${finalVerdict.accuracy}m > radius=${finalVerdict.radius.toInt()}m)"
+                        "(dist=${finalVerdict.distance.toInt()}m at boundary radius=${finalVerdict.radius.toInt()}m, acc=${finalVerdict.accuracy}m)"
                 }
                 if (notifyLat != null && notifyLng != null) {
                     notificationManager.notifyGeofenceTrigger(
@@ -135,7 +153,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
                 }
             }
 
-            is ExitVerdict.FalseExit -> {
+            is ExitVerdict.InsideRegion -> {
                 logW(TAG) {
                     "$baseMessage - ignored, fresh fix ${finalLocation.describe()} is inside region " +
                         "(dist=${finalVerdict.distance.toInt()}m + acc=${finalVerdict.accuracy}m <= radius=${finalVerdict.radius.toInt()}m)"
@@ -150,14 +168,14 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
                 }
             }
 
-            is ExitVerdict.Inconclusive -> {
+            is ExitVerdict.TooFarAway -> {
                 logW(TAG) {
-                    "$baseMessage - inconclusive after retry: fresh fix ${finalLocation.describe()} " +
-                        "(dist=${finalVerdict.distance.toInt()}m, acc=${finalVerdict.accuracy}m, radius=${finalVerdict.radius.toInt()}m)"
+                    "$baseMessage - ignored, fresh fix ${finalLocation.describe()} is too far away " +
+                        "(dist=${finalVerdict.distance.toInt()}m > radius=${finalVerdict.radius.toInt()}m + acc=${finalVerdict.accuracy}m)"
                 }
                 if (notifyLat != null && notifyLng != null) {
                     notificationManager.notifyGeofenceTrigger(
-                        transitionName = "EXIT (Inconclusive)",
+                        transitionName = "EXIT (Ignored - Too Far)",
                         latitude = notifyLat,
                         longitude = notifyLng,
                         regionName = regionName,
@@ -186,33 +204,64 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
         return withTimeoutOrNull(FRESH_LOCATION_TIMEOUT) { locationProvider.requestSingle() }
     }
 
-    internal fun evaluateExit(region: Region?, freshLocation: Location?): ExitVerdict {
+    internal fun evaluateExit(region: Region?, location: Location?): ExitVerdict {
         if (region == null) return ExitVerdict.Unverified("region not found")
-        if (freshLocation == null) return ExitVerdict.Unverified("no fresh location available")
+        if (location == null) return ExitVerdict.Unverified("no fresh location available")
 
         val results = FloatArray(1)
         AndroidLocation.distanceBetween(
             region.center.latitude.toDouble(),
             region.center.longitude.toDouble(),
-            freshLocation.latitude,
-            freshLocation.longitude,
+            location.latitude,
+            location.longitude,
             results,
         )
         val distance = results[0]
-        val accuracy = freshLocation.accuracy
+        val accuracy = location.accuracy
         val radius = region.radiusMeters
 
         return when {
-            distance - accuracy > radius -> {
+            distance + accuracy <= radius -> {
+                ExitVerdict.InsideRegion(distance, accuracy, radius)
+            }
+
+            distance - accuracy <= radius -> {
                 ExitVerdict.Confirmed(distance, accuracy, radius)
             }
 
+            else -> {
+                ExitVerdict.TooFarAway(distance, accuracy, radius)
+            }
+        }
+    }
+
+    internal fun evaluateExit(region: Region?, location: AndroidLocation?): ExitVerdict {
+        if (region == null) return ExitVerdict.Unverified("region not found")
+        if (location == null) return ExitVerdict.Unverified("no location available")
+
+        val results = FloatArray(1)
+        AndroidLocation.distanceBetween(
+            region.center.latitude.toDouble(),
+            region.center.longitude.toDouble(),
+            location.latitude,
+            location.longitude,
+            results,
+        )
+        val distance = results[0]
+        val accuracy = if (location.hasAccuracy()) location.accuracy.toInt() else 0
+        val radius = region.radiusMeters
+
+        return when {
             distance + accuracy <= radius -> {
-                ExitVerdict.FalseExit(distance, accuracy, radius)
+                ExitVerdict.InsideRegion(distance, accuracy, radius)
+            }
+
+            distance - accuracy <= radius -> {
+                ExitVerdict.Confirmed(distance, accuracy, radius)
             }
 
             else -> {
-                ExitVerdict.Inconclusive(distance, accuracy, radius)
+                ExitVerdict.TooFarAway(distance, accuracy, radius)
             }
         }
     }
@@ -225,10 +274,18 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
         }
     }
 
+    private fun AndroidLocation?.describe(): String {
+        return if (this == null) {
+            "null"
+        } else {
+            "($latitude, $longitude, acc=${if (hasAccuracy()) accuracy.toInt() else 0}m)"
+        }
+    }
+
     internal sealed interface ExitVerdict {
         data class Confirmed(val distance: Float, val accuracy: Int, val radius: Float) : ExitVerdict
-        data class FalseExit(val distance: Float, val accuracy: Int, val radius: Float) : ExitVerdict
-        data class Inconclusive(val distance: Float, val accuracy: Int, val radius: Float) : ExitVerdict
+        data class InsideRegion(val distance: Float, val accuracy: Int, val radius: Float) : ExitVerdict
+        data class TooFarAway(val distance: Float, val accuracy: Int, val radius: Float) : ExitVerdict
         data class Unverified(val reason: String) : ExitVerdict
     }
 
