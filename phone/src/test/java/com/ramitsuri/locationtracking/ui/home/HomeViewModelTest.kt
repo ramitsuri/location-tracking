@@ -70,7 +70,6 @@ class HomeViewModelTest {
             regionDao = regionDao,
             locationProvider = locationProvider,
             geofenceManager = geofenceManager,
-            notificationManager = notificationManager,
         )
     }
 

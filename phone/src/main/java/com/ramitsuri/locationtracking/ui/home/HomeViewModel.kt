@@ -9,14 +9,12 @@ import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LocationsViewMode
 import com.ramitsuri.locationtracking.model.Region
-import com.ramitsuri.locationtracking.notification.NotificationManager
 import com.ramitsuri.locationtracking.permissions.PermissionResult
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.ui.home.HomeViewState.ViewMode.LocationsForDate
 import com.ramitsuri.locationtracking.ui.region.toLatLng
-import com.ramitsuri.locationtracking.utils.RegionUtil
 import com.ramitsuri.locationtracking.utils.combine
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -46,12 +44,12 @@ class HomeViewModel(
     private val regionDao: RegionDao,
     private val locationProvider: LocationProvider,
     private val geofenceManager: AndroidGeofenceManager,
-    private val notificationManager: NotificationManager,
 ) : ViewModel() {
     private val viewMode =
         MutableStateFlow<HomeViewState.ViewMode>(HomeViewState.ViewMode.LastKnownLocation())
     private val isLoading = MutableStateFlow(false)
     private val selectedLocation = MutableStateFlow<Location?>(null)
+    private val userMessage = MutableStateFlow<String?>(null)
 
     val viewState = combine(
         locationRepository.getCount(),
@@ -62,9 +60,10 @@ class HomeViewModel(
         isLoading,
         selectedLocation,
         regionDao.getAllFlow(),
+        userMessage,
     ) {
             count, permissions, isUploadWorkerRunning, lastKnownLocation, viewMode, isLoading,
-            selectedLocation, regions,
+            selectedLocation, regions, userMessage,
         ->
         val newViewMode = when (viewMode) {
             is LocationsForDate -> viewMode
@@ -80,6 +79,7 @@ class HomeViewModel(
             isLoading = isLoading,
             selectedLocation = selectedLocation,
             regions = regions,
+            userMessage = userMessage,
             timeZone = timeZone,
         )
     }.stateIn(
@@ -149,6 +149,10 @@ class HomeViewModel(
         }
     }
 
+    fun onUserMessageShown() {
+        userMessage.value = null
+    }
+
     fun onAddTempGeofence() {
         viewModelScope.launch {
             isLoading.value = true
@@ -172,13 +176,7 @@ class HomeViewModel(
             geofenceManager.syncGeofences()
             logI(TAG) { "Created temporary geofence '$tempName' at ($freshLocation)" }
 
-            notificationManager.notifyGeofenceTrigger(
-                transitionName = "TEMP GEOFENCE CREATED",
-                latitude = freshLocation.latitude,
-                longitude = freshLocation.longitude,
-                regionName = tempName,
-            )
-
+            userMessage.value = tempName
             isLoading.value = false
         }
     }
@@ -215,10 +213,6 @@ class HomeViewModel(
         val minute = now.minute.toString().padStart(2, '0')
         val second = now.second.toString().padStart(2, '0')
         return "temp_${year}${month}${day}_${hour}${minute}${second}"
-    }
-
-    companion object {
-        private const val TAG = "HomeViewModel"
     }
 
     private fun createWifiTimeline(locations: List<Location>): List<LocationsForDate.Event> {
@@ -282,5 +276,9 @@ class HomeViewModel(
         }
 
         return events
+    }
+
+    companion object {
+        private const val TAG = "HomeViewModel"
     }
 }

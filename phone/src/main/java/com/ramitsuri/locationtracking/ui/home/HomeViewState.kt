@@ -17,6 +17,7 @@ data class HomeViewState(
     val selectedLocation: Location? = null,
     val viewMode: ViewMode = ViewMode.LastKnownLocation(null),
     val regions: List<Region> = emptyList(),
+    val userMessage: String? = null,
     val timeZone: TimeZone,
 ) {
     sealed interface ViewMode {

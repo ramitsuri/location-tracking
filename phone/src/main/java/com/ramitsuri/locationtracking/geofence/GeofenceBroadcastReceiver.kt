@@ -65,7 +65,8 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
 
                     if (transitionType != Geofence.GEOFENCE_TRANSITION_EXIT) {
                         logI(TAG) { baseMessage }
-                        if (systemLocation != null) {
+                        // Notifications are triggered for ENTER, but NOT for DWELL
+                        if (transitionType == Geofence.GEOFENCE_TRANSITION_ENTER && systemLocation != null) {
                             notificationManager.notifyGeofenceTrigger(
                                 transitionName = transitionName,
                                 latitude = systemLocation.latitude,
@@ -101,7 +102,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
             if (systemVerdict is ExitVerdict.TooFarAway) {
                 logW(TAG) {
                     "$baseMessage - ignored, triggering system location ${systemLocation.describe()} is too far away " +
-                        "(dist=${systemVerdict.distance.toInt()}m > radius=${systemVerdict.radius.toInt()}m + acc=${systemVerdict.accuracy}m)"
+                        "(dist=${systemVerdict.distance.toInt()}m > radius=${systemVerdict.radius.toInt()}m + buffer=${EXIT_BUFFER_METERS.toInt()}m + acc=${systemVerdict.accuracy}m)"
                 }
                 notificationManager.notifyGeofenceTrigger(
                     transitionName = "EXIT (Ignored - Too Far)",
@@ -136,7 +137,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
             is ExitVerdict.Confirmed -> {
                 logI(TAG) {
                     "$baseMessage - confirmed by fresh fix ${finalLocation.describe()} " +
-                        "(dist=${finalVerdict.distance.toInt()}m at boundary radius=${finalVerdict.radius.toInt()}m, acc=${finalVerdict.accuracy}m)"
+                        "(dist=${finalVerdict.distance.toInt()}m within radius=${finalVerdict.radius.toInt()}m + buffer=${EXIT_BUFFER_METERS.toInt()}m, acc=${finalVerdict.accuracy}m)"
                 }
                 if (notifyLat != null && notifyLng != null) {
                     notificationManager.notifyGeofenceTrigger(
@@ -171,7 +172,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
             is ExitVerdict.TooFarAway -> {
                 logW(TAG) {
                     "$baseMessage - ignored, fresh fix ${finalLocation.describe()} is too far away " +
-                        "(dist=${finalVerdict.distance.toInt()}m > radius=${finalVerdict.radius.toInt()}m + acc=${finalVerdict.accuracy}m)"
+                        "(dist=${finalVerdict.distance.toInt()}m > radius=${finalVerdict.radius.toInt()}m + buffer=${EXIT_BUFFER_METERS.toInt()}m + acc=${finalVerdict.accuracy}m)"
                 }
                 if (notifyLat != null && notifyLng != null) {
                     notificationManager.notifyGeofenceTrigger(
@@ -225,7 +226,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
                 ExitVerdict.InsideRegion(distance, accuracy, radius)
             }
 
-            distance - accuracy <= radius -> {
+            distance - accuracy <= radius + EXIT_BUFFER_METERS -> {
                 ExitVerdict.Confirmed(distance, accuracy, radius)
             }
 
@@ -256,7 +257,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
                 ExitVerdict.InsideRegion(distance, accuracy, radius)
             }
 
-            distance - accuracy <= radius -> {
+            distance - accuracy <= radius + EXIT_BUFFER_METERS -> {
                 ExitVerdict.Confirmed(distance, accuracy, radius)
             }
 
@@ -293,5 +294,6 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
         private const val TAG = "GeofenceReceiver"
         private val FRESH_LOCATION_TIMEOUT = 5.seconds
         private val RETRY_DELAY = 3.seconds
+        private const val EXIT_BUFFER_METERS = 100f
     }
 }

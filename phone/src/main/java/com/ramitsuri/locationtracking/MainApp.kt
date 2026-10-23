@@ -182,7 +182,6 @@ class MainApp : Application(), KoinComponent {
                         regionDao = get<AppDatabase>().regionDao(),
                         locationProvider = get<LocationProvider>(),
                         geofenceManager = get<AndroidGeofenceManager>(),
-                        notificationManager = get<NotificationManager>(),
                     )
                 }
 

@@ -1,5 +1,6 @@
 package com.ramitsuri.locationtracking.ui.home
 
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -86,6 +87,8 @@ import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.GoogleMapComposable
 import com.google.maps.android.compose.Marker
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
@@ -121,6 +124,7 @@ fun HomeScreen(
     onNavToSystemSettings: () -> Unit,
     onSingleLocation: () -> Unit,
     onAddTempGeofence: () -> Unit,
+    onUserMessageShown: () -> Unit,
     onUpload: () -> Unit,
     onSelectDateTimeForLocations: (LocalDateTime, LocalDateTime?) -> Unit,
     onClearDate: () -> Unit,
@@ -128,6 +132,19 @@ fun HomeScreen(
     onClearSelectedLocation: () -> Unit,
     onSetLocationsViewMode: (LocationsViewMode) -> Unit,
 ) {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+    LaunchedEffect(viewState.userMessage) {
+        viewState.userMessage?.let { message ->
+            Toast.makeText(
+                context,
+                resources.getString(R.string.temp_geofence_created, message),
+                Toast.LENGTH_SHORT,
+            ).show()
+            onUserMessageShown()
+        }
+    }
+
     var showDateTimePicker by remember { mutableStateOf(false) }
     val dateTimePickerState = rememberModalBottomSheetState()
 
@@ -141,7 +158,11 @@ fun HomeScreen(
                 timeZone = viewState.timeZone,
                 selectedLocation = viewState.selectedLocation,
                 mapContent = {
-                    SingleLocationMap(viewState.viewMode.location, onLocationSelected)
+                    SingleLocationMap(
+                        location = viewState.viewMode.location,
+                        regions = viewState.regions,
+                        onLocationClick = onLocationSelected,
+                    )
                 },
                 pillContent = {
                     OptionsPill(
@@ -640,7 +661,11 @@ private fun LocationDetailRow(text: String, icon: ImageVector) {
 }
 
 @Composable
-private fun SingleLocationMap(location: Location?, onLocationClick: (Location) -> Unit) {
+private fun SingleLocationMap(
+    location: Location?,
+    regions: List<Region>,
+    onLocationClick: (Location) -> Unit,
+) {
     val markerState = rememberMarkerState()
     val cameraPositionState = rememberCameraPositionState()
     var zoom by remember { mutableFloatStateOf(13f) }
@@ -666,6 +691,9 @@ private fun SingleLocationMap(location: Location?, onLocationClick: (Location) -
                     true
                 },
             )
+        }
+        regions.forEach {
+            RegionCircle(region = it)
         }
     }
 }
