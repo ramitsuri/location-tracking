@@ -20,12 +20,13 @@ import com.ramitsuri.locationtracking.services.BackgroundService.Companion.INTEN
 import com.ramitsuri.locationtracking.services.BackgroundService.Companion.INTENT_ACTION_CHANGE_MONITORING_NEXT_NEXT
 import com.ramitsuri.locationtracking.services.BackgroundService.Companion.INTENT_ACTION_SEND_LOCATION_USER
 import com.ramitsuri.locationtracking.utils.format
-import java.util.concurrent.ConcurrentHashMap
+import java.util.Collections
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 
 private data class GeofenceNotificationItem(
+    val regionName: String,
     val transitionName: String,
     val time: Instant,
     val latitude: Double,
@@ -38,8 +39,8 @@ class NotificationManager(
 ) {
     private val appContext = context.applicationContext
     private val notificationManager = NotificationManagerCompat.from(context)
-    private val regionNotificationHistory =
-        ConcurrentHashMap<String, MutableList<GeofenceNotificationItem>>()
+    private val geofenceNotificationHistory =
+        Collections.synchronizedList(mutableListOf<GeofenceNotificationItem>())
 
     fun createChannels() {
         // Importance min will show normal priority notification for foreground service. See
@@ -132,17 +133,20 @@ class NotificationManager(
             return
         }
 
-        val key = regionName?.ifBlank { null } ?: "Geofence"
-        val history = regionNotificationHistory.getOrPut(key) { mutableListOf() }
+        val regionLabel = regionName?.ifBlank { null } ?: "Region"
         val newItem = GeofenceNotificationItem(
+            regionName = regionLabel,
             transitionName = transitionName,
             time = time,
             latitude = latitude,
             longitude = longitude,
         )
-        history.add(0, newItem)
-        if (history.size > 10) {
-            history.removeAt(history.lastIndex)
+
+        synchronized(geofenceNotificationHistory) {
+            geofenceNotificationHistory.add(0, newItem)
+            if (geofenceNotificationHistory.size > 15) {
+                geofenceNotificationHistory.removeAt(geofenceNotificationHistory.lastIndex)
+            }
         }
 
         val mapUri = "geo:$latitude,$longitude?q=$latitude,$longitude".toUri()
@@ -151,23 +155,25 @@ class NotificationManager(
         }
         val mapPendingIntent = PendingIntent.getActivity(
             appContext,
-            key.hashCode(),
+            SINGLE_GEOFENCE_NOTIFICATION_ID,
             mapIntent,
             UPDATE_CURRENT_INTENT_FLAGS,
         )
 
         val inboxStyle = NotificationCompat.InboxStyle()
-            .setBigContentTitle(key)
+            .setBigContentTitle("Geofence Events")
 
         val timeZone = TimeZone.currentSystemDefault()
-        history.forEach { item ->
+        val currentHistory = synchronized(geofenceNotificationHistory) { geofenceNotificationHistory.toList() }
+
+        currentHistory.forEach { item ->
             val formattedTime = item.time.format(
                 timeZone = timeZone,
                 am = appContext.getString(R.string.am),
                 pm = appContext.getString(R.string.pm),
             )
             val timeOnly = formattedTime.substringAfter(", ").ifEmpty { formattedTime }
-            inboxStyle.addLine("- ${item.transitionName} at $timeOnly")
+            inboxStyle.addLine("- ${item.regionName}: ${item.transitionName} at $timeOnly")
         }
 
         val latestFormattedTime = newItem.time.format(
@@ -178,8 +184,8 @@ class NotificationManager(
 
         val notification =
             NotificationCompat.Builder(appContext, NotificationConstants.CHANNEL_GEOFENCE_ID)
-                .setContentTitle(key)
-                .setContentText("- $transitionName at $latestFormattedTime")
+                .setContentTitle("Geofence Events")
+                .setContentText("- ${newItem.regionName}: ${newItem.transitionName} at $latestFormattedTime")
                 .setStyle(inboxStyle)
                 .setAutoCancel(true)
                 .setSmallIcon(R.drawable.ic_notification)
@@ -193,8 +199,8 @@ class NotificationManager(
                 .build()
 
         notificationManager.notify(
-            "geofence_region_$key",
-            key.hashCode(),
+            SINGLE_GEOFENCE_NOTIFICATION_TAG,
+            SINGLE_GEOFENCE_NOTIFICATION_ID,
             notification,
         )
     }
@@ -286,5 +292,8 @@ class NotificationManager(
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         private const val BACKGROUND_LOCATION_RESTRICTION_NOTIFICATION_TAG =
             "backgroundRestrictionNotification"
+        private const val SINGLE_GEOFENCE_NOTIFICATION_TAG =
+            "singleGeofenceNotification"
+        private const val SINGLE_GEOFENCE_NOTIFICATION_ID = 4001
     }
 }

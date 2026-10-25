@@ -65,8 +65,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
 
                     if (transitionType != Geofence.GEOFENCE_TRANSITION_EXIT) {
                         logI(TAG) { baseMessage }
-                        // Notifications are triggered for ENTER, but NOT for DWELL
-                        if (transitionType == Geofence.GEOFENCE_TRANSITION_ENTER && systemLocation != null) {
+                        if (systemLocation != null) {
                             notificationManager.notifyGeofenceTrigger(
                                 transitionName = transitionName,
                                 latitude = systemLocation.latitude,
@@ -104,12 +103,6 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
                     "$baseMessage - ignored, triggering system location ${systemLocation.describe()} is too far away " +
                         "(dist=${systemVerdict.distance.toInt()}m > radius=${systemVerdict.radius.toInt()}m + buffer=${EXIT_BUFFER_METERS.toInt()}m + acc=${systemVerdict.accuracy}m)"
                 }
-                notificationManager.notifyGeofenceTrigger(
-                    transitionName = "EXIT (Ignored - Too Far)",
-                    latitude = systemLocation.latitude,
-                    longitude = systemLocation.longitude,
-                    regionName = regionName,
-                )
                 return
             }
         }
@@ -141,7 +134,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
                 }
                 if (notifyLat != null && notifyLng != null) {
                     notificationManager.notifyGeofenceTrigger(
-                        transitionName = "EXIT (Confirmed)",
+                        transitionName = "EXIT",
                         latitude = notifyLat,
                         longitude = notifyLng,
                         regionName = regionName,
@@ -159,14 +152,6 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
                     "$baseMessage - ignored, fresh fix ${finalLocation.describe()} is inside region " +
                         "(dist=${finalVerdict.distance.toInt()}m + acc=${finalVerdict.accuracy}m <= radius=${finalVerdict.radius.toInt()}m)"
                 }
-                if (notifyLat != null && notifyLng != null) {
-                    notificationManager.notifyGeofenceTrigger(
-                        transitionName = "EXIT (Ignored - Inside)",
-                        latitude = notifyLat,
-                        longitude = notifyLng,
-                        regionName = regionName,
-                    )
-                }
             }
 
             is ExitVerdict.TooFarAway -> {
@@ -174,27 +159,11 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
                     "$baseMessage - ignored, fresh fix ${finalLocation.describe()} is too far away " +
                         "(dist=${finalVerdict.distance.toInt()}m > radius=${finalVerdict.radius.toInt()}m + buffer=${EXIT_BUFFER_METERS.toInt()}m + acc=${finalVerdict.accuracy}m)"
                 }
-                if (notifyLat != null && notifyLng != null) {
-                    notificationManager.notifyGeofenceTrigger(
-                        transitionName = "EXIT (Ignored - Too Far)",
-                        latitude = notifyLat,
-                        longitude = notifyLng,
-                        regionName = regionName,
-                    )
-                }
             }
 
             is ExitVerdict.Unverified -> {
                 logW(TAG) {
                     "$baseMessage - unverified: ${finalVerdict.reason}"
-                }
-                if (notifyLat != null && notifyLng != null) {
-                    notificationManager.notifyGeofenceTrigger(
-                        transitionName = "EXIT (Unverified)",
-                        latitude = notifyLat,
-                        longitude = notifyLng,
-                        regionName = regionName,
-                    )
                 }
             }
         }
