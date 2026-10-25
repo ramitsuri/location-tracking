@@ -14,33 +14,22 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
 import com.ramitsuri.locationtracking.MainActivity
 import com.ramitsuri.locationtracking.R
+import com.ramitsuri.locationtracking.data.dao.GeofenceEventDao
 import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
 import com.ramitsuri.locationtracking.services.BackgroundService.Companion.INTENT_ACTION_CHANGE_MONITORING_NEXT
 import com.ramitsuri.locationtracking.services.BackgroundService.Companion.INTENT_ACTION_CHANGE_MONITORING_NEXT_NEXT
 import com.ramitsuri.locationtracking.services.BackgroundService.Companion.INTENT_ACTION_SEND_LOCATION_USER
 import com.ramitsuri.locationtracking.utils.format
-import java.util.Collections
-import kotlin.time.Clock
-import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
-
-private data class GeofenceNotificationItem(
-    val regionName: String,
-    val transitionName: String,
-    val time: Instant,
-    val latitude: Double,
-    val longitude: Double,
-)
 
 class NotificationManager(
     context: Context,
     private val permissionChecker: PermissionChecker,
+    private val geofenceEventDao: GeofenceEventDao,
 ) {
     private val appContext = context.applicationContext
     private val notificationManager = NotificationManagerCompat.from(context)
-    private val geofenceNotificationHistory =
-        Collections.synchronizedList(mutableListOf<GeofenceNotificationItem>())
 
     fun createChannels() {
         // Importance min will show normal priority notification for foreground service. See
@@ -122,34 +111,15 @@ class NotificationManager(
     }
 
     @SuppressLint("MissingPermission")
-    fun notifyGeofenceTrigger(
-        transitionName: String,
-        latitude: Double,
-        longitude: Double,
-        regionName: String? = null,
-        time: Instant = Clock.System.now(),
-    ) {
+    suspend fun notifyGeofenceTrigger() {
         if (!permissionChecker.hasPermission(Permission.NOTIFICATION)) {
             return
         }
 
-        val regionLabel = regionName?.ifBlank { null } ?: "Region"
-        val newItem = GeofenceNotificationItem(
-            regionName = regionLabel,
-            transitionName = transitionName,
-            time = time,
-            latitude = latitude,
-            longitude = longitude,
-        )
+        val history = geofenceEventDao.getRecentEvents(15)
+        val latestEvent = history.firstOrNull() ?: return
 
-        synchronized(geofenceNotificationHistory) {
-            geofenceNotificationHistory.add(0, newItem)
-            if (geofenceNotificationHistory.size > 15) {
-                geofenceNotificationHistory.removeAt(geofenceNotificationHistory.lastIndex)
-            }
-        }
-
-        val mapUri = "geo:$latitude,$longitude?q=$latitude,$longitude".toUri()
+        val mapUri = "geo:${latestEvent.latitude},${latestEvent.longitude}?q=${latestEvent.latitude},${latestEvent.longitude}".toUri()
         val mapIntent = Intent(Intent.ACTION_VIEW, mapUri).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
@@ -164,19 +134,18 @@ class NotificationManager(
             .setBigContentTitle("Geofence Events")
 
         val timeZone = TimeZone.currentSystemDefault()
-        val currentHistory = synchronized(geofenceNotificationHistory) { geofenceNotificationHistory.toList() }
 
-        currentHistory.forEach { item ->
+        history.forEach { item ->
             val formattedTime = item.time.format(
                 timeZone = timeZone,
                 am = appContext.getString(R.string.am),
                 pm = appContext.getString(R.string.pm),
             )
             val timeOnly = formattedTime.substringAfter(", ").ifEmpty { formattedTime }
-            inboxStyle.addLine("- ${item.regionName}: ${item.transitionName} at $timeOnly")
+            inboxStyle.addLine("- ${item.regionName}: ${item.transition} at $timeOnly")
         }
 
-        val latestFormattedTime = newItem.time.format(
+        val latestFormattedTime = latestEvent.time.format(
             timeZone = timeZone,
             am = appContext.getString(R.string.am),
             pm = appContext.getString(R.string.pm),
@@ -185,7 +154,7 @@ class NotificationManager(
         val notification =
             NotificationCompat.Builder(appContext, NotificationConstants.CHANNEL_GEOFENCE_ID)
                 .setContentTitle("Geofence Events")
-                .setContentText("- ${newItem.regionName}: ${newItem.transitionName} at $latestFormattedTime")
+                .setContentText("- ${latestEvent.regionName}: ${latestEvent.transition} at $latestFormattedTime")
                 .setStyle(inboxStyle)
                 .setAutoCancel(true)
                 .setSmallIcon(R.drawable.ic_notification)

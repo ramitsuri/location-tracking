@@ -11,6 +11,8 @@ import com.ramitsuri.locationtracking.data.dao.RegionDao
 import com.ramitsuri.locationtracking.log.logE
 import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.log.logW
+import com.ramitsuri.locationtracking.data.dao.GeofenceEventDao
+import com.ramitsuri.locationtracking.model.GeofenceEvent
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.Region
 import com.ramitsuri.locationtracking.notification.NotificationManager
@@ -26,6 +28,7 @@ import org.koin.core.component.inject
 class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
 
     private val regionDao: RegionDao by inject()
+    private val geofenceEventDao: GeofenceEventDao by inject()
     private val scope: CoroutineScope by inject()
     private val locationProvider: LocationProvider by inject()
     private val notificationManager: NotificationManager by inject()
@@ -66,12 +69,14 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
                     if (transitionType != Geofence.GEOFENCE_TRANSITION_EXIT) {
                         logI(TAG) { baseMessage }
                         if (systemLocation != null) {
-                            notificationManager.notifyGeofenceTrigger(
-                                transitionName = transitionName,
+                            val geofenceEvent = GeofenceEvent(
+                                regionName = regionName,
+                                transition = transitionName,
                                 latitude = systemLocation.latitude,
                                 longitude = systemLocation.longitude,
-                                regionName = regionName,
                             )
+                            geofenceEventDao.insert(geofenceEvent)
+                            notificationManager.notifyGeofenceTrigger()
                         }
                         return@forEach
                     }
@@ -133,12 +138,14 @@ class GeofenceBroadcastReceiver : BroadcastReceiver(), KoinComponent {
                         "(dist=${finalVerdict.distance.toInt()}m within radius=${finalVerdict.radius.toInt()}m + buffer=${EXIT_BUFFER_METERS.toInt()}m, acc=${finalVerdict.accuracy}m)"
                 }
                 if (notifyLat != null && notifyLng != null) {
-                    notificationManager.notifyGeofenceTrigger(
-                        transitionName = "EXIT",
+                    val geofenceEvent = GeofenceEvent(
+                        regionName = regionName,
+                        transition = "EXIT",
                         latitude = notifyLat,
                         longitude = notifyLng,
-                        regionName = regionName,
                     )
+                    geofenceEventDao.insert(geofenceEvent)
+                    notificationManager.notifyGeofenceTrigger()
                 }
                 if (region != null && region.type == Region.Type.TEMP) {
                     regionDao.delete(region)

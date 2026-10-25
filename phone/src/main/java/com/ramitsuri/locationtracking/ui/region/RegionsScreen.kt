@@ -26,7 +26,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.History
-import com.ramitsuri.locationtracking.model.LogItem
+import com.ramitsuri.locationtracking.model.GeofenceEvent
 import com.ramitsuri.locationtracking.utils.format
 import kotlinx.datetime.TimeZone
 import androidx.compose.material3.AlertDialog
@@ -108,8 +108,8 @@ private fun ScreenContent(
     val regionsSheetState = rememberModalBottomSheetState()
     var showRegionsSheet by remember { mutableStateOf(false) }
 
-    val geofenceLogsSheetState = rememberModalBottomSheetState()
-    var showGeofenceLogsSheet by remember { mutableStateOf(false) }
+    val geofenceEventsSheetState = rememberModalBottomSheetState()
+    var showGeofenceEventsSheet by remember { mutableStateOf(false) }
 
     val clickedRegionInfoSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var clickedRegionForInfo by remember { mutableStateOf<Region?>(null) }
@@ -143,7 +143,7 @@ private fun ScreenContent(
                 showRequestUnsavedRegionNameButton = viewState.unsavedRegionNeedsName,
                 onRequestUnsavedRegionName = { showRegionNameSheet = true },
                 onSavedRegionsButtonClick = { showRegionsSheet = true },
-                onGeofenceLogsButtonClick = { showGeofenceLogsSheet = true },
+                onGeofenceEventsButtonClick = { showGeofenceEventsSheet = true },
                 onSaveRegion = onSaveRegion,
                 onClearRegion = onClearUnsavedRegion,
                 onBack = onBack,
@@ -201,13 +201,13 @@ private fun ScreenContent(
             }
         }
 
-        if (showGeofenceLogsSheet) {
+        if (showGeofenceEventsSheet) {
             ModalBottomSheet(
-                onDismissRequest = { showGeofenceLogsSheet = false },
-                sheetState = geofenceLogsSheetState,
+                onDismissRequest = { showGeofenceEventsSheet = false },
+                sheetState = geofenceEventsSheetState,
             ) {
-                GeofenceLogsSheetContent(
-                    logs = viewState.geofenceLogs,
+                GeofenceEventsSheetContent(
+                    events = viewState.geofenceEvents,
                     timeZone = viewState.timeZone,
                 )
             }
@@ -399,7 +399,7 @@ private fun TopRow(
     onBack: () -> Unit,
     onRequestUnsavedRegionName: () -> Unit,
     onSavedRegionsButtonClick: () -> Unit,
-    onGeofenceLogsButtonClick: () -> Unit,
+    onGeofenceEventsButtonClick: () -> Unit,
     onSaveRegion: () -> Unit,
     onClearRegion: () -> Unit,
 ) {
@@ -435,7 +435,7 @@ private fun TopRow(
                 showRequestUnsavedRegionNameButton = showRequestUnsavedRegionNameButton,
                 onRequestUnsavedRegionName = onRequestUnsavedRegionName,
                 onSavedRegionsButtonClick = onSavedRegionsButtonClick,
-                onGeofenceLogsButtonClick = onGeofenceLogsButtonClick,
+                onGeofenceEventsButtonClick = onGeofenceEventsButtonClick,
                 onSaveRegion = onSaveRegion,
                 onClearRegion = onClearRegion,
             )
@@ -451,7 +451,7 @@ private fun PillContent(
     showRequestUnsavedRegionNameButton: Boolean,
     onRequestUnsavedRegionName: () -> Unit,
     onSavedRegionsButtonClick: () -> Unit,
-    onGeofenceLogsButtonClick: () -> Unit,
+    onGeofenceEventsButtonClick: () -> Unit,
     onSaveRegion: () -> Unit,
     onClearRegion: () -> Unit,
     modifier: Modifier = Modifier,
@@ -494,7 +494,7 @@ private fun PillContent(
                     icon = Icons.AutoMirrored.Filled.List,
                 )
                 TintedIconButton(
-                    onClick = onGeofenceLogsButtonClick,
+                    onClick = onGeofenceEventsButtonClick,
                     icon = Icons.Outlined.History,
                 )
             }
@@ -503,8 +503,8 @@ private fun PillContent(
 }
 
 @Composable
-private fun GeofenceLogsSheetContent(
-    logs: List<LogItem>,
+private fun GeofenceEventsSheetContent(
+    events: List<GeofenceEvent>,
     timeZone: TimeZone,
     modifier: Modifier = Modifier,
 ) {
@@ -514,13 +514,13 @@ private fun GeofenceLogsSheetContent(
             .padding(16.dp),
     ) {
         Text(
-            text = stringResource(R.string.geofence_logs),
+            text = stringResource(R.string.geofence_events),
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 12.dp),
         )
-        if (logs.isEmpty()) {
+        if (events.isEmpty()) {
             Text(
-                text = stringResource(R.string.no_geofence_logs),
+                text = stringResource(R.string.no_geofence_events),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 16.dp),
@@ -530,7 +530,7 @@ private fun GeofenceLogsSheetContent(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(logs, key = { it.id }) { logItem ->
+                items(events, key = { it.id }) { event ->
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -538,24 +538,84 @@ private fun GeofenceLogsSheetContent(
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                             .padding(12.dp),
                     ) {
-                        Text(
-                            text = logItem.time.format(
-                                timeZone = timeZone,
-                                am = stringResource(R.string.am),
-                                pm = stringResource(R.string.pm),
-                            ),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = logItem.message,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = event.regionName,
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                            TransitionBadge(transition = event.transition)
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = event.time.format(
+                                    timeZone = timeZone,
+                                    am = stringResource(R.string.am),
+                                    pm = stringResource(R.string.pm),
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            Text(
+                                text = "%.4f, %.4f".format(event.latitude, event.longitude),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TransitionBadge(
+    transition: String,
+    modifier: Modifier = Modifier,
+) {
+    val (backgroundColor, textColor, label) = when (transition.uppercase()) {
+        "ENTER" -> Triple(
+            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.onPrimaryContainer,
+            stringResource(R.string.geofence_transition_enter),
+        )
+        "EXIT" -> Triple(
+            MaterialTheme.colorScheme.errorContainer,
+            MaterialTheme.colorScheme.onErrorContainer,
+            stringResource(R.string.geofence_transition_exit),
+        )
+        "DWELL" -> Triple(
+            MaterialTheme.colorScheme.secondaryContainer,
+            MaterialTheme.colorScheme.onSecondaryContainer,
+            stringResource(R.string.geofence_transition_dwell),
+        )
+        else -> Triple(
+            MaterialTheme.colorScheme.surfaceContainer,
+            MaterialTheme.colorScheme.onSurface,
+            transition,
+        )
+    }
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = textColor,
+        )
     }
 }
 

@@ -102,6 +102,7 @@ class MainApp : Application(), KoinComponent {
                     NotificationManager(
                         context = this@MainApp,
                         permissionChecker = get<PermissionChecker>(),
+                        geofenceEventDao = get<AppDatabase>().geofenceEventDao(),
                     )
                 }
 
@@ -211,7 +212,7 @@ class MainApp : Application(), KoinComponent {
                 viewModel<RegionsViewModel> {
                     RegionsViewModel(
                         regionDao = get<AppDatabase>().regionDao(),
-                        logItemDao = get<AppDatabase>().logItemDao(),
+                        geofenceEventDao = get<AppDatabase>().geofenceEventDao(),
                         locationRepository = get<LocationRepository>(),
                         timeZone = get<TimeZone>(),
                         geofenceManager = get<AndroidGeofenceManager>(),

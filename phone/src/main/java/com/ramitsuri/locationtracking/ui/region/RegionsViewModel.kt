@@ -2,7 +2,7 @@ package com.ramitsuri.locationtracking.ui.region
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ramitsuri.locationtracking.data.dao.LogItemDao
+import com.ramitsuri.locationtracking.data.dao.GeofenceEventDao
 import com.ramitsuri.locationtracking.data.dao.RegionDao
 import com.ramitsuri.locationtracking.geofence.AndroidGeofenceManager
 import com.ramitsuri.locationtracking.log.logI
@@ -21,7 +21,7 @@ import kotlinx.datetime.TimeZone
 
 class RegionsViewModel(
     private val regionDao: RegionDao,
-    logItemDao: LogItemDao,
+    geofenceEventDao: GeofenceEventDao,
     locationRepository: LocationRepository,
     timeZone: TimeZone,
     private val geofenceManager: AndroidGeofenceManager? = null,
@@ -31,13 +31,13 @@ class RegionsViewModel(
     val viewState = combine(
         regionDao.getAllFlow(),
         unsavedRegion,
-        logItemDao.getGeofenceLogsFlow(Clock.System.now().minus(3.days)),
+        geofenceEventDao.getEventsFlow(Clock.System.now().minus(3.days)),
         locationRepository.getLastKnownLocation(),
-    ) { regions, unsavedRegion, geofenceLogs, lastKnownLocation ->
+    ) { regions, unsavedRegion, geofenceEvents, lastKnownLocation ->
         RegionsViewState(
             regions = regions,
             unsavedRegion = unsavedRegion,
-            geofenceLogs = geofenceLogs,
+            geofenceEvents = geofenceEvents,
             lastKnownLocation = lastKnownLocation,
             initialMapCenter = lastKnownLocation?.toLatLng()
                 ?: LatLng.NY,

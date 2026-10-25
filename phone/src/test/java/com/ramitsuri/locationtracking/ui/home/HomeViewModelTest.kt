@@ -2,24 +2,18 @@ package com.ramitsuri.locationtracking.ui.home
 
 import app.cash.turbine.test
 import com.ramitsuri.locationtracking.data.dao.RegionDao
-import com.ramitsuri.locationtracking.geofence.AndroidGeofenceManager
-import com.ramitsuri.locationtracking.model.LatLng
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LocationsViewMode
-import com.ramitsuri.locationtracking.model.Region
-import com.ramitsuri.locationtracking.notification.NotificationManager
 import com.ramitsuri.locationtracking.permissions.PermissionResult
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.Settings
-import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.ui.home.HomeViewState.ViewMode.LocationsForDate
 import com.ramitsuri.locationtracking.ui.home.HomeViewState.ViewMode.LocationsForDate.Event
-import com.ramitsuri.locationtracking.utils.toBd
+import com.ramitsuri.locationtracking.usecase.AddTempRegionUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +28,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -43,9 +36,7 @@ class HomeViewModelTest {
     private val locationRepository: LocationRepository = mockk(relaxed = true)
     private val settings: Settings = mockk(relaxed = true)
     private val regionDao: RegionDao = mockk(relaxed = true)
-    private val locationProvider: LocationProvider = mockk(relaxed = true)
-    private val geofenceManager: AndroidGeofenceManager = mockk(relaxed = true)
-    private val notificationManager: NotificationManager = mockk(relaxed = true)
+    private val addTempRegionUseCase: AddTempRegionUseCase = mockk(relaxed = true)
     private val timeZone = TimeZone.UTC
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -68,8 +59,7 @@ class HomeViewModelTest {
             timeZone = timeZone,
             settings = settings,
             regionDao = regionDao,
-            locationProvider = locationProvider,
-            geofenceManager = geofenceManager,
+            addTempRegionUseCase = addTempRegionUseCase,
         )
     }
 
@@ -153,16 +143,12 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `onAddTempGeofence - creates temp region with timestamped name in local time`() = runTest {
-        coEvery { locationProvider.requestSingle() } returns location(ssid = null, time = "2025-01-01T10:00:00Z", accuracy = 20)
+    fun `onAddTempGeofence - calls addTempRegionUseCase`() = runTest {
+        coEvery { addTempRegionUseCase() } returns "temp_20250101_100000"
 
         viewModel.onAddTempGeofence()
 
-        val slot = slot<Region>()
-        coVerify { regionDao.insert(capture(slot)) }
-        assertTrue(slot.captured.name.matches(Regex("^temp_\\d{8}_\\d{6}$")))
-        assertEquals(Region.Type.TEMP, slot.captured.type)
-        coVerify { geofenceManager.syncGeofences() }
+        coVerify { addTempRegionUseCase() }
     }
 
     private suspend fun getTimelineForLocations(locations: List<Location>): List<Event> {

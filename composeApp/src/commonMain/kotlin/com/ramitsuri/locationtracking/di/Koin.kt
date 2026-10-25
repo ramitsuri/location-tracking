@@ -3,6 +3,7 @@ package com.ramitsuri.locationtracking.di
 import androidx.room.RoomDatabase
 import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.data.dao.GeocodeCacheDao
+import com.ramitsuri.locationtracking.data.dao.GeofenceEventDao
 import com.ramitsuri.locationtracking.data.dao.LocationDao
 import com.ramitsuri.locationtracking.data.dao.LogItemDao
 import com.ramitsuri.locationtracking.data.dao.RegionDao
@@ -152,6 +153,10 @@ private val coreModule = module {
 
     factory<RegionDao> {
         get<AppDatabase>().regionDao()
+    }
+
+    factory<GeofenceEventDao> {
+        get<AppDatabase>().geofenceEventDao()
     }
 }
 
