@@ -34,6 +34,7 @@ import com.ramitsuri.locationtracking.ui.region.RegionsViewModel
 import com.ramitsuri.locationtracking.ui.seenwifi.SeenWifiViewModel
 import com.ramitsuri.locationtracking.ui.settings.SettingsViewModel
 import com.ramitsuri.locationtracking.upload.UploadWorker
+import com.ramitsuri.locationtracking.usecase.AddTempRegionUseCase
 import com.ramitsuri.locationtracking.utils.RegionUtil
 import com.ramitsuri.locationtracking.util.AppUpdateManager
 import com.ramitsuri.locationtracking.wear.WearDataSharingClient
@@ -169,6 +170,15 @@ class MainApp : Application(), KoinComponent {
                     )
                 }
 
+                factory<AddTempRegionUseCase> {
+                    AddTempRegionUseCase(
+                        locationProvider = get<LocationProvider>(),
+                        regionDao = get<AppDatabase>().regionDao(),
+                        geofenceManager = get<AndroidGeofenceManager>(),
+                        timeZone = get<TimeZone>(),
+                    )
+                }
+
                 viewModel<HomeViewModel> {
                     HomeViewModel(
                         locationRepository = get<LocationRepository>(),
@@ -180,8 +190,7 @@ class MainApp : Application(), KoinComponent {
                         timeZone = get<TimeZone>(),
                         settings = get<Settings>(),
                         regionDao = get<AppDatabase>().regionDao(),
-                        locationProvider = get<LocationProvider>(),
-                        geofenceManager = get<AndroidGeofenceManager>(),
+                        addTempRegionUseCase = get<AddTempRegionUseCase>(),
                     )
                 }
 

@@ -1,11 +1,16 @@
 package com.ramitsuri.locationtracking.wear.presentation
 
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.wear.WearDataSharingClient
 import com.ramitsuri.locationtracking.wear.presentation.home.HomeScreen
@@ -52,7 +57,11 @@ class MainActivity : ComponentActivity() {
                 null
             }
         }
-        val quickChangeMode = intent.extras?.getBoolean(QUICK_CHANGE_MODE_KEY) ?: false
+        val quickChangeMode = intent.extras?.getBoolean(QUICK_CHANGE_MODE_KEY) == true ||
+            intent.extras?.getString(QUICK_CHANGE_MODE_KEY) == "true"
+        val addTempRegion = intent.extras?.getBoolean(ADD_TEMP_REGION_KEY) == true ||
+            intent.extras?.getString(ADD_TEMP_REGION_KEY) == "true"
+
         lifecycleScope.launch {
             if (intent.extras?.getString(MODE_KEY) == SINGLE_LOCATION) {
                 dataSharingClient.postSingleLocation(to = WearDataSharingClient.To.Phone).let {
@@ -77,6 +86,26 @@ class MainActivity : ComponentActivity() {
                         finish()
                     }
                 }
+            } else if (addTempRegion) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val vibrator = getSystemService(Vibrator::class.java)
+                    val effect = VibrationEffect.startComposition()
+                        .addPrimitive(VibrationEffect.Composition.PRIMITIVE_QUICK_FALL, 1f, 100)
+                        .compose()
+                    vibrator.vibrate(effect)
+                }
+                dataSharingClient.postAddTempGeofence(
+                    to = WearDataSharingClient.To.Phone,
+                ).let {
+                    if (it) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.posted),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        finish()
+                    }
+                }
             }
         }
     }
@@ -89,5 +118,6 @@ class MainActivity : ComponentActivity() {
         const val MODE_OFF = "MODE_OFF"
         const val SINGLE_LOCATION = "SINGLE_LOCATION"
         const val QUICK_CHANGE_MODE_KEY = "QUICK_CHANGE_MODE_KEY"
+        const val ADD_TEMP_REGION_KEY = "ADD_TEMP_REGION_KEY"
     }
 }

@@ -20,7 +20,6 @@ import androidx.wear.protolayout.material3.textEdgeButton
 import androidx.wear.protolayout.modifiers.padding
 import androidx.wear.protolayout.types.layoutString
 import com.ramitsuri.locationtracking.R
-import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.ui.label
 import com.ramitsuri.locationtracking.wear.presentation.MainActivity
 
@@ -43,14 +42,11 @@ fun tileLayout(
                         buttonGroup {
                             buttonGroupItem {
                                 button(
-                                    action = launchActivityAction(context, MainActivity.MODE_MOVE),
-                                    text = MonitoringMode.Move.label(context),
-                                )
-                            }
-                            buttonGroupItem {
-                                button(
-                                    action = launchActivityAction(context, MainActivity.MODE_WALK),
-                                    text = MonitoringMode.Walk.label(context),
+                                    action = launchActivityAction(
+                                        context,
+                                        extraKey = MainActivity.QUICK_CHANGE_MODE_KEY,
+                                    ),
+                                    text = context.getString(R.string.quick_change_mode),
                                 )
                             }
                         },
@@ -60,17 +56,11 @@ fun tileLayout(
                         buttonGroup {
                             buttonGroupItem {
                                 button(
-                                    action = launchActivityAction(context, MainActivity.MODE_REST),
-                                    text = MonitoringMode.Rest.label(context),
-                                )
-                            }
-                            buttonGroupItem {
-                                button(
                                     action = launchActivityAction(
                                         context,
-                                        MainActivity.SINGLE_LOCATION,
+                                        extraKey = MainActivity.ADD_TEMP_REGION_KEY,
                                     ),
-                                    text = context.getString(R.string.once),
+                                    text = context.getString(R.string.set_region),
                                 )
                             }
                         },
@@ -98,15 +88,19 @@ private fun MaterialScope.button(action: AndroidActivity, text: String): LayoutE
     )
 }
 
-private fun launchActivityAction(context: Context, action: String? = null): AndroidActivity =
+private fun launchActivityAction(
+    context: Context,
+    extraKey: String? = null,
+    extraValue: String = "true",
+): AndroidActivity =
     AndroidActivity.Builder()
         .setPackageName(context.packageName)
         .setClassName(ACTIVITY)
         .apply {
-            if (action != null) {
+            if (extraKey != null) {
                 addKeyToExtraMapping(
-                    MainActivity.MODE_KEY,
-                    ActionBuilders.stringExtra(action),
+                    extraKey,
+                    ActionBuilders.stringExtra(extraValue),
                 )
             }
         }

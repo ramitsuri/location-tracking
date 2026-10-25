@@ -9,6 +9,8 @@ interface WearDataSharingClient {
 
     suspend fun postQuickChangeMode(to: To): Boolean
 
+    suspend fun postAddTempGeofence(to: To): Boolean
+
     enum class To {
         Phone,
         Wear,

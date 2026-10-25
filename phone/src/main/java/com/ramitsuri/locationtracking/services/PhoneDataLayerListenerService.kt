@@ -13,6 +13,7 @@ import com.ramitsuri.locationtracking.notification.NotificationManager
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
 import com.ramitsuri.locationtracking.services.BackgroundService.Companion.startBackgroundService
 import com.ramitsuri.locationtracking.settings.Settings
+import com.ramitsuri.locationtracking.usecase.AddTempRegionUseCase
 import com.ramitsuri.locationtracking.wear.Constants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -24,6 +25,7 @@ class PhoneDataLayerListenerService : WearableListenerService(), KoinComponent {
     private val scope: CoroutineScope by inject()
     private val permissionChecker by inject<PermissionChecker>()
     private val notificationManager by inject<NotificationManager>()
+    private val addTempRegionUseCase: AddTempRegionUseCase by inject()
 
     @SuppressLint("VisibleForTests")
     override fun onDataChanged(dataEvents: DataEventBuffer) {
@@ -31,6 +33,7 @@ class PhoneDataLayerListenerService : WearableListenerService(), KoinComponent {
         val changeMonitoringModeEvents = mutableListOf<DataEvent>()
         val singleLocationEvents = mutableListOf<DataEvent>()
         val quickChangeModeEvents = mutableListOf<DataEvent>()
+        val addTempGeofenceEvents = mutableListOf<DataEvent>()
         dataEvents.forEach { event ->
             val path = event.dataItem.uri.path ?: ""
             when {
@@ -42,6 +45,9 @@ class PhoneDataLayerListenerService : WearableListenerService(), KoinComponent {
                 }
                 path.startsWith(Constants.Route.QUICK_MODE_CHANGE_PHONE) -> {
                     quickChangeModeEvents.add(event)
+                }
+                path.startsWith(Constants.Route.ADD_TEMP_GEOFENCE_PHONE) -> {
+                    addTempGeofenceEvents.add(event)
                 }
             }
         }
@@ -73,6 +79,13 @@ class PhoneDataLayerListenerService : WearableListenerService(), KoinComponent {
             logD(TAG) { "Have a quick change mode event" }
             scope.launch {
                 settings.quickChangeMode()
+            }
+        }
+
+        addTempGeofenceEvents.lastOrNull()?.let {
+            logD(TAG) { "Have an add temp geofence event" }
+            scope.launch {
+                addTempRegionUseCase()
             }
         }
     }

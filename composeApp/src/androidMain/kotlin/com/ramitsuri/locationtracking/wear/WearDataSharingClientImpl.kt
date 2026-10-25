@@ -88,6 +88,27 @@ class WearDataSharingClientImpl(
         }
     }
 
+    @OptIn(ExperimentalUuidApi::class)
+    override suspend fun postAddTempGeofence(to: WearDataSharingClient.To): Boolean {
+        return try {
+            val id = Uuid.random().toString()
+            val path = when (to) {
+                WearDataSharingClient.To.Phone -> "${Constants.Route.ADD_TEMP_GEOFENCE_PHONE}/$id"
+                WearDataSharingClient.To.Wear -> error("Not supported for sending to Wear")
+            }
+            val request =
+                PutDataMapRequest.create(path)
+                    .asPutDataRequest()
+                    .setUrgent()
+
+            dataClient.putDataItem(request).await()
+            true
+        } catch (exception: Exception) {
+            logW(TAG) { "Failed to post add temp geofence: ${exception.message}" }
+            false
+        }
+    }
+
     companion object {
         const val TAG = "WearDataSharingClient"
     }

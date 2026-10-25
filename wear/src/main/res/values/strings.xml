@@ -3,4 +3,7 @@
     <string name="posted">Posted</string>
     <string name="single_location">Single Location</string>
     <string name="once">Once</string>
+    <string name="open_app">Open App</string>
+    <string name="quick_change_mode">Quick Change Mode</string>
+    <string name="set_region">Set Region</string>
 </resources>
