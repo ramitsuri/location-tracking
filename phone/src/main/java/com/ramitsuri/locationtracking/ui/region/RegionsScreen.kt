@@ -53,7 +53,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.CameraPosition
+import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberUpdatedMarkerState
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.model.AndroidLatLng
 import com.ramitsuri.locationtracking.model.Region
@@ -277,6 +279,17 @@ private fun MapContent(
         cameraPositionState = cameraPositionState,
         onMapClick = onMapClick,
     ) {
+        val lastKnownLocation = viewState.lastKnownLocation
+        if (lastKnownLocation != null) {
+            val markerState = rememberUpdatedMarkerState(
+                position = lastKnownLocation.toAndroidLatLng(),
+            )
+            Marker(
+                state = markerState,
+                title = stringResource(R.string.last_known_location),
+            )
+        }
+
         val unsavedRegion = viewState.unsavedRegion
         if (unsavedRegion == null) {
             viewState.regions.forEach { region ->

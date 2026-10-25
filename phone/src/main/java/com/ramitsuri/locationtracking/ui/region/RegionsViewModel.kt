@@ -15,7 +15,6 @@ import kotlin.time.Duration.Companion.days
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
@@ -33,12 +32,14 @@ class RegionsViewModel(
         regionDao.getAllFlow(),
         unsavedRegion,
         logItemDao.getGeofenceLogsFlow(Clock.System.now().minus(3.days)),
-    ) { regions, unsavedRegion, geofenceLogs ->
+        locationRepository.getLastKnownLocation(),
+    ) { regions, unsavedRegion, geofenceLogs, lastKnownLocation ->
         RegionsViewState(
             regions = regions,
             unsavedRegion = unsavedRegion,
             geofenceLogs = geofenceLogs,
-            initialMapCenter = locationRepository.getLastKnownLocation().firstOrNull()?.toLatLng()
+            lastKnownLocation = lastKnownLocation,
+            initialMapCenter = lastKnownLocation?.toLatLng()
                 ?: LatLng.NY,
             timeZone = timeZone,
         )
