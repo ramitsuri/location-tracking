@@ -25,10 +25,8 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Done
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.History
-import com.ramitsuri.locationtracking.model.GeofenceEvent
-import com.ramitsuri.locationtracking.utils.format
-import kotlinx.datetime.TimeZone
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -58,11 +56,14 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberUpdatedMarkerState
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.model.AndroidLatLng
+import com.ramitsuri.locationtracking.model.GeofenceEvent
 import com.ramitsuri.locationtracking.model.Region
 import com.ramitsuri.locationtracking.ui.components.Map
 import com.ramitsuri.locationtracking.ui.components.RegionCircle
 import com.ramitsuri.locationtracking.ui.components.TintedIconButton
+import com.ramitsuri.locationtracking.utils.format
 import kotlin.math.roundToInt
+import kotlinx.datetime.TimeZone
 
 @Composable
 fun RegionsScreen(
@@ -74,6 +75,7 @@ fun RegionsScreen(
     onRegionNameChanged: (String) -> Unit,
     onClearUnsavedRegion: () -> Unit,
     onSaveRegion: () -> Unit,
+    onUpdateRegion: (Region) -> Unit,
     onDeleteRegion: (Region) -> Unit,
 ) {
     ScreenContent(
@@ -85,6 +87,7 @@ fun RegionsScreen(
         onClearUnsavedRegion = onClearUnsavedRegion,
         onBack = onBack,
         onRegionNameChanged = onRegionNameChanged,
+        onUpdateRegion = onUpdateRegion,
         onDeleteRegion = onDeleteRegion,
     )
 }
@@ -100,6 +103,7 @@ private fun ScreenContent(
     onClearUnsavedRegion: () -> Unit,
     onBack: () -> Unit,
     onRegionNameChanged: (String) -> Unit,
+    onUpdateRegion: (Region) -> Unit,
     onDeleteRegion: (Region) -> Unit,
 ) {
     val regionNameSheetState = rememberModalBottomSheetState()
@@ -115,6 +119,13 @@ private fun ScreenContent(
     var clickedRegionForInfo by remember { mutableStateOf<Region?>(null) }
     var clickedRegionForMapCentering by remember { mutableStateOf<Region?>(null) }
 
+    var editingRegionRadius by remember(clickedRegionForInfo) {
+        mutableFloatStateOf(clickedRegionForInfo?.radiusMeters ?: Region.DEFAULT_RADIUS_METERS)
+    }
+    var editingRegionName by remember(clickedRegionForInfo) {
+        mutableStateOf(clickedRegionForInfo?.name.orEmpty())
+    }
+
     var deleteRegion by remember { mutableStateOf<Region?>(null) }
 
     Box(
@@ -123,6 +134,8 @@ private fun ScreenContent(
     ) {
         MapContent(
             viewState = viewState,
+            editingRegionId = clickedRegionForInfo?.id,
+            editingRegionRadius = editingRegionRadius,
             regionForCentering = clickedRegionForMapCentering,
             onResetRegionForCentering = { clickedRegionForMapCentering = null },
             onMapClick = onLatLngReceived,
@@ -189,8 +202,8 @@ private fun ScreenContent(
                 ManageRegionsSheetContent(
                     regions = viewState.regions,
                     onRegionClick = {
-                        // TODO Center map on clicked region
                         clickedRegionForMapCentering = it
+                        clickedRegionForInfo = it
                         showRegionsSheet = false
                     },
                     onDeleteClick = {
@@ -218,7 +231,21 @@ private fun ScreenContent(
                 onDismissRequest = { clickedRegionForInfo = null },
                 sheetState = clickedRegionInfoSheetState,
             ) {
-                RegionInfoSheetContent(region = region)
+                RegionInfoSheetContent(
+                    radiusMeters = editingRegionRadius,
+                    name = editingRegionName,
+                    onRadiusChanged = { editingRegionRadius = it },
+                    onNameChanged = { editingRegionName = it },
+                    onSaveRegion = {
+                        onUpdateRegion(region.copy(name = editingRegionName.trim(), radiusMeters = editingRegionRadius))
+                        clickedRegionForInfo = null
+                    },
+                    onDeleteRegion = {
+                        deleteRegion = region
+                        clickedRegionForInfo = null
+                    },
+                    onCancel = { clickedRegionForInfo = null },
+                )
             }
         }
 
@@ -250,6 +277,8 @@ private fun ScreenContent(
 @Composable
 private fun MapContent(
     viewState: RegionsViewState,
+    editingRegionId: Int?,
+    editingRegionRadius: Float,
     regionForCentering: Region?,
     onResetRegionForCentering: () -> Unit,
     onMapClick: (AndroidLatLng) -> Unit,
@@ -293,8 +322,13 @@ private fun MapContent(
         val unsavedRegion = viewState.unsavedRegion
         if (unsavedRegion == null) {
             viewState.regions.forEach { region ->
+                val radius = if (region.id == editingRegionId) {
+                    editingRegionRadius
+                } else {
+                    region.radiusMeters
+                }
                 RegionCircle(
-                    region = region,
+                    region = region.copy(radiusMeters = radius),
                     onRegionClick = onRegionClick,
                 )
             }
@@ -309,7 +343,13 @@ private fun MapContent(
 
 @Composable
 private fun RegionInfoSheetContent(
-    region: Region,
+    radiusMeters: Float,
+    name: String,
+    onRadiusChanged: (Float) -> Unit,
+    onNameChanged: (String) -> Unit,
+    onSaveRegion: () -> Unit,
+    onDeleteRegion: () -> Unit,
+    onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -317,12 +357,51 @@ private fun RegionInfoSheetContent(
             .fillMaxWidth()
             .padding(16.dp),
     ) {
-        Text(region.name, style = MaterialTheme.typography.titleMedium)
         Text(
-            text = stringResource(R.string.region_radius, region.radiusMeters.roundToInt()),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = stringResource(R.string.edit_region),
+            style = MaterialTheme.typography.titleMedium,
         )
+        Spacer(modifier = Modifier.height(16.dp))
+        TextField(
+            value = name,
+            onValueChange = onNameChanged,
+            label = { Text(stringResource(R.string.region_name)) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        RadiusControl(
+            radiusMeters = radiusMeters,
+            onRadiusChanged = onRadiusChanged,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onDeleteRegion) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
+            Row {
+                Button(
+                    onClick = onCancel,
+                    modifier = Modifier.padding(end = 8.dp),
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+                Button(
+                    onClick = onSaveRegion,
+                    enabled = name.isNotBlank(),
+                ) {
+                    Text(stringResource(R.string.save))
+                }
+            }
+        }
     }
 }
 
@@ -364,7 +443,7 @@ private fun ManageRegionsSheetContent(
             .padding(16.dp),
     ) {
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(regions) { region ->
+            items(regions, key = { it.id }) { region ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -372,11 +451,23 @@ private fun ManageRegionsSheetContent(
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = region.name,
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = region.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                        Text(
+                            text = stringResource(R.string.region_radius, region.radiusMeters.roundToInt()),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    IconButton(onClick = { onRegionClick(region) }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = null,
+                        )
+                    }
                     IconButton(onClick = { onDeleteClick(region) }) {
                         Icon(
                             imageVector = Icons.Filled.Delete,

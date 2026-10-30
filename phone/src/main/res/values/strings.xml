@@ -64,6 +64,8 @@
 
     <string name="region_name">Region Name</string>
     <string name="region_radius">Radius: %1$d m</string>
+    <string name="edit_region">Edit Region</string>
+    <string name="save">Save</string>
     <string name="delete_region">Delete region?</string>
     <string name="geofence_logs">Geofence Logs</string>
     <string name="no_geofence_logs">No geofence events in the last 3 days</string>

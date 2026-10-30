@@ -99,6 +99,20 @@ class RegionsViewModel(
         }
     }
 
+    fun onUpdateRegion(region: Region) {
+        viewModelScope.launch {
+            val updated = region.copy(
+                name = region.name.trim(),
+                radiusMeters = region.radiusMeters.coerceIn(
+                    Region.MIN_RADIUS_METERS,
+                    Region.MAX_RADIUS_METERS,
+                ),
+            )
+            regionDao.insert(updated)
+            geofenceManager?.syncGeofences()
+        }
+    }
+
     companion object {
         private const val TAG = "RegionViewModel"
     }

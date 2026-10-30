@@ -137,6 +137,7 @@ fun NavGraph(
                 onRegionNameChanged = viewModel::onRegionNameChanged,
                         onClearUnsavedRegion = viewModel::onClearUnsavedRegion,
                         onSaveRegion = viewModel::onSaveRegion,
+                        onUpdateRegion = viewModel::onUpdateRegion,
                         onDeleteRegion = viewModel::onDeleteRegion,
                         modifier = Modifier
                     )

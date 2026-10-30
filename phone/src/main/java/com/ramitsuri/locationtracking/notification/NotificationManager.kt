@@ -116,7 +116,7 @@ class NotificationManager(
             return
         }
 
-        val history = geofenceEventDao.getRecentEvents(15)
+        val history = geofenceEventDao.getRecentEvents(3)
         val latestEvent = history.firstOrNull() ?: return
 
         val mapUri = "geo:${latestEvent.latitude},${latestEvent.longitude}?q=${latestEvent.latitude},${latestEvent.longitude}".toUri()
