@@ -13,7 +13,6 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.ramitsuri.locationtracking.R
 import com.ramitsuri.locationtracking.data.dao.SeenWifiDao
-import com.ramitsuri.locationtracking.geofence.AndroidGeofenceManager
 import com.ramitsuri.locationtracking.log.logD
 import com.ramitsuri.locationtracking.log.logE
 import com.ramitsuri.locationtracking.log.logI
@@ -83,9 +82,6 @@ class BackgroundService : LifecycleService(), KoinComponent {
     override fun onCreate() {
         logD(TAG) { "onCreate" }
         super.onCreate()
-        lifecycleScope.launch {
-            get<AndroidGeofenceManager>().syncGeofences()
-        }
     }
 
     override fun onDestroy() {

@@ -5,7 +5,6 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.ramitsuri.locationtracking.data.dao.GeocodeCacheDao
-import com.ramitsuri.locationtracking.data.dao.GeofenceEventDao
 import com.ramitsuri.locationtracking.data.dao.LocationDao
 import com.ramitsuri.locationtracking.data.dao.LogItemDao
 import com.ramitsuri.locationtracking.data.dao.RegionDao
@@ -17,8 +16,8 @@ import com.ramitsuri.locationtracking.data.migration.Migration5To6
 import com.ramitsuri.locationtracking.data.migration.Migration6To7
 import com.ramitsuri.locationtracking.data.migration.Migration7To8
 import com.ramitsuri.locationtracking.data.migration.Migration8To9
+import com.ramitsuri.locationtracking.data.migration.Migration9To10
 import com.ramitsuri.locationtracking.model.GeocodeCache
-import com.ramitsuri.locationtracking.model.GeofenceEvent
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LogItem
 import com.ramitsuri.locationtracking.model.Region
@@ -32,9 +31,8 @@ import kotlinx.coroutines.CoroutineDispatcher
         SeenWifi::class,
         LogItem::class,
         Region::class,
-        GeofenceEvent::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 @TypeConverters(DatabaseConverters::class)
@@ -49,8 +47,6 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun regionDao(): RegionDao
 
-    abstract fun geofenceEventDao(): GeofenceEventDao
-
     companion object {
         fun getDb(builder: Builder<AppDatabase>, dispatcher: CoroutineDispatcher): AppDatabase {
             return builder
@@ -64,6 +60,7 @@ abstract class AppDatabase : RoomDatabase() {
                     Migration6To7(),
                     Migration7To8(),
                     Migration8To9(),
+                    Migration9To10(),
                 )
                 .build()
         }

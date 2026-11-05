@@ -11,10 +11,8 @@ import android.media.AudioManager
 import androidx.annotation.DrawableRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.net.toUri
 import com.ramitsuri.locationtracking.MainActivity
 import com.ramitsuri.locationtracking.R
-import com.ramitsuri.locationtracking.data.dao.GeofenceEventDao
 import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
 import com.ramitsuri.locationtracking.services.BackgroundService.Companion.INTENT_ACTION_CHANGE_MONITORING_NEXT
@@ -26,7 +24,6 @@ import kotlinx.datetime.TimeZone
 class NotificationManager(
     context: Context,
     private val permissionChecker: PermissionChecker,
-    private val geofenceEventDao: GeofenceEventDao,
 ) {
     private val appContext = context.applicationContext
     private val notificationManager = NotificationManagerCompat.from(context)
@@ -56,18 +53,6 @@ class NotificationManager(
             NotificationManager.IMPORTANCE_LOW,
         ).apply {
             lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-        }.run {
-            notificationManager.createNotificationChannel(this)
-        }
-
-        NotificationChannel(
-            NotificationConstants.CHANNEL_GEOFENCE_ID,
-            appContext.getString(R.string.notification_channel_geofences),
-            NotificationManager.IMPORTANCE_DEFAULT,
-        ).apply {
-            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-            description =
-                appContext.getString(R.string.notification_channel_geofences_description)
         }.run {
             notificationManager.createNotificationChannel(this)
         }
@@ -106,70 +91,6 @@ class NotificationManager(
         notificationManager.notify(
             BACKGROUND_LOCATION_RESTRICTION_NOTIFICATION_TAG,
             0,
-            notification,
-        )
-    }
-
-    @SuppressLint("MissingPermission")
-    suspend fun notifyGeofenceTrigger() {
-        if (!permissionChecker.hasPermission(Permission.NOTIFICATION)) {
-            return
-        }
-
-        val history = geofenceEventDao.getRecentEvents(3)
-        val latestEvent = history.firstOrNull() ?: return
-
-        val mapUri = "geo:${latestEvent.latitude},${latestEvent.longitude}?q=${latestEvent.latitude},${latestEvent.longitude}".toUri()
-        val mapIntent = Intent(Intent.ACTION_VIEW, mapUri).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        val mapPendingIntent = PendingIntent.getActivity(
-            appContext,
-            SINGLE_GEOFENCE_NOTIFICATION_ID,
-            mapIntent,
-            UPDATE_CURRENT_INTENT_FLAGS,
-        )
-
-        val inboxStyle = NotificationCompat.InboxStyle()
-            .setBigContentTitle("Geofence Events")
-
-        val timeZone = TimeZone.currentSystemDefault()
-
-        history.forEach { item ->
-            val formattedTime = item.time.format(
-                timeZone = timeZone,
-                am = appContext.getString(R.string.am),
-                pm = appContext.getString(R.string.pm),
-            )
-            val timeOnly = formattedTime.substringAfter(", ").ifEmpty { formattedTime }
-            inboxStyle.addLine("- ${item.regionName}: ${item.transition} at $timeOnly")
-        }
-
-        val latestFormattedTime = latestEvent.time.format(
-            timeZone = timeZone,
-            am = appContext.getString(R.string.am),
-            pm = appContext.getString(R.string.pm),
-        ).substringAfter(", ")
-
-        val notification =
-            NotificationCompat.Builder(appContext, NotificationConstants.CHANNEL_GEOFENCE_ID)
-                .setContentTitle("Geofence Events")
-                .setContentText("- ${latestEvent.regionName}: ${latestEvent.transition} at $latestFormattedTime")
-                .setStyle(inboxStyle)
-                .setAutoCancel(true)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentIntent(mapPendingIntent)
-                .addAction(
-                    0,
-                    appContext.getString(R.string.view_on_map),
-                    mapPendingIntent,
-                )
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .build()
-
-        notificationManager.notify(
-            SINGLE_GEOFENCE_NOTIFICATION_TAG,
-            SINGLE_GEOFENCE_NOTIFICATION_ID,
             notification,
         )
     }
@@ -261,8 +182,5 @@ class NotificationManager(
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         private const val BACKGROUND_LOCATION_RESTRICTION_NOTIFICATION_TAG =
             "backgroundRestrictionNotification"
-        private const val SINGLE_GEOFENCE_NOTIFICATION_TAG =
-            "singleGeofenceNotification"
-        private const val SINGLE_GEOFENCE_NOTIFICATION_ID = 4001
     }
 }

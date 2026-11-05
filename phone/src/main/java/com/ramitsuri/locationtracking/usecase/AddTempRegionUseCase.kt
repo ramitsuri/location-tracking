@@ -1,7 +1,6 @@
 package com.ramitsuri.locationtracking.usecase
 
 import com.ramitsuri.locationtracking.data.dao.RegionDao
-import com.ramitsuri.locationtracking.geofence.AndroidGeofenceManager
 import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location
@@ -17,7 +16,6 @@ import kotlinx.datetime.toLocalDateTime
 class AddTempRegionUseCase(
     private val locationProvider: LocationProvider,
     private val regionDao: RegionDao,
-    private val geofenceManager: AndroidGeofenceManager,
     private val timeZone: TimeZone,
 ) {
     suspend operator fun invoke(): String? {
@@ -37,7 +35,6 @@ class AddTempRegionUseCase(
         )
 
         regionDao.insert(tempRegion)
-        geofenceManager.syncGeofences()
         logI(TAG) { "Created temporary geofence '$tempName' at ($freshLocation)" }
 
         return tempName

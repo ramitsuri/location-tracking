@@ -3,7 +3,6 @@ package com.ramitsuri.locationtracking.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ramitsuri.locationtracking.data.dao.RegionDao
-import com.ramitsuri.locationtracking.geofence.AndroidGeofenceManager
 import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location

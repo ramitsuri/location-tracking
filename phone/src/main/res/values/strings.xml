@@ -25,9 +25,6 @@
     <string name="notification_channel_ongoing">"Ongoing"</string>
     <string name="notification_channel_ongoing_description">"Required to receive location updates in the background"</string>
     <string name="notification_channel_errors">"Errors"</string>
-    <string name="notification_channel_geofences">"Geofences"</string>
-    <string name="notification_channel_geofences_description">"Notifications for geofence enter/exit events"</string>
-    <string name="view_on_map">"View on Map"</string>
 
     <string name="kill_app">"Kill App"</string>
     <string name="start_service">Start Service</string>
@@ -67,13 +64,6 @@
     <string name="edit_region">Edit Region</string>
     <string name="save">Save</string>
     <string name="delete_region">Delete region?</string>
-    <string name="geofence_logs">Geofence Logs</string>
-    <string name="no_geofence_logs">No geofence events in the last 3 days</string>
-    <string name="geofence_events">Geofence Events</string>
-    <string name="no_geofence_events">No geofence events in the last 3 days</string>
-    <string name="geofence_transition_enter">Entered</string>
-    <string name="geofence_transition_exit">Exited</string>
-    <string name="geofence_transition_dwell">Dwelling</string>
     <string name="create_temp_geofence">Temporary Geofence</string>
     <string name="temp_geofence_created">Created %1$s</string>
     <string name="last_known_location">Last Known Location</string>

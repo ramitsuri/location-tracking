@@ -27,7 +27,6 @@ import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.AndroidWifiInfoProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import com.ramitsuri.locationtracking.ui.home.HomeViewModel
-import com.ramitsuri.locationtracking.geofence.AndroidGeofenceManager
 import com.ramitsuri.locationtracking.ui.logs.LogScreenViewModel
 import com.ramitsuri.locationtracking.ui.region.AndroidRegionUtil
 import com.ramitsuri.locationtracking.ui.region.RegionsViewModel
@@ -102,7 +101,6 @@ class MainApp : Application(), KoinComponent {
                     NotificationManager(
                         context = this@MainApp,
                         permissionChecker = get<PermissionChecker>(),
-                        geofenceEventDao = get<AppDatabase>().geofenceEventDao(),
                     )
                 }
 
@@ -175,7 +173,6 @@ class MainApp : Application(), KoinComponent {
                     AddTempRegionUseCase(
                         locationProvider = get<LocationProvider>(),
                         regionDao = get<AppDatabase>().regionDao(),
-                        geofenceManager = get<AndroidGeofenceManager>(),
                         timeZone = get<TimeZone>(),
                     )
                 }
@@ -202,20 +199,11 @@ class MainApp : Application(), KoinComponent {
                     )
                 }
 
-                single<AndroidGeofenceManager> {
-                    AndroidGeofenceManager(
-                        context = this@MainApp,
-                        regionDao = get<AppDatabase>().regionDao(),
-                    )
-                }
-
                 viewModel<RegionsViewModel> {
                     RegionsViewModel(
                         regionDao = get<AppDatabase>().regionDao(),
-                        geofenceEventDao = get<AppDatabase>().geofenceEventDao(),
                         locationRepository = get<LocationRepository>(),
                         timeZone = get<TimeZone>(),
-                        geofenceManager = get<AndroidGeofenceManager>(),
                     )
                 }
 
