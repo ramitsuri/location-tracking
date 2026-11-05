@@ -174,6 +174,7 @@ class MainApp : Application(), KoinComponent {
                         locationProvider = get<LocationProvider>(),
                         regionDao = get<AppDatabase>().regionDao(),
                         timeZone = get<TimeZone>(),
+                        settings = get<Settings>(),
                     )
                 }
 

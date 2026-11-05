@@ -3,6 +3,7 @@
     <string name="monitoring_mode_rest">"Resting"</string>
     <string name="monitoring_mode_walking">"Walking"</string>
     <string name="monitoring_mode_moving">"Moving"</string>
+    <string name="monitoring_mode_temp_region">"Temp Region"</string>
 
     <string name="wifi_rule_status_connected">"Connected"</string>
     <string name="wifi_rule_status_disconnected">"Disconnected"</string>

@@ -41,4 +41,12 @@ fun Request.Companion.forMonitoringMode(monitoringMode: MonitoringMode) = when (
             priority = Priority.HighAccuracy,
         )
     }
+
+    MonitoringMode.TempRegion -> {
+        Request(
+            interval = 1.minutes,
+            priority = Priority.HighAccuracy,
+            fastestInterval = 30.seconds,
+        )
+    }
 }

@@ -9,6 +9,7 @@ fun MonitoringMode.label(context: Context) = when (this) {
     MonitoringMode.Rest -> R.string.monitoring_mode_rest
     MonitoringMode.Walk -> R.string.monitoring_mode_walking
     MonitoringMode.Move -> R.string.monitoring_mode_moving
+    MonitoringMode.TempRegion -> R.string.monitoring_mode_temp_region
 }.let {
     context.getString(it)
 }

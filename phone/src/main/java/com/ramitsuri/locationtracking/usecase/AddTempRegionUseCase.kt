@@ -4,7 +4,9 @@ import com.ramitsuri.locationtracking.data.dao.RegionDao
 import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location
+import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.model.Region
+import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.ui.region.toLatLng
 import kotlin.time.Clock
@@ -17,6 +19,7 @@ class AddTempRegionUseCase(
     private val locationProvider: LocationProvider,
     private val regionDao: RegionDao,
     private val timeZone: TimeZone,
+    private val settings: Settings,
 ) {
     suspend operator fun invoke(): String? {
         val freshLocation = getAccurateLocationFix(maxAttempts = 3, targetAccuracyMeters = 50)
@@ -35,6 +38,7 @@ class AddTempRegionUseCase(
         )
 
         regionDao.insert(tempRegion)
+        settings.setMonitoringMode(MonitoringMode.TempRegion)
         logI(TAG) { "Created temporary geofence '$tempName' at ($freshLocation)" }
 
         return tempName

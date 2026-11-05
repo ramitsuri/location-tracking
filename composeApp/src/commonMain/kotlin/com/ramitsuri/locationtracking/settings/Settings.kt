@@ -32,6 +32,7 @@ class Settings internal constructor(
             MonitoringMode.Rest -> MonitoringMode.Move
             MonitoringMode.Walk -> MonitoringMode.Rest
             MonitoringMode.Move -> MonitoringMode.Rest
+            MonitoringMode.TempRegion -> MonitoringMode.Move
         }
         setMonitoringMode(newMode)
     }

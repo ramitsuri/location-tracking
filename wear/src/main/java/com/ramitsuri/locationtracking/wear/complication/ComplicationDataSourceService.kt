@@ -68,6 +68,15 @@ class ComplicationDataSourceService : SuspendingComplicationDataSourceService(),
                 text = mode.label(applicationContext),
             ).build(),
         )
+
+        MonitoringMode.TempRegion -> MonochromaticImageComplicationData.Builder(
+            monochromaticImage = MonochromaticImage.Builder(
+                Icon.createWithResource(this, R.drawable.ic_temp_region),
+            ).build(),
+            contentDescription = PlainComplicationText.Builder(
+                text = mode.label(applicationContext),
+            ).build(),
+        )
     }.setTapAction(
         PendingIntent.getActivity(
             this,

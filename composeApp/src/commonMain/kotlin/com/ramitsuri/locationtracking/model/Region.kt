@@ -35,9 +35,8 @@ data class Region(
     }
 
     companion object {
-        // Google recommends a minimum geofence radius of 100-150m for reliable triggering
         const val MIN_RADIUS_METERS = 50f
         const val MAX_RADIUS_METERS = 2000f
-        const val DEFAULT_RADIUS_METERS = 100f
+        const val DEFAULT_RADIUS_METERS = 50f
     }
 }

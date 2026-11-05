@@ -71,6 +71,7 @@ class WearDataLayerListenerService : WearableListenerService(), KoinComponent {
                     MonitoringMode.Move,
                     MonitoringMode.Walk,
                     MonitoringMode.Rest,
+                    MonitoringMode.TempRegion,
                     -> 1
 
                     MonitoringMode.Off -> return@launch

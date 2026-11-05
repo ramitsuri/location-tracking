@@ -11,5 +11,6 @@ fun MonitoringMode.getIcon(): Int {
         MonitoringMode.Walk -> R.drawable.ic_walk
         MonitoringMode.Rest -> R.drawable.ic_rest
         MonitoringMode.Off -> R.drawable.ic_off
+        MonitoringMode.TempRegion -> R.drawable.ic_temp_region
     }
 }
