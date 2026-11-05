@@ -30,7 +30,6 @@ class Settings internal constructor(
         val newMode = when (currentMode) {
             MonitoringMode.Off -> MonitoringMode.Off
             MonitoringMode.Rest -> MonitoringMode.Move
-            MonitoringMode.Walk -> MonitoringMode.Rest
             MonitoringMode.Move -> MonitoringMode.Rest
             MonitoringMode.TempRegion -> MonitoringMode.Move
         }

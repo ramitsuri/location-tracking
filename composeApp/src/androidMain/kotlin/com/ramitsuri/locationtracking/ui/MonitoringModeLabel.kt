@@ -7,7 +7,6 @@ import com.ramitsuri.locationtracking.model.MonitoringMode
 fun MonitoringMode.label(context: Context) = when (this) {
     MonitoringMode.Off -> R.string.monitoring_mode_off
     MonitoringMode.Rest -> R.string.monitoring_mode_rest
-    MonitoringMode.Walk -> R.string.monitoring_mode_walking
     MonitoringMode.Move -> R.string.monitoring_mode_moving
     MonitoringMode.TempRegion -> R.string.monitoring_mode_temp_region
 }.let {

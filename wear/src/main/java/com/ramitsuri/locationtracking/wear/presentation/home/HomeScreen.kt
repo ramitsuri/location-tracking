@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
 import androidx.compose.material.icons.outlined.AddLocation
 import androidx.compose.material.icons.outlined.Motorcycle
 import androidx.compose.material.icons.outlined.NightShelter
@@ -92,9 +91,9 @@ fun HomeScreen(
                             )
                             LargeButton(
                                 modifier = Modifier.weight(1f),
-                                onClick = { onMonitoringModeChanged(MonitoringMode.Walk) },
-                                icon = Icons.AutoMirrored.Outlined.DirectionsWalk,
-                                contentDescription = MonitoringMode.Move.label(context),
+                                onClick = { onMonitoringModeChanged(MonitoringMode.Rest) },
+                                icon = Icons.Outlined.NightShelter,
+                                contentDescription = MonitoringMode.Rest.label(context),
                             )
                         }
                     }
@@ -103,12 +102,6 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            LargeButton(
-                                modifier = Modifier.weight(1f),
-                                onClick = { onMonitoringModeChanged(MonitoringMode.Rest) },
-                                icon = Icons.Outlined.NightShelter,
-                                contentDescription = MonitoringMode.Move.label(context),
-                            )
                             LargeButton(
                                 modifier = Modifier.weight(1f),
                                 onClick = onSingleLocation,

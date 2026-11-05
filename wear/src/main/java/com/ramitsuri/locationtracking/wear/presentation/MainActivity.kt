@@ -41,10 +41,6 @@ class MainActivity : ComponentActivity() {
                 MonitoringMode.Move
             }
 
-            MODE_WALK -> {
-                MonitoringMode.Walk
-            }
-
             MODE_REST -> {
                 MonitoringMode.Rest
             }
@@ -113,7 +109,6 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val MODE_KEY = "MODE_KEY"
         const val MODE_MOVE = "MODE_MOVE"
-        const val MODE_WALK = "MODE_WALK"
         const val MODE_REST = "MODE_REST"
         const val MODE_OFF = "MODE_OFF"
         const val SINGLE_LOCATION = "SINGLE_LOCATION"

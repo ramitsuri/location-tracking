@@ -51,15 +51,6 @@ class ComplicationDataSourceService : SuspendingComplicationDataSourceService(),
             ).build(),
         )
 
-        MonitoringMode.Walk -> MonochromaticImageComplicationData.Builder(
-            monochromaticImage = MonochromaticImage.Builder(
-                Icon.createWithResource(this, R.drawable.ic_walk),
-            ).build(),
-            contentDescription = PlainComplicationText.Builder(
-                text = mode.label(applicationContext),
-            ).build(),
-        )
-
         MonitoringMode.Move -> MonochromaticImageComplicationData.Builder(
             monochromaticImage = MonochromaticImage.Builder(
                 Icon.createWithResource(this, R.drawable.ic_move),

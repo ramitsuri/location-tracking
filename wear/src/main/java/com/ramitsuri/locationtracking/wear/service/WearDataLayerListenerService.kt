@@ -69,7 +69,6 @@ class WearDataLayerListenerService : WearableListenerService(), KoinComponent {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val vibrateTimes = when (monitoringMode) {
                     MonitoringMode.Move,
-                    MonitoringMode.Walk,
                     MonitoringMode.Rest,
                     MonitoringMode.TempRegion,
                     -> 1

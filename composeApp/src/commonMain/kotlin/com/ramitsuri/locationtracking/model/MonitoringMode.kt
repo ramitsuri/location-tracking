@@ -22,10 +22,6 @@ enum class MonitoringMode(
         value = "rest",
     ),
 
-    Walk(
-        value = "walk",
-    ),
-
     Move(
         value = "move",
     ),
@@ -45,9 +41,7 @@ enum class MonitoringMode(
         return when (this) {
             Off -> Rest
 
-            Rest -> Walk
-
-            Walk -> Move
+            Rest -> Move
 
             Move -> Rest
 
@@ -65,7 +59,6 @@ object MonitoringModeSerializer : KSerializer<MonitoringMode> {
     override fun serialize(encoder: Encoder, value: MonitoringMode) = when (value) {
         MonitoringMode.Off -> encoder.encodeInt(0)
         MonitoringMode.Rest -> encoder.encodeInt(1)
-        MonitoringMode.Walk -> encoder.encodeInt(2)
         MonitoringMode.Move -> encoder.encodeInt(3)
         MonitoringMode.TempRegion -> encoder.encodeInt(4)
     }
@@ -73,7 +66,6 @@ object MonitoringModeSerializer : KSerializer<MonitoringMode> {
     override fun deserialize(decoder: Decoder): MonitoringMode = when (decoder.decodeInt()) {
         0 -> MonitoringMode.Off
         1 -> MonitoringMode.Rest
-        2 -> MonitoringMode.Walk
         3 -> MonitoringMode.Move
         4 -> MonitoringMode.TempRegion
         else -> MonitoringMode.default()

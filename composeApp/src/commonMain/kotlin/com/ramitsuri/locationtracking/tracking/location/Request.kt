@@ -27,14 +27,6 @@ fun Request.Companion.forMonitoringMode(monitoringMode: MonitoringMode) = when (
         )
     }
 
-    MonitoringMode.Walk -> {
-        Request(
-            interval = 30.seconds,
-            priority = Priority.HighAccuracy,
-            fastestInterval = 10.seconds,
-        )
-    }
-
     MonitoringMode.Move -> {
         Request(
             interval = 10.seconds,
