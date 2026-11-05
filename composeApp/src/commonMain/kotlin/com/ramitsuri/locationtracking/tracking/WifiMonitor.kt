@@ -75,7 +75,7 @@ class WifiMonitor(
         coroutineScope {
             wifiMonitoringModeRuleJob?.cancel()
             wifiMonitoringModeRuleJob = launch {
-                delay(1.seconds)
+                delay(MODE_CHANGE_DELAY)
                 seenWifiDao
                     .getFavorites(listOfNotNull(connectedTo, disconnectedFrom))
                     .let { seenWifis ->
@@ -100,5 +100,6 @@ class WifiMonitor(
 
     companion object {
         private const val TAG = "WifiMonitor"
+        private val MODE_CHANGE_DELAY = 15.seconds
     }
 }

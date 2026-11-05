@@ -9,6 +9,7 @@ import com.ramitsuri.locationtracking.settings.Settings
 import com.ramitsuri.locationtracking.testutils.BaseTest
 import com.ramitsuri.locationtracking.testutils.TestWifiInfoProvider
 import kotlin.test.assertEquals
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestScope
@@ -16,6 +17,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.koin.test.get
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class WifiMonitorTest : BaseTest() {
     private lateinit var settings: Settings
     private lateinit var db: AppDatabase
@@ -76,6 +78,33 @@ class WifiMonitorTest : BaseTest() {
                 wifiInfoProvider.wifiInfo.update { wifiInfo().copy(ssid = "1") }
                 assertEquals(MonitoringMode.Rest, awaitItem())
                 cancelAndConsumeRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `does not switch to Move if wifi disconnects and reconnects within delay window`() =
+        runTest {
+            setup()
+            insertFavorite(ssid = "1")
+            settings.getMonitoringMode().test {
+                assertEquals(MonitoringMode.Off, awaitItem())
+
+                // Connect to favorite Wi-Fi
+                wifiInfoProvider.wifiInfo.value = wifiInfo().copy(ssid = "1")
+                assertEquals(MonitoringMode.Rest, awaitItem())
+
+                // Disconnect briefly (5 seconds)
+                wifiInfoProvider.wifiInfo.value = wifiInfo()
+                testScheduler.advanceTimeBy(5_000)
+
+                // Reconnect before the 15s delay expires
+                wifiInfoProvider.wifiInfo.value = wifiInfo().copy(ssid = "1")
+
+                // Advance past the 15s delay window
+                testScheduler.advanceTimeBy(20_000)
+
+                // No mode change event should have been emitted
+                expectNoEvents()
             }
         }
 
