@@ -3,16 +3,17 @@ package com.ramitsuri.locationtracking.data.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.ramitsuri.locationtracking.model.Location
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LocationDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(location: Location)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(locations: List<Location>)
 
     @Delete

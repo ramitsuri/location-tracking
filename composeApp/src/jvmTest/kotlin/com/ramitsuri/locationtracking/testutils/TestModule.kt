@@ -4,6 +4,7 @@ import androidx.room.Room
 import com.ramitsuri.locationtracking.data.AppDatabase
 import com.ramitsuri.locationtracking.data.dao.GeocodeCacheDao
 import com.ramitsuri.locationtracking.data.dao.LocationDao
+import com.ramitsuri.locationtracking.data.dao.RegionDao
 import com.ramitsuri.locationtracking.repository.GeocoderRepository
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.DataStoreKeyValueStore
@@ -21,14 +22,14 @@ import org.koin.dsl.module
 @OptIn(ExperimentalUuidApi::class)
 val testModule = module {
 
-    factory<Settings> {
+    single<Settings> {
         val dataStore = DataStoreKeyValueStore {
             Paths.get(BaseTest.TEMP_DIR).resolve("${Uuid.random()}.preferences_pb").toOkioPath()
         }
         Settings(dataStore, get<Json>())
     }
 
-    factory<AppDatabase> {
+    single<AppDatabase> {
         AppDatabase.getDb(Room.inMemoryDatabaseBuilder<AppDatabase>(), get<CoroutineDispatcher>())
     }
 
@@ -97,5 +98,9 @@ val testModule = module {
 
     factory<RegionUtil> {
         get<TestRegionUtil>()
+    }
+
+    factory<RegionDao> {
+        get<AppDatabase>().regionDao()
     }
 }

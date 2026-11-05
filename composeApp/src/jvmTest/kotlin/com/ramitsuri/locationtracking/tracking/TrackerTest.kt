@@ -3,9 +3,13 @@ package com.ramitsuri.locationtracking.tracking
 import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import com.ramitsuri.locationtracking.data.dao.GeocodeCacheDao
+import com.ramitsuri.locationtracking.data.dao.LocationDao
+import com.ramitsuri.locationtracking.data.dao.RegionDao
 import com.ramitsuri.locationtracking.model.BatteryStatus
+import com.ramitsuri.locationtracking.model.LatLng
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.MonitoringMode
+import com.ramitsuri.locationtracking.model.Region
 import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.PermissionResult
 import com.ramitsuri.locationtracking.repository.GeocoderRepository
@@ -16,13 +20,16 @@ import com.ramitsuri.locationtracking.testutils.TestBatteryInfoProvider
 import com.ramitsuri.locationtracking.testutils.TestGeocoderApi
 import com.ramitsuri.locationtracking.testutils.TestLocationProvider
 import com.ramitsuri.locationtracking.testutils.TestPermissionChecker
+import com.ramitsuri.locationtracking.testutils.TestRegionUtil
 import com.ramitsuri.locationtracking.testutils.TestWifiInfoProvider
+import com.ramitsuri.locationtracking.utils.toBd
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -34,6 +41,10 @@ import org.koin.test.inject
 class TrackerTest : BaseTest() {
     private val settings by inject<Settings>()
     private val locationProvider by inject<TestLocationProvider>()
+    private val locationRepository by inject<LocationRepository>()
+    private val locationDao by inject<LocationDao>()
+    private val regionDao by inject<RegionDao>()
+    private val regionUtil by inject<TestRegionUtil>()
     private val geocoderApi by inject<TestGeocoderApi>()
     private val geocoderRepository by lazy {
         GeocoderRepository(
@@ -217,9 +228,10 @@ class TrackerTest : BaseTest() {
     private suspend fun TestScope.setup(
         grantPermissions: Boolean = true,
         startTracker: Boolean = true,
+        monitoringMode: MonitoringMode = MonitoringMode.Rest,
     ) {
         tracker = Tracker(
-            locationRepository = get<LocationRepository>(),
+            locationRepository = locationRepository,
             geocoderRepository = geocoderRepository,
             locationProvider = locationProvider,
             wifiInfoProvider = get<TestWifiInfoProvider>(),
@@ -227,15 +239,124 @@ class TrackerTest : BaseTest() {
             scope = backgroundScope,
             permissionChecker = permissionChecker,
             batteryInfoProvider = get<TestBatteryInfoProvider>(),
+            regionDao = regionDao,
+            regionUtil = regionUtil,
         )
         if (grantPermissions) {
             permissionChecker.permissionResults.addAll(
                 Permission.entries.map { PermissionResult(it, true) },
             )
         }
-        settings.setMonitoringMode(MonitoringMode.Rest)
+        settings.setMonitoringMode(monitoringMode)
         if (startTracker) {
             tracker.startTracking()
+        }
+    }
+
+    @Test
+    fun `temp region mode - skips recording when location is inside temp region`() = runTest {
+        setup(monitoringMode = MonitoringMode.TempRegion)
+        val tempRegion = Region(
+            name = "temp_store",
+            center = LatLng(1.0.toBd(), 1.0.toBd()),
+            radiusMeters = 50f,
+            type = Region.Type.TEMP,
+        )
+        regionDao.insert(tempRegion)
+
+        tracker.lastKnownAddressOrLocation.test {
+            assertNull(awaitItem())
+
+            // Inside temp region: should be skipped
+            regionUtil.isContains = true
+            locationProvider.locationsFlow.update {
+                location().copy(latitude = 1.0, longitude = 1.0, accuracy = 10)
+            }
+
+            // Outside temp region: should trigger exit and onNewLocation
+            regionUtil.isContains = false
+            locationProvider.locationsFlow.update {
+                location().copy(latitude = 2.0, longitude = 2.0, accuracy = 10)
+            }
+
+            awaitItem() // onNewLocation for (2.0, 2.0)
+
+            val tempRegions = regionDao.getAll().filter { it.type == Region.Type.TEMP }
+            assertEquals(0, tempRegions.size)
+            assertEquals(MonitoringMode.Move, settings.getMonitoringMode().first())
+            val recorded = locationDao.getAll()
+            assertEquals(1, recorded.size)
+            assertEquals(2.0, recorded.first().latitude)
+            assertEquals(MonitoringMode.Move, recorded.first().monitoringMode)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `temp region mode - deletes temp region, switches to Move, records location when outside temp region`() = runTest {
+        setup(monitoringMode = MonitoringMode.TempRegion)
+        val tempRegion = Region(
+            name = "temp_store",
+            center = LatLng(1.0.toBd(), 1.0.toBd()),
+            radiusMeters = 50f,
+            type = Region.Type.TEMP,
+        )
+        regionDao.insert(tempRegion)
+        regionUtil.isContains = false
+
+        tracker.lastKnownAddressOrLocation.test {
+            assertNull(awaitItem())
+
+            locationProvider.locationsFlow.update {
+                location().copy(latitude = 2.0, longitude = 2.0, accuracy = 10)
+            }
+
+            awaitItem() // onNewLocation
+
+            val tempRegions = regionDao.getAll().filter { it.type == Region.Type.TEMP }
+            assertEquals(0, tempRegions.size)
+            assertEquals(MonitoringMode.Move, settings.getMonitoringMode().first())
+            val recorded = locationDao.getAll()
+            assertEquals(1, recorded.size)
+            assertEquals(MonitoringMode.Move, recorded.first().monitoringMode)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `temp region mode - ignores exit when accuracy is poor`() = runTest {
+        setup(monitoringMode = MonitoringMode.TempRegion)
+        val tempRegion = Region(
+            name = "temp_store",
+            center = LatLng(1.0.toBd(), 1.0.toBd()),
+            radiusMeters = 50f,
+            type = Region.Type.TEMP,
+        )
+        regionDao.insert(tempRegion)
+        regionUtil.isContains = false
+
+        tracker.lastKnownAddressOrLocation.test {
+            assertNull(awaitItem())
+
+            // Inaccurate fix (> 100m) outside region: should be ignored
+            locationProvider.locationsFlow.update {
+                location().copy(latitude = 2.0, longitude = 2.0, accuracy = 150)
+            }
+
+            // Accurate fix (<= 100m) outside region: triggers exit
+            locationProvider.locationsFlow.update {
+                location().copy(latitude = 2.0, longitude = 2.0, accuracy = 10)
+            }
+
+            awaitItem() // onNewLocation
+
+            val tempRegions = regionDao.getAll().filter { it.type == Region.Type.TEMP }
+            assertEquals(0, tempRegions.size)
+            assertEquals(MonitoringMode.Move, settings.getMonitoringMode().first())
+            val recorded = locationDao.getAll()
+            assertEquals(1, recorded.size)
+            assertEquals(10, recorded.first().accuracy)
+            cancelAndIgnoreRemainingEvents()
         }
     }
 

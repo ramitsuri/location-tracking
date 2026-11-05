@@ -37,6 +37,9 @@ class AddTempRegionUseCase(
             type = Region.Type.TEMP,
         )
 
+        regionDao.getAll().filter { it.type == Region.Type.TEMP }.forEach {
+            regionDao.delete(it)
+        }
         regionDao.insert(tempRegion)
         settings.setMonitoringMode(MonitoringMode.TempRegion)
         logI(TAG) { "Created temporary geofence '$tempName' at ($freshLocation)" }

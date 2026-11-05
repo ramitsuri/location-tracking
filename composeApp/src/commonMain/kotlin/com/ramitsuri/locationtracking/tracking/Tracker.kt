@@ -1,9 +1,12 @@
 package com.ramitsuri.locationtracking.tracking
 
+import com.ramitsuri.locationtracking.data.dao.RegionDao
 import com.ramitsuri.locationtracking.log.logD
 import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location
+import com.ramitsuri.locationtracking.model.MonitoringMode
+import com.ramitsuri.locationtracking.model.Region
 import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.PermissionChecker
 import com.ramitsuri.locationtracking.repository.GeocoderRepository
@@ -14,12 +17,14 @@ import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.location.Request
 import com.ramitsuri.locationtracking.tracking.location.forMonitoringMode
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
+import com.ramitsuri.locationtracking.utils.RegionUtil
 import com.ramitsuri.locationtracking.utils.toBd
 import java.math.BigDecimal
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,6 +33,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class Tracker(
     private val permissionChecker: PermissionChecker,
@@ -38,6 +44,8 @@ class Tracker(
     private val geocoderRepository: GeocoderRepository,
     private val settings: Settings,
     private val scope: CoroutineScope,
+    private val regionDao: RegionDao,
+    private val regionUtil: RegionUtil,
 ) {
 
     private var locationCollectionJob: Job? = null
@@ -124,10 +132,46 @@ class Tracker(
                                 }
                         } ?: emptyFlow()
                 }.collect { location ->
-                    locationRepository.insert(location)
-                    onNewLocation(location)
+                    handleLocation(location)
                 }
         }
+    }
+
+    private suspend fun handleLocation(location: Location) {
+        if (location.monitoringMode == MonitoringMode.TempRegion) {
+            val tempRegions = regionDao.getAll().filter { it.type == Region.Type.TEMP }
+            if (tempRegions.isEmpty()) {
+                logI(TAG) { "In temp region mode, but no temp regions found. Switching to Move" }
+                withContext(NonCancellable) {
+                    val updatedLocation = location.copy(monitoringMode = MonitoringMode.Move)
+                    locationRepository.insert(updatedLocation)
+                    settings.setMonitoringMode(MonitoringMode.Move)
+                    onNewLocation(updatedLocation)
+                }
+                return
+            }
+            val isInTempRegion = tempRegions.any { regionUtil.contains(it, location) }
+            if (isInTempRegion) {
+                logD(TAG) { "Inside temp region, skipping location recording" }
+                return
+            }
+            if (location.accuracy > MAX_TEMP_REGION_EXIT_ACCURACY_METERS) {
+                logI(TAG) { "Outside temp region but accuracy is poor (${location.accuracy}m), ignoring" }
+                return
+            }
+            logI(TAG) { "Moved outside temp region. Deleting temp region(s) and switching to Move" }
+            withContext(NonCancellable) {
+                tempRegions.forEach { regionDao.delete(it) }
+                val updatedLocation = location.copy(monitoringMode = MonitoringMode.Move)
+                locationRepository.insert(updatedLocation)
+                settings.setMonitoringMode(MonitoringMode.Move)
+                onNewLocation(updatedLocation)
+            }
+            return
+        }
+
+        locationRepository.insert(location)
+        onNewLocation(location)
     }
 
     private fun onNewLocation(location: Location) {
@@ -196,5 +240,6 @@ class Tracker(
     companion object {
         private const val TAG = "Tracker"
         private const val MIN_LOCATION_ACCURACY_METERS = 500
+        private const val MAX_TEMP_REGION_EXIT_ACCURACY_METERS = 100
     }
 }

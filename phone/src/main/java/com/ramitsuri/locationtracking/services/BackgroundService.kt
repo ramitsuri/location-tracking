@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.ramitsuri.locationtracking.R
+import com.ramitsuri.locationtracking.data.dao.RegionDao
 import com.ramitsuri.locationtracking.data.dao.SeenWifiDao
 import com.ramitsuri.locationtracking.log.logD
 import com.ramitsuri.locationtracking.log.logE
@@ -32,6 +33,7 @@ import com.ramitsuri.locationtracking.tracking.location.LocationProvider
 import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import com.ramitsuri.locationtracking.ui.label
 import com.ramitsuri.locationtracking.util.getIcon
+import com.ramitsuri.locationtracking.utils.RegionUtil
 import com.ramitsuri.locationtracking.wear.WearDataSharingClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -61,6 +63,8 @@ class BackgroundService : LifecycleService(), KoinComponent {
             geocoderRepository = get<GeocoderRepository>(),
             settings = settings,
             scope = lifecycleScope,
+            regionDao = get<RegionDao>(),
+            regionUtil = get<RegionUtil>(),
         )
     }
     private val wifiMonitor by lazy {
