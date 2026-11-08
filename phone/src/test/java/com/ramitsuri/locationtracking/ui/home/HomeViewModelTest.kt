@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.ramitsuri.locationtracking.data.dao.RegionDao
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LocationsViewMode
+import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.permissions.PermissionResult
 import com.ramitsuri.locationtracking.repository.LocationRepository
 import com.ramitsuri.locationtracking.settings.Settings
@@ -49,6 +50,7 @@ class HomeViewModelTest {
         every { locationRepository.getLastKnownLocation() } returns flowOf(null)
         every { settings.getMinAccuracyForDisplay() } returns flowOf(100)
         every { settings.getLocationsViewMode() } returns flowOf(LocationsViewMode.Lines)
+        every { settings.getMonitoringMode() } returns flowOf(MonitoringMode.Rest)
         every { regionDao.getAllFlow() } returns flowOf(emptyList())
 
         viewModel = HomeViewModel(
@@ -149,6 +151,22 @@ class HomeViewModelTest {
         viewModel.onAddTempGeofence()
 
         coVerify { addTempRegionUseCase() }
+    }
+
+    @Test
+    fun `monitoringMode - emitted in viewState`() = runTest {
+        viewModel.viewState.test {
+            val item = awaitItem()
+            assertEquals(MonitoringMode.Rest, item.monitoringMode)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `onSetMonitoringMode - calls settings setMonitoringMode`() = runTest {
+        viewModel.onSetMonitoringMode(MonitoringMode.Move)
+
+        coVerify { settings.setMonitoringMode(MonitoringMode.Move) }
     }
 
     private suspend fun getTimelineForLocations(locations: List<Location>): List<Event> {

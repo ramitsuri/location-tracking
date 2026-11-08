@@ -7,6 +7,7 @@ import com.ramitsuri.locationtracking.log.logI
 import com.ramitsuri.locationtracking.log.logW
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LocationsViewMode
+import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.model.Region
 import com.ramitsuri.locationtracking.permissions.PermissionResult
 import com.ramitsuri.locationtracking.repository.LocationRepository
@@ -60,9 +61,10 @@ class HomeViewModel(
         selectedLocation,
         regionDao.getAllFlow(),
         userMessage,
+        settings.getMonitoringMode(),
     ) {
             count, permissions, isUploadWorkerRunning, lastKnownLocation, viewMode, isLoading,
-            selectedLocation, regions, userMessage,
+            selectedLocation, regions, userMessage, monitoringMode,
         ->
         val newViewMode = when (viewMode) {
             is LocationsForDate -> viewMode
@@ -80,12 +82,19 @@ class HomeViewModel(
             regions = regions,
             userMessage = userMessage,
             timeZone = timeZone,
+            monitoringMode = monitoringMode,
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = HomeViewState(timeZone = timeZone),
     )
+
+    fun onSetMonitoringMode(mode: MonitoringMode) {
+        viewModelScope.launch {
+            settings.setMonitoringMode(mode)
+        }
+    }
 
     fun onUpload() {
         upload()

@@ -8,6 +8,7 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ShowChart
 import androidx.compose.material.icons.filled.ArrowCircleLeft
 import androidx.compose.material.icons.filled.ArrowCircleRight
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.AddLocation
@@ -76,6 +78,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -97,6 +100,7 @@ import com.ramitsuri.locationtracking.model.AndroidLatLng
 import com.ramitsuri.locationtracking.model.BatteryStatus
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LocationsViewMode
+import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.model.Region
 import com.ramitsuri.locationtracking.permissions.Permission
 import com.ramitsuri.locationtracking.permissions.asAndroidPermission
@@ -108,6 +112,8 @@ import com.ramitsuri.locationtracking.ui.components.Time
 import com.ramitsuri.locationtracking.ui.components.TintedIconButton
 import com.ramitsuri.locationtracking.ui.components.TintedTextButton
 import com.ramitsuri.locationtracking.ui.home.HomeViewState.ViewMode.LocationsForDate.Event
+import com.ramitsuri.locationtracking.ui.label
+import com.ramitsuri.locationtracking.util.getIcon
 import com.ramitsuri.locationtracking.utils.center
 import com.ramitsuri.locationtracking.utils.format
 import kotlinx.datetime.LocalDate
@@ -124,6 +130,7 @@ fun HomeScreen(
     onNavToSystemSettings: () -> Unit,
     onSingleLocation: () -> Unit,
     onAddTempGeofence: () -> Unit,
+    onSetMonitoringMode: (MonitoringMode) -> Unit,
     onUserMessageShown: () -> Unit,
     onUpload: () -> Unit,
     onSelectDateTimeForLocations: (LocalDateTime, LocalDateTime?) -> Unit,
@@ -148,6 +155,9 @@ fun HomeScreen(
     var showDateTimePicker by remember { mutableStateOf(false) }
     val dateTimePickerState = rememberModalBottomSheetState()
 
+    var showModeSelection by remember { mutableStateOf(false) }
+    val modeSelectionState = rememberModalBottomSheetState()
+
     var timeline by remember { mutableStateOf(emptyList<Event>()) }
     val timelineState = rememberModalBottomSheetState()
 
@@ -169,6 +179,8 @@ fun HomeScreen(
                         missingPermissions = viewState.missingPermissions,
                         numOfLocations = viewState.numOfLocations,
                         isUploadWorkerRunning = viewState.isUploadWorkerRunning,
+                        monitoringMode = viewState.monitoringMode,
+                        onChangeModeClick = { showModeSelection = true },
                         onNavToSettings = onNavToSettings,
                         onNavToSystemSettings = onNavToSystemSettings,
                         onSingleLocation = onSingleLocation,
@@ -227,6 +239,17 @@ fun HomeScreen(
                 onSelectDateTimeForLocations(fromDateTime, toDateTime)
                 showDateTimePicker = false
             },
+        )
+    }
+    if (showModeSelection) {
+        ModeSelectionBottomSheet(
+            currentMode = viewState.monitoringMode,
+            sheetState = modeSelectionState,
+            onModeSelected = { mode ->
+                onSetMonitoringMode(mode)
+                showModeSelection = false
+            },
+            onDismiss = { showModeSelection = false },
         )
     }
     if (timeline.isNotEmpty()) {
@@ -790,6 +813,8 @@ private fun OptionsPill(
     missingPermissions: List<Permission>,
     numOfLocations: Int,
     isUploadWorkerRunning: Boolean,
+    monitoringMode: MonitoringMode,
+    onChangeModeClick: () -> Unit,
     onNavToSettings: () -> Unit,
     onNavToSystemSettings: () -> Unit,
     onSingleLocation: () -> Unit,
@@ -820,6 +845,11 @@ private fun OptionsPill(
                 showProgress = isUploadWorkerRunning,
                 onClick = onUpload,
                 icon = Icons.Outlined.Upload,
+            )
+            TintedIconButton(
+                onClick = onChangeModeClick,
+                iconRes = monitoringMode.getIcon(),
+                contentDescription = stringResource(R.string.change_mode),
             )
             TintedIconButton(
                 onClick = onSingleLocation,
@@ -987,6 +1017,72 @@ private val primaryMapsColor
 private val secondaryMapsColor
     @Composable
     get() = MaterialTheme.colorScheme.secondary
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ModeSelectionBottomSheet(
+    currentMode: MonitoringMode,
+    sheetState: SheetState,
+    onModeSelected: (MonitoringMode) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    ModalBottomSheet(
+        containerColor = MaterialTheme.colorScheme.background,
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.change_mode),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+            MonitoringMode.entries.forEach { mode ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onModeSelected(mode) }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(id = mode.getIcon()),
+                        contentDescription = null,
+                        tint = if (mode == currentMode) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onBackground
+                        },
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = mode.label(context),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (mode == currentMode) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onBackground
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (mode == currentMode) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable

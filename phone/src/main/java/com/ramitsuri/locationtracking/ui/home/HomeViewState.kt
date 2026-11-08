@@ -2,6 +2,7 @@ package com.ramitsuri.locationtracking.ui.home
 
 import com.ramitsuri.locationtracking.model.Location
 import com.ramitsuri.locationtracking.model.LocationsViewMode
+import com.ramitsuri.locationtracking.model.MonitoringMode
 import com.ramitsuri.locationtracking.model.Region
 import com.ramitsuri.locationtracking.permissions.PermissionResult
 import kotlinx.datetime.LocalDate
@@ -19,6 +20,7 @@ data class HomeViewState(
     val regions: List<Region> = emptyList(),
     val userMessage: String? = null,
     val timeZone: TimeZone,
+    val monitoringMode: MonitoringMode = MonitoringMode.default(),
 ) {
     sealed interface ViewMode {
         data class LocationsForDate(

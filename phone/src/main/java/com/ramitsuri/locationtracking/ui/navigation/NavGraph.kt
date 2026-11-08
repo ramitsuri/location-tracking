@@ -63,6 +63,7 @@ fun NavGraph(
                         onUpload = viewModel::onUpload,
                         onSingleLocation = onSingleLocation,
                         onAddTempGeofence = viewModel::onAddTempGeofence,
+                        onSetMonitoringMode = viewModel::onSetMonitoringMode,
                         onUserMessageShown = viewModel::onUserMessageShown,
                         onNavToSystemSettings = onNavToSystemSettings,
                         onSelectDateTimeForLocations = viewModel::dateTimeSelectedForLocations,
