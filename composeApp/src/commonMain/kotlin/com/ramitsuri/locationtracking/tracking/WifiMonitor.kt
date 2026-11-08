@@ -8,7 +8,6 @@ import com.ramitsuri.locationtracking.tracking.wifi.WifiInfoProvider
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -71,35 +70,38 @@ class WifiMonitor(
         }
     }
 
-    private suspend fun onWifiChanged(connectedTo: String?, disconnectedFrom: String?) =
-        coroutineScope {
-            wifiMonitoringModeRuleJob?.cancel()
-            wifiMonitoringModeRuleJob = launch {
-                delay(MODE_CHANGE_DELAY)
-                seenWifiDao
-                    .getFavorites(listOfNotNull(connectedTo, disconnectedFrom))
-                    .let { seenWifis ->
-                        var modeToSet: MonitoringMode? = null
-                        disconnectedFrom?.let { disconnectedSsid ->
-                            if (seenWifis.any { it.ssid == disconnectedSsid }) {
-                                modeToSet = MonitoringMode.Move
-                            }
-                        }
-                        connectedTo?.let { connectedSsid ->
-                            if (seenWifis.any { it.ssid == connectedSsid }) {
-                                modeToSet = MonitoringMode.Rest
-                            }
-                        }
-                        modeToSet?.let {
-                            logI(TAG) { "Setting mode to $modeToSet" }
-                            settings.setMonitoringMode(it)
+    private fun onWifiChanged(connectedTo: String?, disconnectedFrom: String?) {
+        wifiMonitoringModeRuleJob?.cancel()
+        wifiMonitoringModeRuleJob = scope.launch {
+            seenWifiDao
+                .getFavorites(listOfNotNull(connectedTo, disconnectedFrom))
+                .let { seenWifis ->
+                    var modeToSet: MonitoringMode? = null
+                    disconnectedFrom?.let { disconnectedSsid ->
+                        if (seenWifis.any { it.ssid == disconnectedSsid }) {
+                            modeToSet = MonitoringMode.Move
                         }
                     }
-            }
+                    connectedTo?.let { connectedSsid ->
+                        if (seenWifis.any { it.ssid == connectedSsid }) {
+                            modeToSet = MonitoringMode.Rest
+                        }
+                    }
+                    // Only delay on disconnect so brief drops don't switch to move,
+                    // but go back to rest immediately on connect
+                    if (modeToSet == MonitoringMode.Move) {
+                        delay(DISCONNECT_MODE_CHANGE_DELAY)
+                    }
+                    modeToSet?.let {
+                        logI(TAG) { "Setting mode to $modeToSet" }
+                        settings.setMonitoringMode(it)
+                    }
+                }
         }
+    }
 
     companion object {
         private const val TAG = "WifiMonitor"
-        private val MODE_CHANGE_DELAY = 15.seconds
+        private val DISCONNECT_MODE_CHANGE_DELAY = 15.seconds
     }
 }

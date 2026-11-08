@@ -20,7 +20,9 @@ open class BaseTest : KoinTest {
     @After
     fun tearDown() {
         stopKoin()
-        Paths.get(TEMP_DIR).deleteRecursively()
+        runCatching {
+            Paths.get(TEMP_DIR).deleteRecursively()
+        }
     }
 
     companion object {

@@ -108,6 +108,41 @@ class WifiMonitorTest : BaseTest() {
             }
         }
 
+    @Test
+    fun `switches to Move only after delay when wifi disconnects`() = runTest {
+        setup()
+        insertFavorite(ssid = "1")
+        settings.getMonitoringMode().test {
+            assertEquals(MonitoringMode.Off, awaitItem())
+
+            // Connect to favorite Wi-Fi
+            wifiInfoProvider.wifiInfo.value = wifiInfo().copy(ssid = "1")
+            assertEquals(MonitoringMode.Rest, awaitItem())
+
+            // Disconnect from favorite Wi-Fi
+            wifiInfoProvider.wifiInfo.value = wifiInfo()
+            testScheduler.advanceTimeBy(10_000)
+            expectNoEvents()
+
+            testScheduler.advanceTimeBy(5_000)
+            assertEquals(MonitoringMode.Move, awaitItem())
+        }
+    }
+
+    @Test
+    fun `switches to Rest immediately without delay when wifi connects`() = runTest {
+        setup()
+        insertFavorite(ssid = "1")
+        settings.setMonitoringMode(MonitoringMode.Move)
+        settings.getMonitoringMode().test {
+            assertEquals(MonitoringMode.Move, awaitItem())
+            val timeBefore = testScheduler.currentTime
+            wifiInfoProvider.wifiInfo.value = wifiInfo().copy(ssid = "1")
+            assertEquals(MonitoringMode.Rest, awaitItem())
+            assertEquals(timeBefore, testScheduler.currentTime)
+        }
+    }
+
     private suspend fun insertFavorite(ssid: String) {
         db.seenWifiDao().insert(
             SeenWifi(
