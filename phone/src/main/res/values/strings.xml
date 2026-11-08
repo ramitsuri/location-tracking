@@ -21,6 +21,9 @@
     <string name="install">Install</string>
     <string name="search">Search</string>
     <string name="seen_wifi">Seen WiFi</string>
+    <string name="sort">Sort</string>
+    <string name="sort_most_recent">Most recently connected</string>
+    <string name="sort_most_times">Most times connected</string>
 
     <string name="notification_channel_ongoing">"Ongoing"</string>
     <string name="notification_channel_ongoing_description">"Required to receive location updates in the background"</string>

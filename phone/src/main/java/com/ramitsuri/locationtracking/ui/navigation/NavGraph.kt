@@ -153,6 +153,7 @@ fun NavGraph(
                         },
                         onToggleIsFavorite = viewModel::toggleFavorite,
                         onSearchTextChange = viewModel::onSearchTextChange,
+                        onSortOrderChange = viewModel::onSortOrderChange,
                         modifier = Modifier
                             .statusBarsPadding()
                             .displayCutoutPadding(),

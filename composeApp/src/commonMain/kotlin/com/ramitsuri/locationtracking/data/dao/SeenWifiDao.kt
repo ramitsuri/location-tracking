@@ -6,6 +6,8 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.ramitsuri.locationtracking.model.SeenWifi
+import com.ramitsuri.locationtracking.model.WifiSortOrder
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -16,12 +18,30 @@ abstract class SeenWifiDao {
         if (existing == null) {
             insert(SeenWifi(ssid = ssid))
         } else {
-            update(existing.copy(seenCount = existing.seenCount + 1))
+            update(
+                existing.copy(
+                    seenCount = existing.seenCount + 1,
+                    lastSeenAt = Clock.System.now(),
+                ),
+            )
         }
     }
 
-    @Query("SELECT * FROM seen_wifi WHERE ssid LIKE '%' || :query || '%' ORDER BY seen_count DESC")
-    abstract fun getFlow(query: String = ""): Flow<List<SeenWifi>>
+    fun getFlow(
+        query: String = "",
+        sortOrder: WifiSortOrder = WifiSortOrder.MOST_TIMES,
+    ): Flow<List<SeenWifi>> {
+        return when (sortOrder) {
+            WifiSortOrder.MOST_TIMES -> getFlowBySeenCount(query)
+            WifiSortOrder.MOST_RECENT -> getFlowByLastSeen(query)
+        }
+    }
+
+    @Query("SELECT * FROM seen_wifi WHERE ssid LIKE '%' || :query || '%' ORDER BY seen_count DESC, last_seen_at DESC")
+    abstract fun getFlowBySeenCount(query: String = ""): Flow<List<SeenWifi>>
+
+    @Query("SELECT * FROM seen_wifi WHERE ssid LIKE '%' || :query || '%' ORDER BY last_seen_at DESC, seen_count DESC")
+    abstract fun getFlowByLastSeen(query: String = ""): Flow<List<SeenWifi>>
 
     @Query("SELECT * FROM seen_wifi WHERE ssid IN (:ssids) AND is_favorite = true")
     abstract suspend fun getFavorites(ssids: List<String>): List<SeenWifi>
