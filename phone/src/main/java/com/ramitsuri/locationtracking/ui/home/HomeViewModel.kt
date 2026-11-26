@@ -178,7 +178,7 @@ class HomeViewModel(
         val events = mutableListOf<LocationsForDate.Event>()
         var currentConnectedWifi: String? = null
 
-        locations.forEachIndexed { index, location ->
+        locations.sortedBy { it.locationTimestamp }.forEachIndexed { index, location ->
             val ssid = location.ssid
             val time = location.locationTimestamp.toLocalDateTime(timeZone)
 
@@ -192,6 +192,15 @@ class HomeViewModel(
                         )
                     )
                     currentConnectedWifi = ssid
+                } else {
+                    events.add(
+                        LocationsForDate.Event(
+                            type = LocationsForDate.Event.Type.DISCONNECTED,
+                            time = time,
+                            wifiName = "",
+                        )
+                    )
+                    currentConnectedWifi = null
                 }
             } else {
                 if (currentConnectedWifi != null && ssid == null) {

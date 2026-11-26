@@ -88,12 +88,14 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `timeline - single disconnected location returns empty timeline in view state`() = runTest {
+    fun `timeline - single disconnected location returns disconnected event in view state`() = runTest {
         val locations = listOf(
             location(ssid = null, time = "2025-01-01T10:00:00Z")
         )
         val result = getTimelineForLocations(locations)
-        assertEquals(0, result.size)
+        assertEquals(1, result.size)
+        assertEquals(Event.Type.DISCONNECTED, result[0].type)
+        assertEquals("", result[0].wifiName)
     }
 
     @Test
@@ -139,9 +141,25 @@ class HomeViewModelTest {
             location(ssid = "Wifi1", time = "2025-01-01T10:15:00Z"),
         )
         val result = getTimelineForLocations(locations)
-        assertEquals(1, result.size)
-        assertEquals(Event.Type.CONNECTED, result[0].type)
-        assertEquals("Wifi1", result[0].wifiName)
+        assertEquals(2, result.size)
+        assertEquals(Event.Type.DISCONNECTED, result[0].type)
+        assertEquals("", result[0].wifiName)
+        assertEquals(Event.Type.CONNECTED, result[1].type)
+        assertEquals("Wifi1", result[1].wifiName)
+    }
+
+    @Test
+    fun `timeline - unsorted locations are processed chronologically`() = runTest {
+        val locations = listOf(
+            location(ssid = "Wifi1", time = "2025-01-01T10:10:00Z"),
+            location(ssid = null, time = "2025-01-01T10:00:00Z"),
+        )
+        val result = getTimelineForLocations(locations)
+        assertEquals(2, result.size)
+        assertEquals(Event.Type.DISCONNECTED, result[0].type)
+        assertEquals("", result[0].wifiName)
+        assertEquals(Event.Type.CONNECTED, result[1].type)
+        assertEquals("Wifi1", result[1].wifiName)
     }
 
     @Test
